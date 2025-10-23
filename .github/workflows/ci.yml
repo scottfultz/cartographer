@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps chromium
+    
+    - name: Build
+      run: npm run build
+    
+    - name: Run unit tests
+      run: npm test test/extractors.test.ts test/url.test.ts
+    
+    - name: Run crawl smoke test
+      run: npm test test/smoke/crawl-fixture.test.ts
+    
+    - name: Run export smoke tests
+      run: |
+        npm test test/smoke/export-pages-csv.test.ts
+        npm test test/smoke/export-edges-csv.test.ts
+        npm test test/smoke/export-errors-csv.test.ts

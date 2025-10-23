@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spec.continuum.local/atlas/edges.schema.json#1",
+  "title": "EdgeRecord",
+  "description": "Link edge record for Atlas v1.0 - Owner: Cai Frazier",
+  "type": "object",
+  "required": [
+    "sourceUrl",
+    "targetUrl",
+    "anchorText",
+    "nofollow",
+    "isExternal",
+    "location",
+    "discoveredInMode"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "sourceUrl": { "type": "string" },
+    "targetUrl": { "type": "string" },
+    "anchorText": { "type": "string" },
+    "rel": { "type": "string" },
+    "nofollow": { "type": "boolean" },
+    "isExternal": { "type": "boolean" },
+    "location": {
+      "type": "string",
+      "enum": ["nav", "header", "footer", "aside", "main", "other", "unknown"]
+    },
+    "selectorHint": { "type": "string" },
+    "discoveredInMode": {
+      "type": "string",
+      "enum": ["raw", "prerender", "full"]
+    },
+    "httpStatusAtTo": { "type": "integer" }
+  }
+}

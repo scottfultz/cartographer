@@ -1,0 +1,134 @@
+/*
+ * Copyright © 2025 Cai Frazier.
+ * All rights reserved. Unauthorized copying, modification, or distribution is prohibited.
+ * Proprietary and confidential.
+ */
+
+import { readFile } from "fs/promises";
+import { sha256 } from "../../utils/hashing.js";
+import type { AtlasManifest } from "../../core/types.js";
+
+/**
+ * Build Atlas manifest with owner attribution and integrity hashes
+ */
+export async function buildManifest(opts: {
+  parts: {
+    pages: string[];
+    edges: string[];
+    assets: string[];
+    errors: string[];
+    accessibility?: string[];
+  };
+  notes: string[];
+  stagingDir: string;
+  renderMode: string;
+  robotsRespect: boolean;
+  robotsOverride: boolean;
+  provenance?: {
+    resumeOf?: string;
+    checkpointInterval?: number;
+    gracefulShutdown?: boolean;
+  };
+}): Promise<AtlasManifest> {
+  const files: Record<string, string> = {};
+  
+  // Compute integrity hashes for all parts
+  const allParts = [
+    ...opts.parts.pages,
+    ...opts.parts.edges,
+    ...opts.parts.assets,
+    ...opts.parts.errors,
+    ...(opts.parts.accessibility || [])
+  ];
+  
+  for (const partPath of allParts) {
+    const content = await readFile(partPath);
+    // Use relative path from staging dir for integrity keys
+    const relativePath = partPath.replace(opts.stagingDir + "/", "");
+    files[relativePath] = sha256(content);
+  }
+  
+  // Spec and schema version
+  const specVersion = "1.0.0";
+  const schemaVersion = "2025-10-22";
+
+  // Compute canonical schema hashes for each dataset
+  async function schemaHash(schemaPath: string): Promise<string> {
+    const content = await readFile(schemaPath);
+    return sha256(content);
+  }
+
+  // Dataset metadata
+  const datasets: Record<string, any> = {};
+  for (const [name, partList] of Object.entries({
+    pages: opts.parts.pages,
+    edges: opts.parts.edges,
+    assets: opts.parts.assets,
+    errors: opts.parts.errors,
+    ...(opts.parts.accessibility ? { accessibility: opts.parts.accessibility } : {})
+  })) {
+    const schemaFile = `schemas/${name}.schema.json`;
+    const schemaAbs = `${opts.stagingDir}/${schemaFile}`;
+    datasets[name] = {
+      name,
+      partCount: partList.length,
+      recordCount: 0, // TODO: fill from summary
+      bytes: 0, // TODO: fill from part sizes
+      schema: `${schemaFile}#1`,
+      schemaVersion,
+      schemaHash: await schemaHash(schemaAbs)
+    };
+  }
+
+  return {
+    atlasVersion: "1.0",
+    specVersion,
+    schemaVersion,
+    incomplete: true, // Set to true at crawl start, flip to false after finalization
+    owner: {
+      name: "Cai Frazier"
+    },
+    consumers: ["Continuum SEO", "Horizon Accessibility"],
+    hashing: {
+      algorithm: "sha256",
+      urlKeyAlgo: "sha1",
+      rawHtmlHash: "sha256 of raw HTTP body",
+      domHash: "sha256 of document.documentElement.outerHTML"
+    },
+    parts: {
+      pages: opts.parts.pages.map(p => p.replace(opts.stagingDir + "/", "")),
+      edges: opts.parts.edges.map(p => p.replace(opts.stagingDir + "/", "")),
+      assets: opts.parts.assets.map(p => p.replace(opts.stagingDir + "/", "")),
+      errors: opts.parts.errors.map(p => p.replace(opts.stagingDir + "/", "")),
+      ...(opts.parts.accessibility ? { accessibility: opts.parts.accessibility.map(p => p.replace(opts.stagingDir + "/", "")) } : {})
+    },
+    schemas: {
+      pages: "schemas/pages.schema.json#1",
+      edges: "schemas/edges.schema.json#1",
+      assets: "schemas/assets.schema.json#1",
+      errors: "schemas/errors.schema.json#1",
+      ...(opts.parts.accessibility ? { accessibility: "schemas/accessibility.schema.json#1" } : {})
+    },
+    datasets,
+    capabilities: {
+      renderModes: [opts.renderMode as any],
+      robots: {
+        respectsRobotsTxt: opts.robotsRespect,
+        overrideUsed: opts.robotsOverride
+      }
+    },
+    configIncluded: false,
+    redactionApplied: false,
+    notes: [
+      ...opts.notes,
+      ...(opts.provenance?.resumeOf ? [`Resumed from crawl: ${opts.provenance.resumeOf}`] : []),
+      ...(opts.provenance?.checkpointInterval ? [`Checkpoint interval: ${opts.provenance.checkpointInterval} pages`] : []),
+      ...(opts.provenance?.gracefulShutdown !== undefined ? [`Graceful shutdown: ${opts.provenance.gracefulShutdown}`] : [])
+    ],
+    integrity: {
+      files
+    },
+    createdAt: new Date().toISOString(),
+    generator: "cartographer-engine/1.0.0"
+  };
+}

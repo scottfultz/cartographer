@@ -1,0 +1,4 @@
+{"ts":"2025-10-23T02:04:52.781Z","level":"info","event":"crawl.started","crawlId":"d0ed68ce10d4a2f4","seeds":["https://example.com"],"mode":"raw","paramPolicy":"sample","rps":3}
+{"ts":"2025-10-23T02:04:53.694Z","level":"info","event":"crawl.pageProcessed","crawlId":"d0ed68ce10d4a2f4","url":"https://example.com/","depth":0,"status":200,"fetchMs":284,"renderMs":1,"extractMs":29,"writeMs":1,"rssMB":171}
+{"ts":"2025-10-23T02:04:53.713Z","level":"info","event":"crawl.checkpoint","crawlId":"d0ed68ce10d4a2f4","pageCount":1,"edges":1,"assets":0,"errors":0,"rssMB":173}
+{"ts":"2025-10-23T02:04:53.880Z","level":"info","event":"crawl.finished","crawlId":"d0ed68ce10d4a2f4","durationMs":1115,"pages":1,"edges":1,"assets":0,"errors":0,"atls":"./tmp/ndjson-test.atls"}

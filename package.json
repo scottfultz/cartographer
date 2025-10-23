@@ -1,0 +1,52 @@
+{
+  "name": "@caifrazier/cartographer-engine",
+  "version": "1.0.0",
+  "description": "Headless TypeScript web crawler that produces .atls (Atlas v1.0) archive files. Consumed by the Continuum application.",
+  "author": "Cai Frazier",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "cartographer": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p packages/atlas-sdk/tsconfig.json",
+    "build:test": "tsc -p tsconfig.tests.json",
+    "pretest": "node scripts/make-example-atls.js",
+    "test": "npm run build && npm run build:test && node --test dist/test/**/*.test.js"
+    ,
+    "lint": "eslint .",
+    "crawl": "node dist/cli/index.js crawl",
+    "export": "node dist/cli/index.js export",
+    "stress": "node dist/cli/index.js stress"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@fast-csv/format": "^5.0.0",
+    "@mongodb-js/zstd": "^1.2.0",
+    "@types/archiver": "^6.0.3",
+    "@types/yauzl": "^2.10.3",
+    "ajv": "^8.17.1",
+    "archiver": "^7.0.1",
+    "cheerio": "^1.1.2",
+    "fast-glob": "^3.3.2",
+    "p-limit": "^5.0.0",
+    "picocolors": "^1.0.0",
+    "playwright": "^1.48.0",
+    "undici": "^6.19.8",
+    "yargs": "^17.7.2",
+    "yauzl": "^3.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/yargs": "^17.0.33",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "eslint": "^9.11.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.3"
+  }
+}

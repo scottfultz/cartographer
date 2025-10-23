@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spec.continuum.local/atlas/pages.schema.json#1",
+  "title": "PageRecord",
+  "description": "Page crawl record for Atlas v1.0 - Owner: Cai Frazier",
+  "type": "object",
+  "required": [
+    "url",
+    "finalUrl",
+    "normalizedUrl",
+    "urlKey",
+    "origin",
+    "pathname",
+    "statusCode",
+    "fetchedAt",
+    "rawHtmlHash",
+    "title",
+    "renderMode",
+    "depth",
+    "discoveredInMode"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "url": { "type": "string" },
+    "finalUrl": { "type": "string" },
+    "normalizedUrl": { "type": "string" },
+    "urlKey": { "type": "string" },
+    "origin": { "type": "string" },
+    "pathname": { "type": "string" },
+    "statusCode": { "type": "integer" },
+    "fetchedAt": { "type": "string", "format": "date-time" },
+    "rawHtmlHash": { "type": "string" },
+    "domHash": { "type": "string" },
+    "title": { "type": "string" },
+    "metaDescription": { "type": "string" },
+    "h1": { "type": "string" },
+    "headings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["level", "text"],
+        "properties": {
+          "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    "canonical": { "type": "string" },
+    "robotsMeta": { "type": "string" },
+    "robotsHeader": { "type": "string" },
+    "textSample": { "type": "string" },
+    "renderMode": {
+      "type": "string",
+      "enum": ["raw", "prerender", "full"]
+    },
+    "renderMs": { "type": "integer" },
+    "navEndReason": {
+      "type": "string",
+      "enum": ["load", "domcontentloaded", "networkidle", "timeout", "error"]
+    },
+    "depth": { "type": "integer", "minimum": 0 },
+    "discoveredInMode": {
+      "type": "string",
+      "enum": ["raw", "prerender", "full"]
+    },
+    "error": { "type": "string" }
+  }
+}

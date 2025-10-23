@@ -1,0 +1,17 @@
+%% Module Dependency Diagram
+flowchart TD
+    CLI --> Scheduler
+    Scheduler --> Renderer
+    Scheduler --> Extractors
+    Renderer --> Extractors
+    Extractors --> Writer
+    Writer --> Finalizer
+    Finalizer --> ATLS[.atls Archive]
+    ATLS --> Validator
+    ATLS --> Exporter
+    ATLS --> SDK
+    Validator -->|AJV| Schemas
+    Writer -->|manifest| Manifest
+    Writer -->|summary| Summary
+    Writer -->|schemas| Schemas
+    SDK -->|types| Types

@@ -1,0 +1,10 @@
+%% Data Flow Diagram
+flowchart LR
+    Scheduler -->|URLs| Renderer
+    Renderer -->|DOM, HTTP| Extractors
+    Extractors -->|Facts, Links, Assets, Accessibility| Writer
+    Writer -->|JSONL Parts| Finalizer
+    Finalizer -->|manifest, summary, schemas| ATLS[.atls Archive]
+    ATLS -->|stream| Validator
+    ATLS -->|stream| Exporter
+    ATLS -->|stream| SDK

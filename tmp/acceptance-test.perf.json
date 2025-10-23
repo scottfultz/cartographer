@@ -1,0 +1,48 @@
+{
+  "duration": {
+    "totalSeconds": 2,
+    "startTime": "2025-10-23T03:42:16.289Z",
+    "endTime": "2025-10-23T03:42:18.615Z"
+  },
+  "counts": {
+    "totalPages": 1,
+    "totalEdges": 1,
+    "totalAssets": 0,
+    "totalErrors": 0
+  },
+  "throughput": {
+    "avgPagesPerSec": 0.43,
+    "bytesWritten": 1443,
+    "bytesWrittenMB": 0
+  },
+  "memory": {
+    "currentRssMB": 221,
+    "peakRssMB": 221
+  },
+  "timings": {
+    "fetch": {
+      "p50": 173,
+      "p95": 173,
+      "p99": 173,
+      "count": 1
+    },
+    "render": {
+      "p50": 937,
+      "p95": 937,
+      "p99": 937,
+      "count": 1
+    },
+    "extract": {
+      "p50": 26,
+      "p95": 26,
+      "p99": 26,
+      "count": 1
+    },
+    "write": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "count": 1
+    }
+  }
+}

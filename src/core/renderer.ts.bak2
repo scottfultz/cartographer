@@ -1,0 +1,494 @@
+/*
+ * Copyright © 2025 Cai Frazier.
+ * All rights reserved. Unauthorized copying, modification, or distribution is prohibited.
+ * Proprietary and confidential.
+ */
+
+import type { Browser, BrowserContext } from "playwright";
+import { chromium } from "playwright";
+import { load as cheerioLoad } from "cheerio";
+import type { EngineConfig, EdgeRecord, AssetRecord, NavEndReason, EdgeLocation, RenderMode } from "./types.js";
+import { sha256Hex } from "../utils/hashing.js";
+import { normalizeUrl, isSameOrigin, safeJoinUrl } from "../utils/url.js";
+import { log } from "../utils/logging.js";
+import type { FetchResult } from "./fetcher.js";
+
+// Browser lifecycle state
+let browser: Browser | null = null;
+let context: BrowserContext | null = null;
+let pagesRendered = 0;
+const CONTEXT_RECYCLE_THRESHOLD = 50;
+
+export interface RenderResult {
+  modeUsed: RenderMode;
+  navEndReason: NavEndReason;
+  dom: string;
+  domHash: string;
+  renderMs: number;
+  performance: Record<string, number>;
+  
+  // Extracted data
+  title?: string;
+  metaDescription?: string;
+  h1?: string;
+  headings: Array<{ level: number; text: string }>;
+  canonical?: string;
+  robotsMeta?: string;
+  textSample: string;
+  internalLinks: EdgeRecord[];
+  externalLinks: EdgeRecord[];
+  assets: AssetRecord[];
+  hreflangLinks: Array<{ lang: string; url: string }>;
+}
+
+/**
+ * Initialize Playwright browser (Chromium only)
+ */
+export async function initBrowser(cfg: EngineConfig): Promise<void> {
+  if (browser) {
+    log("warn", "Browser already initialized");
+    return;
+  }
+
+  log("info", `Initializing Chromium browser (concurrency: ${cfg.render.concurrency})`);
+  
+  browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+  context = await browser.newContext({
+    userAgent: cfg.http.userAgent,
+    viewport: { width: 1280, height: 720 }
+  });
+
+  log("info", "✓ Renderer setup verified – default mode: prerender ✓ Playwright installed ✓");
+}
+
+/**
+ * Close browser and cleanup
+ */
+export async function closeBrowser(): Promise<void> {
+  if (context) {
+    await context.close();
+    context = null;
+  }
+  
+  if (browser) {
+    await browser.close();
+    browser = null;
+  }
+  
+  pagesRendered = 0;
+  log("info", "Browser closed");
+}
+
+/**
+ * Recycle browser context after threshold pages (memory management)
+ */
+async function recycleContextIfNeeded(cfg: EngineConfig): Promise<void> {
+  if (pagesRendered >= CONTEXT_RECYCLE_THRESHOLD) {
+    log("debug", `Recycling browser context after ${pagesRendered} pages`);
+    
+    if (context) {
+      await context.close();
+    }
+    
+    if (browser) {
+      context = await browser.newContext({
+        userAgent: cfg.http.userAgent,
+        viewport: { width: 1280, height: 720 }
+      });
+    }
+    
+    pagesRendered = 0;
+  }
+}
+
+/**
+ * Main render function - handles raw, prerender, and full modes
+ */
+export async function renderPage(
+  cfg: EngineConfig,
+  url: string,
+  rawFetch: FetchResult
+): Promise<RenderResult> {
+  const mode = cfg.render.mode;
+  const startTime = performance.now();
+  
+  log("debug", `[Renderer] ${mode} ${url}`);
+
+  // RAW MODE: Parse HTML with Cheerio (no browser)
+  if (mode === "raw") {
+    const result = await renderRawMode(url, rawFetch);
+    const renderMs = Math.round(performance.now() - startTime);
+    log("info", `[Renderer] raw ${url} → ${renderMs}ms cheerio`);
+    return { ...result, renderMs, performance: { parseMs: renderMs } };
+  }
+
+  // PRERENDER or FULL MODE: Use Playwright
+  if (!browser || !context) {
+    throw new Error("Browser not initialized. Call initBrowser() first.");
+  }
+
+  await recycleContextIfNeeded(cfg);
+
+  const result = await renderWithPlaywright(cfg, url, rawFetch, mode);
+  const renderMs = Math.round(performance.now() - startTime);
+  
+  log("info", `[Renderer] ${mode} ${url} → ${renderMs}ms ${result.navEndReason}`);
+  
+  pagesRendered++;
+  
+  return { ...result, renderMs };
+}
+
+/**
+ * Raw mode: Parse HTML with Cheerio (no JavaScript execution)
+ */
+async function renderRawMode(url: string, rawFetch: FetchResult): Promise<Omit<RenderResult, 'renderMs' | 'performance'>> {
+  const html = rawFetch.bodyBuffer.toString('utf-8');
+  const $ = cheerioLoad(html);
+  
+  // Extract basic facts
+  const title = $('title').first().text().trim() || undefined;
+  const metaDescription = $('meta[name="description"]').attr('content') || undefined;
+  const h1 = $('h1').first().text().trim() || undefined;
+  const canonical = $('link[rel="canonical"]').attr('href') || undefined;
+  const robotsMeta = $('meta[name="robots"]').attr('content') || undefined;
+  
+  // Extract headings
+  const headings: Array<{ level: number; text: string }> = [];
+  $('h1, h2, h3, h4, h5, h6').each((_, el) => {
+    const level = parseInt(el.tagName.substring(1));
+    const text = $(el).text().trim();
+    if (text) {
+      headings.push({ level, text });
+    }
+  });
+  
+  // Text sample
+  const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
+  const textSample = bodyText.substring(0, 1500);
+  
+  // Extract links (basic, no location detection)
+  const internalLinks: EdgeRecord[] = [];
+  const externalLinks: EdgeRecord[] = [];
+  
+  $('a[href]').each((_, el) => {
+    const href = $(el).attr('href');
+    if (!href) return;
+    
+    const targetUrl = safeJoinUrl(url, href);
+    if (!targetUrl) return;
+    
+    const anchorText = $(el).text().trim();
+    const rel = $(el).attr('rel') || undefined;
+    const nofollow = rel?.includes('nofollow') || false;
+    const isExternal = !isSameOrigin(url, targetUrl);
+    
+    const edge: EdgeRecord = {
+      sourceUrl: url,
+      targetUrl,
+      anchorText,
+      rel,
+      nofollow,
+      isExternal,
+      location: "other",
+      discoveredInMode: "raw"
+    };
+    
+    if (isExternal) {
+      externalLinks.push(edge);
+    } else {
+      internalLinks.push(edge);
+    }
+  });
+  
+  // Extract hreflang
+  const hreflangLinks: Array<{ lang: string; url: string }> = [];
+  $('link[rel="alternate"][hreflang]').each((_, el) => {
+    const lang = $(el).attr('hreflang');
+    const href = $(el).attr('href');
+    if (lang && href) {
+      hreflangLinks.push({ lang, url: href });
+    }
+  });
+  
+  // Assets (basic - no visibility/lazy-load detection in raw mode)
+  const assets: AssetRecord[] = [];
+  $('img, video').each((_, el) => {
+    const isImage = el.tagName === 'IMG';
+    const src = $(el).attr('src') || '';
+    const alt = $(el).attr('alt') || '';
+    const loading = $(el).attr('loading') || '';
+    
+    if (src) {
+      assets.push({
+        pageUrl: url,
+        assetUrl: safeJoinUrl(url, src) || src,
+        type: isImage ? 'image' : 'video',
+        alt,
+        hasAlt: alt.length > 0,
+        visible: true, // Assume visible in raw mode
+        inViewport: false,
+        loading,
+        wasLazyLoaded: loading === 'lazy'
+      });
+    }
+  });
+  
+  return {
+    modeUsed: "raw",
+    navEndReason: "fetch",
+    dom: html,
+    domHash: sha256Hex(html),
+    title,
+    metaDescription,
+    h1,
+    headings,
+    canonical,
+    robotsMeta,
+    textSample,
+    internalLinks,
+    externalLinks,
+    assets: assets.slice(0, 1000), // Cap at 1000
+    hreflangLinks
+  };
+}
+
+/**
+ * Prerender/Full mode: Use Playwright to render with JavaScript
+ */
+async function renderWithPlaywright(
+  cfg: EngineConfig,
+  url: string,
+  rawFetch: FetchResult,
+  mode: RenderMode
+): Promise<Omit<RenderResult, 'renderMs'>> {
+  if (!context) {
+    throw new Error("Browser context not available");
+  }
+
+  const page = await context.newPage();
+  const perfMetrics: Record<string, number> = {};
+  let requestCount = 0;
+  let bytesLoaded = 0;
+  let navEndReason: NavEndReason = "networkidle";
+
+  try {
+    // Request interception for caps
+    await page.route('**/*', (route) => {
+      requestCount++;
+      
+      if (requestCount > cfg.render.maxRequestsPerPage) {
+        navEndReason = "error";
+        route.abort('failed');
+        return;
+      }
+      
+      route.continue();
+    });
+
+    // Track bytes loaded
+    page.on('response', async (response) => {
+      try {
+        const buffer = await response.body().catch(() => null);
+        if (buffer) {
+          bytesLoaded += buffer.length;
+          
+          if (bytesLoaded > cfg.render.maxBytesPerPage) {
+            navEndReason = "error";
+            await page.close();
+          }
+        }
+      } catch (e) {
+        // Ignore response body errors
+      }
+    });
+
+    // Navigate with timeout
+    const navStart = performance.now();
+    
+    try {
+      await page.goto(url, {
+        waitUntil: 'networkidle',
+        timeout: cfg.render.timeoutMs
+      });
+      navEndReason = "networkidle";
+    } catch (error: any) {
+      if (error.message?.includes('Timeout')) {
+        navEndReason = "timeout";
+      } else {
+        navEndReason = "error";
+      }
+    }
+    
+    perfMetrics.navMs = Math.round(performance.now() - navStart);
+
+    // Extract DOM
+    const outerHTML = await page.evaluate(() => {
+      // @ts-expect-error - Running in browser context
+      return document.documentElement.outerHTML as string;
+    });
+    const domHash = sha256Hex(outerHTML);
+
+    // Extract page facts
+    const title = await page.title().catch(() => undefined);
+    const metaDescription = await page.$eval('meta[name="description"]', (el: any) => el.getAttribute("content") as string | null).catch(() => undefined);
+    const h1 = await page.$eval("h1", (el: any) => el.textContent?.trim() as string).catch(() => undefined);
+    const canonical = await page.$eval('link[rel="canonical"]', (el: any) => el.getAttribute("href") as string | null).catch(() => undefined);
+    const robotsMeta = await page.$eval('meta[name="robots"]', (el: any) => el.getAttribute("content") as string | null).catch(() => undefined);
+
+    // Extract headings
+    const headings = await page.$$eval("h1, h2, h3, h4, h5, h6", (els: any[]) =>
+      els.map((el: any) => ({
+        level: parseInt(el.tagName.substring(1)),
+        text: el.textContent?.trim() || ""
+      }))
+    );
+
+    // Extract text sample
+    const bodyText = await page.evaluate(() => {
+      // @ts-expect-error - Running in browser context
+      return document.body?.innerText || "";
+    }) as string;
+    const textSample = bodyText.replace(/\s+/g, " ").trim().substring(0, 1500);
+
+    // Extract links
+    const links = await page.$$eval("a[href]", (els: any[], pageUrl: string) => {
+      return els.map((el: any) => {
+        const href = el.getAttribute("href") || "";
+        const anchorText = el.textContent?.trim() || "";
+        const rel = el.getAttribute("rel") || "";
+        
+        // Detect location by traversing ancestors
+        let location = "other";
+        let current = el.parentElement;
+        while (current) {
+          const tag = current.tagName?.toLowerCase();
+          if (tag === "nav") { location = "nav"; break; }
+          if (tag === "header") { location = "header"; break; }
+          if (tag === "footer") { location = "footer"; break; }
+          if (tag === "aside") { location = "aside"; break; }
+          if (tag === "main") { location = "main"; break; }
+          current = current.parentElement;
+        }
+        
+        return {
+          href,
+          anchorText,
+          rel,
+          nofollow: rel.includes("nofollow"),
+          location
+        };
+      });
+    }, url);
+
+    // Separate internal/external links
+    const internalLinks: EdgeRecord[] = [];
+    const externalLinks: EdgeRecord[] = [];
+
+    for (const link of links) {
+      const targetUrl = safeJoinUrl(url, link.href);
+      if (!targetUrl) continue;
+
+      const isExternal = !isSameOrigin(url, targetUrl);
+
+      const edge: EdgeRecord = {
+        sourceUrl: url,
+        targetUrl,
+        anchorText: link.anchorText,
+        rel: link.rel || undefined,
+        nofollow: link.nofollow,
+        isExternal,
+        location: link.location as EdgeLocation,
+        discoveredInMode: mode
+      };
+
+      if (isExternal) {
+        externalLinks.push(edge);
+      } else {
+        internalLinks.push(edge);
+      }
+    }
+
+    // Extract media assets
+    const assets: AssetRecord[] = await page.evaluate((pageUrl: string) => {
+      // @ts-expect-error - Running in browser context
+      const globalWindow = window as any;
+      // @ts-expect-error - Running in browser context
+      const elements = Array.from(document.querySelectorAll("img, video"));
+      return elements.map((el: any) => {
+        const isImage = el.tagName === "IMG";
+        const src = el.getAttribute("src") || "";
+        const alt = el.getAttribute("alt") || "";
+        const loading = el.getAttribute("loading") || "";
+
+        // Get dimensions
+        const rect = el.getBoundingClientRect();
+        const naturalWidth = isImage ? el.naturalWidth : undefined;
+        const naturalHeight = isImage ? el.naturalHeight : undefined;
+
+        return {
+          pageUrl,
+          assetUrl: src,
+          type: isImage ? "image" : "video",
+          alt,
+          hasAlt: alt.length > 0,
+          naturalWidth,
+          naturalHeight,
+          displayWidth: rect.width,
+          displayHeight: rect.height,
+          visible: rect.width > 0 && rect.height > 0,
+          inViewport: rect.top < globalWindow.innerHeight && rect.bottom > 0,
+          loading,
+          wasLazyLoaded: loading === "lazy"
+        };
+      });
+    }, url) as AssetRecord[];
+
+    // Resolve asset URLs
+    for (const asset of assets) {
+      const resolved = safeJoinUrl(url, asset.assetUrl);
+      if (resolved) {
+        asset.assetUrl = resolved;
+      }
+    }
+
+    // Extract hreflang
+    const hreflangLinks = await page.$$eval(
+      'link[rel="alternate"][hreflang]',
+      (els: any[]) =>
+        els.map((el: any) => ({
+          lang: el.getAttribute("hreflang") || "",
+          url: el.getAttribute("href") || ""
+        }))
+    );
+
+    await page.close();
+
+    return {
+      modeUsed: mode,
+      navEndReason,
+      dom: outerHTML,
+      domHash,
+      performance: perfMetrics,
+      title,
+      metaDescription: metaDescription || undefined,
+      h1,
+      headings,
+      canonical: canonical || undefined,
+      robotsMeta: robotsMeta || undefined,
+      textSample,
+      internalLinks,
+      externalLinks,
+      assets: assets.slice(0, 1000), // Cap at 1000
+      hreflangLinks
+    };
+
+  } catch (error) {
+    await page.close().catch(() => {});
+    throw error;
+  }
+}

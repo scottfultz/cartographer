@@ -1,0 +1,54 @@
+%% System Queues, Producers, Consumers, Failure Paths
+flowchart TD
+    CLI[CLI Entrypoint]
+    Scheduler[Scheduler]
+    Fetcher[Fetcher]
+    Renderer[Renderer (Playwright)]
+    Extractors[Extractors]
+    Writer[Atlas Writer]
+    Finalizer[Finalizer]
+    ATLS[.atls Archive]
+    Validator[Validator]
+    Exporter[CSV Exporter]
+    SDK[Atlas SDK Consumers]
+
+    %% Queues
+    Q1[URL Queue]
+    Q2[Page Render Queue]
+    Q3[Extraction Queue]
+    Q4[Record Stream]
+    Q5[Write Queue]
+    Q6[Finalization Queue]
+    Q7[Validation Queue]
+    Q8[Export Queue]
+    Q9[SDK Stream]
+
+    %% Producers/Consumers and Failure Paths
+    CLI --> Q1
+    Q1 -->|Producer: CLI, Consumer: Scheduler| Scheduler
+    Scheduler --> Q2
+    Q2 -->|Producer: Scheduler, Consumer: Renderer| Renderer
+    Renderer --> Q3
+    Q3 -->|Producer: Renderer, Consumer: Extractors| Extractors
+    Extractors --> Q4
+    Q4 -->|Producer: Extractors, Consumer: Writer| Writer
+    Writer --> Q5
+    Q5 -->|Producer: Writer, Consumer: Finalizer| Finalizer
+    Finalizer --> Q6
+    Q6 -->|Producer: Finalizer, Consumer: ATLS| ATLS
+    ATLS --> Q7
+    Q7 -->|Producer: ATLS, Consumer: Validator| Validator
+    ATLS --> Q8
+    Q8 -->|Producer: ATLS, Consumer: Exporter| Exporter
+    ATLS --> Q9
+    Q9 -->|Producer: ATLS, Consumer: SDK| SDK
+
+    %% Failure Paths
+    Scheduler -.->|Error: queue overflow, checkpoint fail| CLI
+    Renderer -.->|Error: browser crash, memory plateau| Scheduler
+    Extractors -.->|Error: DOM parse fail, missing data| Renderer
+    Writer -.->|Error: fsync fail, stream error| Extractors
+    Finalizer -.->|Error: manifest/hash fail| Writer
+    Validator -.->|Error: schema drift, integrity fail| ATLS
+    Exporter -.->|Error: CSV write fail| ATLS
+    SDK -.->|Error: stream decompress fail| ATLS
