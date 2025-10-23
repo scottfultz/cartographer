@@ -1,0 +1,144 @@
+sourceUrl,targetUrl,isExternal,anchorText,rel,nofollow,location,selectorHint,discoveredInMode
+https://drancich.com/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(2),prerender
+https://drancich.com/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(3),prerender
+https://drancich.com/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(4),prerender
+https://drancich.com/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(5),prerender
+https://drancich.com/,https://drancich.com/,false,Home,,false,header,a:nth-of-type(6),prerender
+https://drancich.com/,https://drancich.com/about-us/,false,About Us,,false,header,a:nth-of-type(7),prerender
+https://drancich.com/,https://drancich.com/services/,false,Services,,false,header,a:nth-of-type(8),prerender
+https://drancich.com/,https://drancich.com/contact-us/,false,Contact Us,,false,header,a:nth-of-type(9),prerender
+https://drancich.com/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(10),prerender
+https://drancich.com/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(11),prerender
+https://drancich.com/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(12),prerender
+https://drancich.com/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(13),prerender
+https://drancich.com/,https://drancich.com/,false,Home,,false,header,a:nth-of-type(14),prerender
+https://drancich.com/,https://drancich.com/about-us/,false,About Us,,false,header,a:nth-of-type(15),prerender
+https://drancich.com/,https://drancich.com/services/,false,Services,,false,header,a:nth-of-type(16),prerender
+https://drancich.com/,https://drancich.com/contact-us/,false,Contact Us,,false,header,a:nth-of-type(17),prerender
+https://drancich.com/,https://drancich.com/#main_content,false,3,,false,header,a:nth-of-type(18),prerender
+https://drancich.com/,https://drancich.com/#request_appointment,false,Request an Appointment,,false,header,a:nth-of-type(19),prerender
+https://drancich.com/,https://drancich.com/about-us/,false,Learn More About Dr. Ancich,,false,other,a:nth-of-type(20),prerender
+https://drancich.com/,https://drancich.com/services/#teeth_whitening,false,Teeth Whitening,,false,other,a:nth-of-type(21),prerender
+https://drancich.com/,https://drancich.com/services/#crowns,false,Crowns,,false,other,a:nth-of-type(22),prerender
+https://drancich.com/,https://drancich.com/services/#porcelain_veneers,false,Porcelain Veneers,,false,other,a:nth-of-type(23),prerender
+https://drancich.com/,https://drancich.com/services/#composite_bonding,false,Composite Bonding,,false,other,a:nth-of-type(24),prerender
+https://drancich.com/,https://drancich.com/services/#fixed_bridges,false,Fixed Bridges,,false,other,a:nth-of-type(25),prerender
+https://drancich.com/,https://drancich.com/services/#airway_breathing,false,Airway / Breathing,,false,other,a:nth-of-type(26),prerender
+https://drancich.com/,https://drancich.com/services/#comprehensive_diagnostic_exam,false,Comprehensive Diagnostic Exam,,false,other,a:nth-of-type(27),prerender
+https://drancich.com/,https://drancich.com/services/#implant_restorations,false,Implant Restorations,,false,other,a:nth-of-type(28),prerender
+https://drancich.com/,https://drancich.com/services/#sleep_apnea_options,false,Sleep Apnea Options,,false,other,a:nth-of-type(29),prerender
+https://drancich.com/,https://drancich.com/services/#tmj_tmd_solutions,false,TMJ – TMD Solutions,,false,other,a:nth-of-type(30),prerender
+https://drancich.com/,https://drancich.com/services/#periodontal_assessment,false,Periodontal Assessment and Disease Control,,false,other,a:nth-of-type(31),prerender
+https://drancich.com/,https://drancich.com/services/,false,Learn More About Our Services,,false,other,a:nth-of-type(32),prerender
+https://drancich.com/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(34),prerender
+https://drancich.com/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(35),prerender
+https://drancich.com/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(36),prerender
+https://drancich.com/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(37),prerender
+https://drancich.com/,https://drancich.com/,false,Home,,false,footer,a:nth-of-type(38),prerender
+https://drancich.com/,https://drancich.com/about-us/,false,About Us,,false,footer,a:nth-of-type(39),prerender
+https://drancich.com/,https://drancich.com/services/,false,Services,,false,footer,a:nth-of-type(40),prerender
+https://drancich.com/,https://drancich.com/contact-us/,false,Contact Us,,false,footer,a:nth-of-type(41),prerender
+https://drancich.com/,https://drancich.com/privacy-policy/,false,Privacy Policy,,false,footer,a:nth-of-type(42),prerender
+https://drancich.com/,tel:+12533835636,true,(253) 383-5636,noopener,false,header,a:nth-of-type(1),prerender
+https://drancich.com/,https://g.page/r/CWyCxivo7IU0EAE/review,true,Leave Us A Review,,false,other,a:nth-of-type(33),prerender
+https://drancich.com/about-us/,https://drancich.com/,false,,,false,header,a:nth-of-type(1),prerender
+https://drancich.com/about-us/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(3),prerender
+https://drancich.com/about-us/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(4),prerender
+https://drancich.com/about-us/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(5),prerender
+https://drancich.com/about-us/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(6),prerender
+https://drancich.com/about-us/,https://drancich.com/,false,Home,,false,header,a:nth-of-type(7),prerender
+https://drancich.com/about-us/,https://drancich.com/about-us/,false,About Us,,false,header,a:nth-of-type(8),prerender
+https://drancich.com/about-us/,https://drancich.com/services/,false,Services,,false,header,a:nth-of-type(9),prerender
+https://drancich.com/about-us/,https://drancich.com/contact-us/,false,Contact Us,,false,header,a:nth-of-type(10),prerender
+https://drancich.com/about-us/,https://drancich.com/about-us/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(11),prerender
+https://drancich.com/about-us/,https://drancich.com/about-us/#meet_team,false,Meet Our Team,,false,other,a:nth-of-type(12),prerender
+https://drancich.com/about-us/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(13),prerender
+https://drancich.com/about-us/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(14),prerender
+https://drancich.com/about-us/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(15),prerender
+https://drancich.com/about-us/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(16),prerender
+https://drancich.com/about-us/,https://drancich.com/,false,Home,,false,footer,a:nth-of-type(17),prerender
+https://drancich.com/about-us/,https://drancich.com/about-us/,false,About Us,,false,footer,a:nth-of-type(18),prerender
+https://drancich.com/about-us/,https://drancich.com/services/,false,Services,,false,footer,a:nth-of-type(19),prerender
+https://drancich.com/about-us/,https://drancich.com/contact-us/,false,Contact Us,,false,footer,a:nth-of-type(20),prerender
+https://drancich.com/about-us/,https://drancich.com/privacy-policy/,false,Privacy Policy,,false,footer,a:nth-of-type(21),prerender
+https://drancich.com/about-us/,tel:+12533835636,true,(253) 383-5636,noopener,false,header,a:nth-of-type(2),prerender
+https://drancich.com/about-us/,"https://maps.google.com/maps?ll=47.274609,-122.465807&z=16&t=m&hl=en-US&gl=US&mapclient=apiv3",true,,noopener,false,footer,a:nth-of-type(22),prerender
+https://drancich.com/about-us/,https://www.google.com/intl/en-US_US/help/terms_maps.html,true,Terms,noopener,false,footer,a:nth-of-type(23),prerender
+https://drancich.com/about-us/,"https://www.google.com/maps/@47.274609,-122.4658069,16z/data=!10m1!1e1!12b1?source=apiv3&rapsrc=apiv3",true,Report a map error,noopener,false,footer,a:nth-of-type(24),prerender
+https://drancich.com/services/,https://drancich.com/,false,,,false,header,a:nth-of-type(1),prerender
+https://drancich.com/services/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(3),prerender
+https://drancich.com/services/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(4),prerender
+https://drancich.com/services/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(5),prerender
+https://drancich.com/services/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(6),prerender
+https://drancich.com/services/,https://drancich.com/,false,Home,,false,header,a:nth-of-type(7),prerender
+https://drancich.com/services/,https://drancich.com/about-us/,false,About Us,,false,header,a:nth-of-type(8),prerender
+https://drancich.com/services/,https://drancich.com/services/,false,Services,,false,header,a:nth-of-type(9),prerender
+https://drancich.com/services/,https://drancich.com/contact-us/,false,Contact Us,,false,header,a:nth-of-type(10),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(11),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(12),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(13),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(14),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(15),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(16),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(17),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(18),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(19),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(20),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(21),prerender
+https://drancich.com/services/,https://drancich.com/services/#request_appointment,false,Schedule An Appointment,,false,other,a:nth-of-type(22),prerender
+https://drancich.com/services/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(23),prerender
+https://drancich.com/services/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(24),prerender
+https://drancich.com/services/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(25),prerender
+https://drancich.com/services/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(26),prerender
+https://drancich.com/services/,https://drancich.com/,false,Home,,false,footer,a:nth-of-type(27),prerender
+https://drancich.com/services/,https://drancich.com/about-us/,false,About Us,,false,footer,a:nth-of-type(28),prerender
+https://drancich.com/services/,https://drancich.com/services/,false,Services,,false,footer,a:nth-of-type(29),prerender
+https://drancich.com/services/,https://drancich.com/contact-us/,false,Contact Us,,false,footer,a:nth-of-type(30),prerender
+https://drancich.com/services/,https://drancich.com/privacy-policy/,false,Privacy Policy,,false,footer,a:nth-of-type(31),prerender
+https://drancich.com/services/,tel:+12533835636,true,(253) 383-5636,noopener,false,header,a:nth-of-type(2),prerender
+https://drancich.com/contact-us/,https://drancich.com/,false,,,false,header,a:nth-of-type(1),prerender
+https://drancich.com/contact-us/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(3),prerender
+https://drancich.com/contact-us/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(4),prerender
+https://drancich.com/contact-us/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(5),prerender
+https://drancich.com/contact-us/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(6),prerender
+https://drancich.com/contact-us/,https://drancich.com/,false,Home,,false,header,a:nth-of-type(7),prerender
+https://drancich.com/contact-us/,https://drancich.com/about-us/,false,About Us,,false,header,a:nth-of-type(8),prerender
+https://drancich.com/contact-us/,https://drancich.com/services/,false,Services,,false,header,a:nth-of-type(9),prerender
+https://drancich.com/contact-us/,https://drancich.com/contact-us/,false,Contact Us,,false,header,a:nth-of-type(10),prerender
+https://drancich.com/contact-us/,https://drancich.com/contact-us/#request_appointment,false,Request An Appointment,,false,other,a:nth-of-type(11),prerender
+https://drancich.com/contact-us/,https://drancich.com/contact-us/#contact_office,false,Send A MESSAGE TO OUR OFFICE,,false,other,a:nth-of-type(12),prerender
+https://drancich.com/contact-us/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(15),prerender
+https://drancich.com/contact-us/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(16),prerender
+https://drancich.com/contact-us/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(17),prerender
+https://drancich.com/contact-us/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(18),prerender
+https://drancich.com/contact-us/,https://drancich.com/,false,Home,,false,footer,a:nth-of-type(19),prerender
+https://drancich.com/contact-us/,https://drancich.com/about-us/,false,About Us,,false,footer,a:nth-of-type(20),prerender
+https://drancich.com/contact-us/,https://drancich.com/services/,false,Services,,false,footer,a:nth-of-type(21),prerender
+https://drancich.com/contact-us/,https://drancich.com/contact-us/,false,Contact Us,,false,footer,a:nth-of-type(22),prerender
+https://drancich.com/contact-us/,https://drancich.com/privacy-policy/,false,Privacy Policy,,false,footer,a:nth-of-type(23),prerender
+https://drancich.com/contact-us/,tel:+12533835636,true,(253) 383-5636,noopener,false,header,a:nth-of-type(2),prerender
+https://drancich.com/contact-us/,tel:+12533835636,true,(253) 383-5636,noopener,false,other,a:nth-of-type(13),prerender
+https://drancich.com/contact-us/,mailto:dr.ancich@gmail.com,true,dr.ancich@gmail.com,noopener,false,other,a:nth-of-type(14),prerender
+https://drancich.com/contact-us/,"https://maps.google.com/maps?ll=47.274609,-122.465807&z=16&t=m&hl=en-US&gl=US&mapclient=apiv3",true,,noopener,false,footer,a:nth-of-type(24),prerender
+https://drancich.com/contact-us/,https://www.google.com/intl/en-US_US/help/terms_maps.html,true,Terms,noopener,false,footer,a:nth-of-type(25),prerender
+https://drancich.com/contact-us/,"https://www.google.com/maps/@47.274609,-122.4658069,16z/data=!10m1!1e1!12b1?source=apiv3&rapsrc=apiv3",true,Report a map error,noopener,false,footer,a:nth-of-type(26),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/,false,,,false,header,a:nth-of-type(1),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(3),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(4),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(5),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(6),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/,false,Home,,false,header,a:nth-of-type(7),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/about-us/,false,About Us,,false,header,a:nth-of-type(8),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/services/,false,Services,,false,header,a:nth-of-type(9),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/contact-us/,false,Contact Us,,false,header,a:nth-of-type(10),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/,false,https://drancich.com,noreferrer noopener,false,other,a:nth-of-type(11),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/,false,Home,,false,nav,a:nth-of-type(12),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/about-us/,false,About Us,,false,nav,a:nth-of-type(13),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/services/,false,Services,,false,nav,a:nth-of-type(14),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/contact-us/,false,Contact Us,,false,nav,a:nth-of-type(15),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/,false,Home,,false,footer,a:nth-of-type(16),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/about-us/,false,About Us,,false,footer,a:nth-of-type(17),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/services/,false,Services,,false,footer,a:nth-of-type(18),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/contact-us/,false,Contact Us,,false,footer,a:nth-of-type(19),prerender
+https://drancich.com/privacy-policy/,https://drancich.com/privacy-policy/,false,Privacy Policy,,false,footer,a:nth-of-type(20),prerender
+https://drancich.com/privacy-policy/,tel:+12533835636,true,(253) 383-5636,noopener,false,header,a:nth-of-type(2),prerender

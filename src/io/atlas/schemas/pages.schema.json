@@ -31,8 +31,49 @@
     "fetchedAt": { "type": "string", "format": "date-time" },
     "rawHtmlHash": { "type": "string" },
     "domHash": { "type": "string" },
-    "title": { "type": "string" },
-    "metaDescription": { "type": "string" },
+  "title": { "type": "string" },
+  "metaDescription": { "type": ["string", "null"] },
+      "section": { "type": "string" },
+      "contentType": { "type": ["string", "null"] },
+      "redirectChain": {
+        "type": ["array", "null"],
+        "items": { "type": "string" }
+      },
+      "canonicalHref": { "type": ["string", "null"] },
+      "canonicalResolved": { "type": ["string", "null"] },
+      "noindexSurface": {
+        "type": ["string", "null"],
+        "enum": ["meta", "header", "both", null]
+      },
+      "fetchMs": { "type": "integer" },
+      "internalLinksCount": { "type": "integer" },
+      "externalLinksCount": { "type": "integer" },
+      "mediaAssetsCount": { "type": "integer" },
+      "mediaAssetsTruncated": { "type": "boolean" },
+      "hreflangLinks": {
+        "type": ["array", "null"],
+        "items": {
+          "type": "object",
+          "properties": {
+            "href": { "type": "string" },
+            "lang": { "type": "string" }
+          },
+          "required": ["href", "lang"],
+          "additionalProperties": false
+        }
+      },
+      "discoveredFrom": { "type": ["string", "null"] },
+      "basicFlags": {
+        "type": "object",
+        "properties": {
+          "hasTitle": { "type": "boolean" },
+          "hasMetaDescription": { "type": "boolean" },
+          "hasH1": { "type": "boolean" },
+          "hasCanonical": { "type": "boolean" }
+        },
+        "required": ["hasTitle", "hasMetaDescription", "hasH1", "hasCanonical"],
+        "additionalProperties": false
+      },
     "h1": { "type": "string" },
     "headings": {
       "type": "array",
@@ -55,8 +96,8 @@
     },
     "renderMs": { "type": "integer" },
     "navEndReason": {
-      "type": "string",
-      "enum": ["load", "domcontentloaded", "networkidle", "timeout", "error"]
+  "type": "string",
+  "enum": ["load", "domcontentloaded", "networkidle", "timeout", "error", "fetch"]
     },
     "depth": { "type": "integer", "minimum": 0 },
     "discoveredInMode": {

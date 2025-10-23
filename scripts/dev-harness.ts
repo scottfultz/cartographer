@@ -83,5 +83,5 @@ cart.on('crawl.finished', (ev) => {
   await cart.start(config);
   setTimeout(() => cart.pause(crawlId), 3000);
   setTimeout(() => cart.resume(crawlId), 6000);
-  setTimeout(() => { if (!finished) cart.cancel(crawlId); }, 12000);
+  setTimeout(() => { if (!finished) cart.cancel(); }, 12000);
 })();

@@ -30,7 +30,8 @@ export const crawlCommand: CommandModule = {
     .option("respectRobots", { type: "boolean", default: true })
     .option("overrideRobots", { type: "boolean", default: false })
     .option("userAgent", { type: "string", describe: "Custom User-Agent string" })
-    .option("maxPages", { type: "number", default: 0 })
+  .option("maxPages", { type: "number", default: 0 })
+  .option("maxBytesPerPage", { type: "number", default: 50000000, describe: "Maximum bytes to load per page (default: 50MB)" })
     .option("resume", { type: "string", describe: "Resume from staging directory" })
     .option("checkpointInterval", { type: "number", default: 500, describe: "Write checkpoint every N pages" })
     .option("quiet", { type: "boolean", default: false, describe: "Suppress periodic metrics (errors still shown)" })
@@ -76,7 +77,15 @@ export const crawlCommand: CommandModule = {
     const crawlConfig = {
       seeds: cfg.seeds as string[],
       outAtls: cfg.out,
-      render: { mode: cfg.mode, concurrency: cfg.concurrency, timeoutMs: 30000, maxRequestsPerPage: 100, maxBytesPerPage: 10_000_000 },
+      render: {
+        mode: cfg.mode,
+        concurrency: cfg.concurrency,
+        timeoutMs: 30000,
+        maxRequestsPerPage: 250, // Default increased from 100 to 250
+        maxBytesPerPage: typeof argv.maxBytesPerPage === 'number' && !isNaN(argv.maxBytesPerPage)
+          ? argv.maxBytesPerPage
+          : (typeof DEFAULT_CONFIG.render?.maxBytesPerPage === 'number' ? DEFAULT_CONFIG.render.maxBytesPerPage : 50_000_000)
+      },
       http: { rps: cfg.rps, userAgent },
       discovery: { 
         followExternal: false, 
@@ -123,7 +132,8 @@ export const crawlCommand: CommandModule = {
       if (ev.type === "crawl.finished") {
         manifestPath = ev.manifestPath;
         incomplete = ev.incomplete;
-        exitCode = incomplete ? 2 : 0;
+        // Set the process.exitCode directly here, Node will use it on normal exit
+        process.exitCode = incomplete ? 2 : 0;
         if (asJson) {
           // Print exactly one JSON object to stdout, nothing else
           process.stdout.write(
@@ -137,7 +147,7 @@ export const crawlCommand: CommandModule = {
         } else {
           outStd(`Finished ${ev.crawlId} manifest=${ev.manifestPath} incomplete=${ev.incomplete}`);
         }
-        process.exit(exitCode);
+        // DO NOT call process.exit() here
       }
     });
 
@@ -156,6 +166,43 @@ export const crawlCommand: CommandModule = {
     // Fix paramPolicy type
     crawlConfig.discovery.paramPolicy = crawlConfig.discovery.paramPolicy as "sample" | "strip" | "keep";
 
-    await cart.start(crawlConfig);
+    // Import event bus
+    const bus = (await import('../../core/events.js')).default;
+
+    // Set up a promise that resolves when crawl.finished is emitted
+    const crawlFinishedPromise = new Promise((resolve, reject) => {
+      const off_finished = bus.once('crawl.finished', (event) => {
+        outStd(`[CLI] Crawl finished event received.`);
+        resolve(event);
+      });
+      // Optional: error handling
+      const off_error = bus.on('error.occurred', (event) => {
+        outErr(`[CLI] Error occurred during crawl: ${event.error?.message || event}`);
+      });
+      process.on('exit', () => {
+        off_finished();
+        off_error();
+      });
+    });
+
+    try {
+      outStd(`[CLI] Starting crawl...`);
+      await cart.start(crawlConfig); // returns immediately
+      outStd(`[CLI] Cartographer started. Waiting for crawl completion...`);
+      await crawlFinishedPromise;
+      outStd(`[CLI] Crawl completed. Exiting.`);
+    } catch (error: any) {
+      outErr(`[CLI] Crawl failed to start or run: ${error?.message || error}`);
+      process.exitCode = 1;
+    }
+    // Robust finalize/close with error logging
+    try {
+      outStd(`[CLI] Finalizing AtlasWriter and closing resources...`);
+      await cart.close();
+      outStd(`[CLI] Finalization and close complete.`);
+    } catch (closeError: any) {
+      outErr(`[CLI] Error during finalization/close: ${closeError?.message || closeError}`);
+      process.exitCode = 2;
+    }
   }
 };

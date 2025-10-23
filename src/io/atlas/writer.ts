@@ -5,7 +5,9 @@
  */
 
 import { mkdir, writeFile, rm, readdir, unlink, copyFile } from "fs/promises";
+import { finished } from "stream/promises";
 import { createWriteStream } from "fs";
+import type { WriteStream } from "fs";
 import { fsync } from "fs";
 import { join } from "path";
 import { randomBytes } from "crypto";
@@ -71,11 +73,12 @@ export class AtlasWriter {
   };
   
   constructor(outPath: string, config: EngineConfig, crawlId?: string) {
-    this.outPath = outPath;
-    this.config = config;
-    this.uuid = crawlId || randomBytes(8).toString("hex");
-    this.stagingDir = join(outPath + ".staging", this.uuid);
-  }
+  this.outPath = outPath;
+  this.config = config;
+  this.uuid = crawlId || randomBytes(8).toString("hex");
+  this.stagingDir = join(outPath + ".staging", this.uuid);
+  console.log(`[DIAGNOSTIC] AtlasWriter: Initializing with outPath: ${this.outPath}`);
+}
   
   async init(): Promise<void> {
     log("debug", `Initializing staging dir: ${this.stagingDir}`);
@@ -321,85 +324,110 @@ export class AtlasWriter {
   }
   
   async finalize(): Promise<void> {
-    // Close all streams
-    this.pagesStream?.end();
-    this.edgesStream?.end();
-    this.assetsStream?.end();
-    this.errorsStream?.end();
-    this.accessibilityStream?.end();
-    
-    // Wait for streams to finish
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Update stats
-    this.stats.crawlCompletedAt = new Date().toISOString();
-    this.stats.crawlDurationMs = new Date(this.stats.crawlCompletedAt).getTime() - new Date(this.stats.crawlStartedAt).getTime();
-    
-    log("info", "Compressing JSONL parts with Zstandard...");
-    
-    // Compress all parts and get absolute paths
-    const pagesParts = await this.compressParts("pages");
-    const edgesParts = await this.compressParts("edges");
-    const assetsParts = await this.compressParts("assets");
-    const errorsParts = await this.compressParts("errors");
-    const accessibilityParts = await this.compressParts("accessibility");
-    
-    // Copy schemas into staging
-    log("info", "Copying schemas to staging...");
-    await mkdir(join(this.stagingDir, "schemas"), { recursive: true });
-    const schemaFiles = ["pages.schema.json", "edges.schema.json", "assets.schema.json", "errors.schema.json", "accessibility.schema.json", "perf.schema.json"];
-    for (const file of schemaFiles) {
-      await copyFile(
-        join(process.cwd(), "src/io/atlas/schemas", file),
-        join(this.stagingDir, "schemas", file)
-      );
+    log('info', '[DIAGNOSTIC] AtlasWriter: Starting finalize()...');
+    try {
+      // Close all streams robustly
+      const streamsToClose = [
+        this.pagesStream,
+        this.edgesStream,
+        this.assetsStream,
+        this.errorsStream,
+        this.accessibilityStream
+      ].filter((s): s is WriteStream => s !== null);
+
+      log('debug', `[DIAGNOSTIC] AtlasWriter: Ending ${streamsToClose.length} streams...`);
+      streamsToClose.forEach(s => s.end());
+
+      // Wait for streams to finish flushing using 'finished'
+      try {
+        log('debug', '[DIAGNOSTIC] AtlasWriter: Waiting for streams to finish...');
+        await Promise.all(streamsToClose.map(s => finished(s)));
+        log('info', '[DIAGNOSTIC] AtlasWriter: All streams finished successfully.');
+      } catch (error: any) {
+        log('error', `[DIAGNOSTIC] AtlasWriter: Error waiting for streams to finish: ${error.message}`);
+        // Should we throw here or try to continue? Let's try to continue for now.
+      }
+
+      // Update stats
+      this.stats.crawlCompletedAt = new Date().toISOString();
+      this.stats.crawlDurationMs = new Date(this.stats.crawlCompletedAt).getTime() - new Date(this.stats.crawlStartedAt).getTime();
+
+      log("info", "[DIAGNOSTIC] AtlasWriter: Compressing JSONL parts with Zstandard...");
+
+      // Compress all parts and get absolute paths
+      const pagesParts = await this.compressParts("pages");
+      const edgesParts = await this.compressParts("edges");
+      const assetsParts = await this.compressParts("assets");
+      const errorsParts = await this.compressParts("errors");
+      const accessibilityParts = await this.compressParts("accessibility");
+
+      // Copy schemas into staging
+      log("info", "[DIAGNOSTIC] AtlasWriter: Copying schemas to staging...");
+      await mkdir(join(this.stagingDir, "schemas"), { recursive: true });
+      const schemaFiles = ["pages.schema.json", "edges.schema.json", "assets.schema.json", "errors.schema.json", "accessibility.schema.json", "perf.schema.json"];
+      for (const file of schemaFiles) {
+        await copyFile(
+          join(process.cwd(), "src/io/atlas/schemas", file),
+          join(this.stagingDir, "schemas", file)
+        );
+      }
+
+      // Build notes for manifest
+      const notes: string[] = [];
+      if (this.config.robots.overrideUsed) {
+        notes.push("WARNING: Robots.txt override was used. Only use on sites you administer.");
+      }
+
+      // Build manifest with integrity hashes
+      log("info", "[DIAGNOSTIC] AtlasWriter: Building manifest with integrity hashes...");
+      // Write manifest with incomplete=true first
+      const manifestPath = join(this.stagingDir, "manifest.json");
+      const manifest = await buildManifest({
+        parts: {
+          pages: pagesParts,
+          edges: edgesParts,
+          assets: assetsParts,
+          errors: errorsParts,
+          accessibility: accessibilityParts.length > 0 ? accessibilityParts : undefined
+        },
+        notes,
+        stagingDir: this.stagingDir,
+        renderMode: this.config.render.mode,
+        robotsRespect: this.config.robots.respect,
+        robotsOverride: this.config.robots.overrideUsed,
+        provenance: this.provenance
+      });
+      manifest.incomplete = true;
+      await writeFile(manifestPath + ".tmp", JSON.stringify(manifest, null, 2));
+      await writeFile(join(this.stagingDir, "summary.json"), JSON.stringify(this.stats, null, 2));
+      // Atomically rename manifest to manifest.json (incomplete=true)
+      await rm(manifestPath, { force: true }).catch(() => {});
+      await copyFile(manifestPath + ".tmp", manifestPath);
+      await rm(manifestPath + ".tmp", { force: true }).catch(() => {});
+
+      // After successful finalization, set incomplete=false and atomically update
+      manifest.incomplete = false;
+      await writeFile(manifestPath + ".tmp", JSON.stringify(manifest, null, 2));
+      await rm(manifestPath, { force: true }).catch(() => {});
+      await copyFile(manifestPath + ".tmp", manifestPath);
+      await rm(manifestPath + ".tmp", { force: true }).catch(() => {});
+
+      // Create .atls ZIP archive
+      log("info", "[DIAGNOSTIC] AtlasWriter: Creating .atls ZIP archive...");
+      // ADD LOG immediately before the call
+      log('debug', '[DIAGNOSTIC] AtlasWriter: Calling createZipArchive()...');
+      try {
+        await this.createZipArchive();
+      } catch (zipError: any) {
+        log('error', `[DIAGNOSTIC] AtlasWriter: Error during createZipArchive: ${zipError?.message || zipError}`);
+        throw zipError;
+      }
+
+      log("info", `[DIAGNOSTIC] AtlasWriter: Finalize() completed. Atlas archive should be complete: ${this.outPath}`);
+    } catch (finalizeError: any) {
+      log('error', `[DIAGNOSTIC] AtlasWriter: Uncaught error in finalize: ${finalizeError?.message || finalizeError}`);
+      throw finalizeError;
     }
-    
-    // Build notes for manifest
-    const notes: string[] = [];
-    if (this.config.robots.overrideUsed) {
-      notes.push("WARNING: Robots.txt override was used. Only use on sites you administer.");
-    }
-    
-    // Build manifest with integrity hashes
-    log("info", "Building manifest with integrity hashes...");
-    // Write manifest with incomplete=true first
-    const manifestPath = join(this.stagingDir, "manifest.json");
-    const manifest = await buildManifest({
-      parts: {
-        pages: pagesParts,
-        edges: edgesParts,
-        assets: assetsParts,
-        errors: errorsParts,
-        accessibility: accessibilityParts.length > 0 ? accessibilityParts : undefined
-      },
-      notes,
-      stagingDir: this.stagingDir,
-      renderMode: this.config.render.mode,
-      robotsRespect: this.config.robots.respect,
-      robotsOverride: this.config.robots.overrideUsed,
-      provenance: this.provenance
-    });
-    manifest.incomplete = true;
-    await writeFile(manifestPath + ".tmp", JSON.stringify(manifest, null, 2));
-    await writeFile(join(this.stagingDir, "summary.json"), JSON.stringify(this.stats, null, 2));
-    // Atomically rename manifest to manifest.json (incomplete=true)
-    await rm(manifestPath, { force: true }).catch(() => {});
-    await copyFile(manifestPath + ".tmp", manifestPath);
-    await rm(manifestPath + ".tmp", { force: true }).catch(() => {});
-    
-    // After successful finalization, set incomplete=false and atomically update
-    manifest.incomplete = false;
-    await writeFile(manifestPath + ".tmp", JSON.stringify(manifest, null, 2));
-    await rm(manifestPath, { force: true }).catch(() => {});
-    await copyFile(manifestPath + ".tmp", manifestPath);
-    await rm(manifestPath + ".tmp", { force: true }).catch(() => {});
-    
-    // Create .atls ZIP archive
-    log("info", "Creating .atls ZIP archive...");
-    await this.createZipArchive();
-    
-    log("info", `Atlas archive complete: ${this.outPath}`);
   }
   
   private async compressParts(type: string): Promise<string[]> {
@@ -426,28 +454,59 @@ export class AtlasWriter {
    * Create final .atls ZIP archive from staging directory
    */
   private async createZipArchive(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const output = createWriteStream(this.outPath);
-      const archive = archiver("zip", {
-        zlib: { level: 0 } // No additional compression (parts already compressed)
-      });
-      
-      output.on("close", () => {
-        log("debug", `ZIP archive created: ${archive.pointer()} bytes`);
+    log('debug', '[DIAGNOSTIC] AtlasWriter: ENTERING createZipArchive method.');
+    log('debug', `[DIAGNOSTIC] AtlasWriter: Attempting to create ZIP archive at: ${this.outPath}`);
+
+    const output = createWriteStream(this.outPath);
+    const archive = archiver("zip", {
+      zlib: { level: 0 } // No additional compression
+    });
+
+    // Create a promise specifically for the output stream closing
+    // We need this to ensure the file handle is closed before the function returns
+    const streamClosePromise = new Promise<void>((resolve, reject) => {
+      output.on('close', () => {
+        log('info', `[DIAGNOSTIC] AtlasWriter: ZIP output stream closed. Size: ${archive.pointer()} bytes`);
         resolve();
       });
-      
-      archive.on("error", (err) => {
-        reject(err);
+      output.on('error', (err) => {
+  log('error', `[DIAGNOSTIC] AtlasWriter: Write stream FAILED: ${err.message}`);
+        reject(err); // Reject if the stream fails
       });
-      
-      archive.pipe(output);
-      
-      // Add all files from staging directory
-      archive.directory(this.stagingDir, false);
-      
-      archive.finalize();
     });
+
+    // Log warnings and errors from the archiver itself
+    archive.on('warning', (err) => {
+  log('warn', `[DIAGNOSTIC] AtlasWriter: ZIP archive warning: ${err.code}`);
+    });
+    archive.on('error', (err) => {
+      // This error should also cause finalize() to reject
+  log('error', `[DIAGNOSTIC] AtlasWriter: ZIP archive error: ${err.message}`);
+    });
+
+    // Pipe the archive data to the file
+    archive.pipe(output);
+
+    // Add directory contents
+    log('debug', `[DIAGNOSTIC] AtlasWriter: Adding directory ${this.stagingDir} to ZIP.`);
+    archive.directory(this.stagingDir, false);
+    log('debug', `[DIAGNOSTIC] AtlasWriter: Directory added.`);
+
+    // Finalize the archive AND await the promise returned by archiver.finalize()
+    log('debug', `[DIAGNOSTIC] AtlasWriter: Calling and awaiting archive.finalize()...`);
+    try {
+      await archive.finalize(); // <-- Direct await
+      log('info', `[DIAGNOSTIC] AtlasWriter: archive.finalize() completed successfully.`);
+    } catch (err: any) {
+  log('error', `[DIAGNOSTIC] AtlasWriter: archive.finalize() FAILED: ${err.message}`);
+      throw err; // Re-throw the error so the await in finalize() catches it
+    }
+
+    // Also wait for the output stream to confirm it's closed
+    log('debug', '[DIAGNOSTIC] AtlasWriter: Waiting for output stream to close...');
+    await streamClosePromise;
+
+    log('debug', '[DIAGNOSTIC] AtlasWriter: EXITING createZipArchive method.');
   }
   
   async cleanup(): Promise<void> {

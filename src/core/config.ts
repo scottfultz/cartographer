@@ -17,7 +17,7 @@ export const DEFAULT_CONFIG: Partial<EngineConfig> = {
     concurrency: 8,
     timeoutMs: 30000,
     maxRequestsPerPage: 100,
-    maxBytesPerPage: 10_000_000 // 10 MB
+  maxBytesPerPage: 50_000_000 // 50 MB
   },
   
   http: {
@@ -95,7 +95,12 @@ export function buildConfig(partial: Partial<EngineConfig>): EngineConfig {
     http,
     discovery,
     robots,
-    accessibility
+    accessibility,
+    resume: partial.resume,
+    checkpoint: partial.checkpoint,
+    cli: partial.cli,
+    memory: partial.memory,
+    shutdown: partial.shutdown
   };
   return finalConfig;
 }

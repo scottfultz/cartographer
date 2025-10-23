@@ -18,6 +18,7 @@ console.log("[EVENT AUDIT] Event bus identity (scheduler):", bus);
 import { Metrics } from "../utils/metrics.js";
 import { writeCheckpoint, writeVisitedIndex, writeFrontier, readCheckpoint, readVisitedIndex, readFrontier, type CheckpointState } from "./checkpoint.js";
 import pLimit from "p-limit";
+import { URL } from 'url';
 import { fetchUrl } from "./fetcher.js";
 import { renderPage } from "./renderer.js";
 import { extractPageFacts } from "./extractors/pageFacts.js";
@@ -72,6 +73,7 @@ export class Scheduler {
   private crawlState: "idle" | "running" | "paused" | "canceling" | "finalizing" | "done" | "failed" = "idle";
 
   constructor(config: EngineConfig, writer: AtlasWriter, metrics?: Metrics) {
+    console.log('[DIAGNOSTIC] Scheduler constructor received resume config:', JSON.stringify(config.resume, null, 2));
     this.config = config;
     this.writer = writer;
     this.metrics = metrics || new Metrics();
@@ -121,6 +123,7 @@ export class Scheduler {
   async cancel(): Promise<void> {
     if (!this.shutdownRequested) {
       this.shutdownRequested = true;
+      this.gracefulShutdown = true;
       this.crawlState = "canceling";
       bus.emit(withCrawlId(this.writer.getCrawlId(), {
         type: "crawl.shutdown",
@@ -234,57 +237,63 @@ export class Scheduler {
 
     if (shouldCheckpoint) {
       console.log(`[DEBUG] writeCheckpointIfNeeded: shouldCheckpoint is true, proceeding to write checkpoint and emit event.`);
-      await this.writer.flushAndSync();
+      try {
+        await this.writer.flushAndSync();
 
-      const state: CheckpointState = {
-        crawlId: this.writer.getCrawlId(),
-        visitedCount: this.visited.size,
-        enqueuedCount: this.enqueued.size,
-        queueDepth: this.queue.length,
-        visitedUrlKeysFile: "visited.idx",
-        frontierSnapshot: "frontier.json",
-        lastPartPointers: this.writer.getPartPointers(),
-        rssMB: this.metrics.getCurrentRssMB(),
-        timestamp: new Date().toISOString(),
-        resumeOf: this.resumeOf,
-        gracefulShutdown: this.gracefulShutdown
-      };
+        const state: CheckpointState = {
+          crawlId: this.writer.getCrawlId(),
+          visitedCount: this.visited.size,
+          enqueuedCount: this.enqueued.size,
+          queueDepth: this.queue.length,
+          visitedUrlKeysFile: "visited.idx",
+          frontierSnapshot: "frontier.json",
+          lastPartPointers: this.writer.getPartPointers(),
+          rssMB: this.metrics.getCurrentRssMB(),
+          timestamp: new Date().toISOString(),
+          resumeOf: this.resumeOf,
+          gracefulShutdown: this.gracefulShutdown
+        };
 
-      const stagingDir = this.writer.getStagingDir();
-      console.log(`[DEBUG] Writing checkpoint to ${stagingDir}`);
-      console.log(`[DEBUG] CheckpointState:`, state);
-      writeCheckpoint(stagingDir, state);
-      writeVisitedIndex(stagingDir, this.visited);
-      writeFrontier(stagingDir, this.queue);
+        const stagingDir = this.writer.getStagingDir();
+        console.log(`[DEBUG] Writing checkpoint to ${stagingDir}`);
+        console.log(`[DEBUG] CheckpointState:`, state);
+        writeCheckpoint(stagingDir, state);
+        writeVisitedIndex(stagingDir, this.visited);
+        writeFrontier(stagingDir, this.queue);
 
-      // Emit checkpoint.saved event for integration test
-      if (!this._eventSeq) this._eventSeq = 1;
-  debugEventBus('Emitting checkpoint.saved event in writeCheckpointIfNeeded');
-  console.log(`[DEBUG] bus.emit checkpoint.saved:`, {
-        type: 'checkpoint.saved',
-        crawlId: this.writer.getCrawlId(),
-        path: this.writer.getManifestPath(),
-        seq: this._eventSeq,
-        timestamp: new Date().toISOString()
-      });
-      bus.emit({
-        type: 'checkpoint.saved',
-        crawlId: this.writer.getCrawlId(),
-        path: this.writer.getManifestPath(),
-        seq: this._eventSeq++,
-        timestamp: new Date().toISOString()
-      });
+        // Emit checkpoint.saved event for integration test
+        if (!this._eventSeq) this._eventSeq = 1;
+        debugEventBus('Emitting checkpoint.saved event in writeCheckpointIfNeeded');
+        console.log(`[DEBUG] bus.emit checkpoint.saved:`, {
+          type: 'checkpoint.saved',
+          crawlId: this.writer.getCrawlId(),
+          path: this.writer.getManifestPath(),
+          seq: this._eventSeq,
+          timestamp: new Date().toISOString()
+        });
+        bus.emit({
+          type: 'checkpoint.saved',
+          crawlId: this.writer.getCrawlId(),
+          path: this.writer.getManifestPath(),
+          seq: this._eventSeq++,
+          timestamp: new Date().toISOString()
+        });
 
-      this.lastCheckpointAt = this.pageCount;
-      this.lastCheckpointTime = Date.now();
-      log("info", `[Checkpoint] Saved at ${this.pageCount} pages`);
-      console.log(`[DEBUG] Checkpoint state updated: lastCheckpointAt=${this.lastCheckpointAt}, lastCheckpointTime=${this.lastCheckpointTime}`);
+        this.lastCheckpointAt = this.pageCount;
+        this.lastCheckpointTime = Date.now();
+        log("info", `[Checkpoint] Saved at ${this.pageCount} pages`);
+        console.log(`[DEBUG] Checkpoint state updated: lastCheckpointAt=${this.lastCheckpointAt}, lastCheckpointTime=${this.lastCheckpointTime}`);
+      } catch (error: any) {
+  log('error', `[Checkpoint] FAILED to write checkpoint: ${error.message}`);
+        console.error(`[DEBUG] Checkpoint write FAILED:`, error);
+      }
     } else {
       console.log(`[DEBUG] writeCheckpointIfNeeded: shouldCheckpoint is false, skipping checkpoint.`);
     }
   }
   
   async run(): Promise<SchedulerResult> {
+    console.log(`[DIAGNOSTIC] Scheduler.run() checking for resume. stagingDir is: ${this.config.resume?.stagingDir}`);
     // Start periodic metrics logging (unless quiet mode)
     if (!this.config.cli?.quiet) {
       console.log('[DEBUG] Starting periodic metrics logging');
@@ -315,12 +324,50 @@ export class Scheduler {
       console.log(`[DEBUG] restoreFromCheckpoint returned: ${restored}`);
       if (restored) {
         log("info", "[Resume] Successfully restored state from checkpoint");
+        log('info', `[Resume] Repopulating host queues from restored frontier...`);
+        for (const item of this.queue) {
+          try {
+            const host = new URL(item.url).hostname;
+            if (!this.hostQueues.has(host)) {
+              this.hostQueues.set(host, []);
+            }
+            this.hostQueues.get(host)!.push(item);
+          } catch (e: any) {
+            log('warn', `[Resume] Failed to parse URL ${item.url} from restored queue: ${e.message}`);
+          }
+        }
+        this.queue.length = 0; // Clear the array
+        log('info', `[Resume] Host queues repopulated. ${this.hostQueues.size} hosts active.`);
         console.log('[AUDIT] Forcing checkpoint emission after resume');
         console.log(`[DEBUG] Calling writeCheckpointIfNeeded(force=true) after resume`);
         await this.writeCheckpointIfNeeded(true);
         console.log(`[DEBUG] writeCheckpointIfNeeded(force=true) after resume completed`);
       } else {
         log("warn", "[Resume] No checkpoint found, starting fresh");
+      }
+    } else {
+      // New crawl: enqueue seeds
+      log("info", "[Scheduler] Starting new crawl, enqueuing seeds...");
+      if (!this.config.seeds || this.config.seeds.length === 0) {
+        log("warn", "[Scheduler] No seeds provided for new crawl.");
+      } else {
+        for (const seedUrl of this.config.seeds) {
+          const normalized = this.normalizeAndApplyPolicy(seedUrl);
+          if (normalized && !this.visited.has(normalized) && !this.enqueued.has(normalized)) {
+            this.enqueued.add(normalized);
+            // Add to host queues directly
+            try {
+              const host = new URL(normalized).hostname;
+              if (!this.hostQueues.has(host)) {
+                this.hostQueues.set(host, []);
+              }
+              this.hostQueues.get(host)!.push({ url: normalized, depth: 0, discoveredFrom: 'seed' });
+            } catch (e: any) {
+              log('warn', `[Scheduler] Failed to parse seed URL ${seedUrl}: ${e.message}`);
+            }
+          }
+        }
+        log("info", `[Scheduler] Enqueued ${this.enqueued.size} seeds.`);
       }
     }
 
@@ -565,7 +612,7 @@ export class Scheduler {
         h1: pageFacts.h1,
         headings: pageFacts.headings,
         canonicalHref: pageFacts.canonicalHref,
-        canonicalResolved: pageFacts.canonicalResolved,
+        canonicalResolved: pageFacts.canonicalResolved, // <-- THIS IS THE FIX
         canonical: pageFacts.canonicalResolved, // Backwards compat
         robotsMeta: pageFacts.robotsMeta,
         robotsHeader: fetchResult.robotsHeader,
@@ -700,21 +747,58 @@ export class Scheduler {
   }
   
   private async enqueueIfNew(url: string, depth: number, discoveredFrom: string): Promise<void> {
+    log('debug', `[Enqueue] Considering URL: ${url} (from ${discoveredFrom})`);
+
     const normalized = this.normalizeAndApplyPolicy(url);
-    if (!normalized) return;
-    
+    log('debug', `[Enqueue] Normalized URL: ${normalized} (Original: ${url})`);
+
+    if (!normalized) {
+      log('debug', `[Enqueue] Skipping: URL normalized to null.`);
+      return;
+    }
+
     // Skip if already visited or enqueued
-    if (this.visited.has(normalized) || this.enqueued.has(normalized)) {
+    if (this.visited.has(normalized)) {
+      log('debug', `[Enqueue] Skipping: Already visited: ${normalized}`);
       return;
     }
-    
+    if (this.enqueued.has(normalized)) {
+      log('debug', `[Enqueue] Skipping: Already enqueued: ${normalized}`);
+      return;
+    }
+
     // Check maxPages before enqueuing
-    if (this.config.maxPages > 0 && this.visited.size >= this.config.maxPages) {
+    if (this.config.maxPages > 0 && this.visited.size + this.enqueued.size >= this.config.maxPages) {
+      log('debug', `[Enqueue] Skipping: Max pages (${this.config.maxPages}) limit reached.`);
       return;
     }
-    
+
+    // --- Check if the link is internal ---
+    try {
+       const originSeed = new URL(this.config.seeds[0]).origin;
+       const originLink = new URL(normalized).origin;
+       if (originLink !== originSeed) {
+         log('debug', `[Enqueue] Skipping: Link is external (${normalized}) compared to seed origin (${originSeed}).`);
+         return;
+       }
+    } catch (e: any) {
+       log('warn', `[Enqueue] Error checking origin for ${normalized}: ${e.message}`);
+       return;
+    }
+    // --- End of internal link check ---
+
     this.enqueued.add(normalized);
-    this.queue.push({ url: normalized, depth, discoveredFrom });
-    log("debug", `[Queue] Enqueued: ${normalized} (depth=${depth})`);
+    try {
+      const host = new URL(normalized).hostname;
+      if (!this.hostQueues.has(host)) {
+         this.hostQueues.set(host, []);
+      }
+      this.hostQueues.get(host)!.push({ url: normalized, depth, discoveredFrom });
+      log("info", `[Enqueue] Enqueued: ${normalized} (depth=${depth})`);
+    } catch (e: any) {
+       log('warn', `[Enqueue] Failed to add to host queue for ${normalized}: ${e.message}`);
+    }
+    // this.queue.push({ url: normalized, depth, discoveredFrom });
+    // log("debug", `[Queue] Enqueued: ${normalized} (depth=${depth})`);
   }
 }

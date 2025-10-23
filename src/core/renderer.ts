@@ -167,23 +167,24 @@ async function renderWithPlaywright(
     throw new Error("Browser context not available");
   }
 
+  log('debug', `[Renderer] Creating new page for ${url}`);
   const page = await context.newPage();
   const perfMetrics: Record<string, number> = {};
   let requestCount = 0;
   let bytesLoaded = 0;
   let navEndReason: NavEndReason = "networkidle";
+  let pageClosedPrematurely = false;
 
   try {
     // Request interception for caps
     await page.route('**/*', (route) => {
       requestCount++;
-      
       if (requestCount > cfg.render.maxRequestsPerPage) {
+        log('warn', `[Renderer] Max requests (${cfg.render.maxRequestsPerPage}) hit for ${url}. Aborting further requests.`);
         navEndReason = "error";
         route.abort('failed');
         return;
       }
-      
       route.continue();
     });
 
@@ -193,42 +194,63 @@ async function renderWithPlaywright(
         const buffer = await response.body().catch(() => null);
         if (buffer) {
           bytesLoaded += buffer.length;
-          
-          if (bytesLoaded > cfg.render.maxBytesPerPage) {
+          if (bytesLoaded > cfg.render.maxBytesPerPage && !pageClosedPrematurely) {
+            log('warn', `[Renderer] Max bytes (${cfg.render.maxBytesPerPage}) hit for ${url}. Closing page.`);
             navEndReason = "error";
+            pageClosedPrematurely = true;
             await page.close();
           }
         }
-      } catch (e) {
-        // Ignore response body errors
+      } catch (e: any) {
+        log('debug', `[Renderer] Error reading response body for ${url}: ${e.message}`);
       }
     });
 
-    // Navigate with timeout
+    log('debug', `[Renderer] Navigating page to ${url}`);
     const navStart = performance.now();
-    
     try {
+      if (pageClosedPrematurely) {
+        log('warn', `[Renderer] Page closed due to byte limit before navigation could complete for ${url}.`);
+        throw new Error('Page closed due to byte limit');
+      }
       await page.goto(url, {
         waitUntil: 'networkidle',
         timeout: cfg.render.timeoutMs
       });
       navEndReason = "networkidle";
+      log('debug', `[Renderer] Navigation successful for ${url}`);
     } catch (error: any) {
+      log('warn', `[Renderer] Navigation error for ${url}: ${error.message}`);
       if (error.message?.includes('Timeout')) {
         navEndReason = "timeout";
+      } else if (error.message?.includes('Page closed')) {
+        navEndReason = "error";
+        pageClosedPrematurely = true;
       } else {
         navEndReason = "error";
       }
     }
-    
     perfMetrics.navMs = Math.round(performance.now() - navStart);
 
-    // Extract DOM only
+    log('debug', `[Renderer] Page state before evaluate for ${url}: isClosed=${page.isClosed()}`);
+    if (page.isClosed()) {
+      log('error', `[Renderer] Cannot evaluate DOM for ${url}, page is already closed (Reason: ${navEndReason}).`);
+      return {
+        modeUsed: cfg.render.mode,
+        navEndReason,
+        dom: '',
+        domHash: sha256Hex(''),
+        performance: perfMetrics
+      };
+    }
+
+    log('debug', `[Renderer] Evaluating DOM for ${url}`);
     const outerHTML = await page.evaluate(() => {
       // @ts-expect-error - Running in browser context
       return document.documentElement.outerHTML as string;
     });
     const domHash = sha256Hex(outerHTML);
+    log('debug', `[Renderer] DOM evaluation successful for ${url}`);
 
     await page.close();
 
@@ -240,8 +262,11 @@ async function renderWithPlaywright(
       performance: perfMetrics
     };
 
-  } catch (error) {
-    await page.close().catch(() => {});
+  } catch (error: any) {
+    log('error', `[Renderer] Unexpected error during renderWithPlaywright for ${url}: ${error.message}`);
+    if (!page.isClosed()) {
+      await page.close().catch(() => {});
+    }
     throw error;
   }
 }
