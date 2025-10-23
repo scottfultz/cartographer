@@ -17,23 +17,23 @@ import {
 } from "../src/utils/url.js";
 
 test("normalizeUrl - removes fragment", () => {
-  const result = normalizeUrl("https://example.com/page#section");
+  const result = normalizeUrl("https://caifrazier.com/page#section");
   assert.ok(!result.includes("#"), "Should remove fragment");
 });
 
 test("normalizeUrl - lowercases URL", () => {
-  const result = normalizeUrl("HTTPS://EXAMPLE.COM/PAGE");
-  assert.strictEqual(result, "https://example.com/page");
+  const result = normalizeUrl("HTTPS://CAIFRAZIER.COM/PAGE");
+  assert.strictEqual(result, "https://caifrazier.com/page");
 });
 
 test("normalizeUrl - sorts query params", () => {
-  const result = normalizeUrl("https://example.com?z=1&a=2&m=3");
+  const result = normalizeUrl("https://caifrazier.com?z=1&a=2&m=3");
   assert.ok(result.includes("a=2") && result.indexOf("a=2") < result.indexOf("m=3"));
   assert.ok(result.indexOf("m=3") < result.indexOf("z=1"));
 });
 
 test("normalizeUrl - is idempotent", () => {
-  const url = "https://Example.com/Page?b=2&a=1#frag";
+  const url = "https://caifrazier.com/Page?b=2&a=1#frag";
   const normalized = normalizeUrl(url);
   const doubleNormalized = normalizeUrl(normalized);
   assert.strictEqual(normalized, doubleNormalized, "Should be idempotent");
@@ -41,58 +41,58 @@ test("normalizeUrl - is idempotent", () => {
 
 test("isInternal - same origin returns true", () => {
   assert.strictEqual(
-    isInternal("https://example.com/page1", "https://example.com/page2"),
+  isInternal("https://caifrazier.com/page1", "https://caifrazier.com/page2"),
     true
   );
 });
 
 test("isInternal - different origin returns false", () => {
   assert.strictEqual(
-    isInternal("https://example.com/page", "https://other.com/page"),
+  isInternal("https://caifrazier.com/page", "https://other.com/page"),
     false
   );
 });
 
 test("isSameOrigin - same origin", () => {
   assert.strictEqual(
-    isSameOrigin("https://example.com/a", "https://example.com/b"),
+  isSameOrigin("https://caifrazier.com/a", "https://caifrazier.com/b"),
     true
   );
 });
 
 test("isSameOrigin - different subdomain", () => {
   assert.strictEqual(
-    isSameOrigin("https://www.example.com/a", "https://blog.example.com/b"),
+  isSameOrigin("https://www.caifrazier.com/a", "https://blog.caifrazier.com/b"),
     false
   );
 });
 
 test("sectionOf - root path", () => {
   assert.strictEqual(sectionOf("https://example.com/"), "/");
-  assert.strictEqual(sectionOf("https://example.com"), "/");
-});
-
-test("sectionOf - single segment", () => {
+  assert.strictEqual(sectionOf("https://caifrazier.com/"), "/");
+  assert.strictEqual(sectionOf("https://caifrazier.com"), "/");
+  assert.strictEqual(sectionOf("https://caifrazier.com/products"), "/products/");
+  assert.strictEqual(sectionOf("https://caifrazier.com/products/"), "/products/");
   assert.strictEqual(sectionOf("https://example.com/products"), "/products/");
   assert.strictEqual(sectionOf("https://example.com/products/"), "/products/");
 });
 
 test("sectionOf - multiple segments", () => {
   assert.strictEqual(
-    sectionOf("https://example.com/products/shoes/nike"),
+  sectionOf("https://caifrazier.com/products/shoes/nike"),
     "/products/"
   );
 });
 
 test("sectionOf - with query and fragment", () => {
   assert.strictEqual(
-    sectionOf("https://example.com/blog/post?id=1#section"),
+  sectionOf("https://caifrazier.com/blog/post?id=1#section"),
     "/blog/"
   );
 });
 
 test("stripTrackingParams - removes exact matches", () => {
-  const url = new URL("https://example.com?gclid=123&page=2");
+  const url = new URL("https://caifrazier.com?gclid=123&page=2");
   const blockList = ["gclid", "fbclid"];
   const result = stripTrackingParams(url, blockList);
   
@@ -101,7 +101,7 @@ test("stripTrackingParams - removes exact matches", () => {
 });
 
 test("stripTrackingParams - handles wildcards", () => {
-  const url = new URL("https://example.com?utm_source=fb&utm_medium=cpc&page=2");
+  const url = new URL("https://caifrazier.com?utm_source=fb&utm_medium=cpc&page=2");
   const blockList = ["utm_*"];
   const result = stripTrackingParams(url, blockList);
   
@@ -111,7 +111,7 @@ test("stripTrackingParams - handles wildcards", () => {
 });
 
 test("stripTrackingParams - multiple wildcards", () => {
-  const url = new URL("https://example.com?ref=123&ref_source=twitter&other=val");
+  const url = new URL("https://caifrazier.com?ref=123&ref_source=twitter&other=val");
   const blockList = ["ref", "ref_*"];
   const result = stripTrackingParams(url, blockList);
   

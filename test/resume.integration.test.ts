@@ -19,9 +19,9 @@ const isCheckpoint = (ev: any): ev is Checkpoint =>
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 test('resume avoids duplicates and flips incomplete correctly', async () => {
-  // One-off: use drancich.com as seed
+  // One-off: use caifrazier.com as seed
   const out = 'tmp/resume-test.atls';
-  const seeds = ['https://drancich.com/'];
+  const seeds = ['https://caifrazier.com/'];
 
   // Phase 1: run until a checkpoint, then cancel
   const cart1 = new Cartographer();

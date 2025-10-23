@@ -27,7 +27,7 @@ test('does not consume if tokens are depleted', () => {
   _reset();
   init({ perHostRps: 2, burst: 2 }); // 2 tokens max; 2 tokens per second
 
-  const host = 'example.com';
+  const host = 'caifrazier.com';
   const t0 = 1_000; // ms baseline
 
   // Drain both tokens at t0

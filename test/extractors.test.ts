@@ -25,7 +25,7 @@ test("extractLinks - raw mode uses location: unknown", () => {
   const edges = extractLinks({
     domSource: "raw",
     html,
-    baseUrl: "https://example.com",
+  baseUrl: "https://caifrazier.com",
     discoveredInMode: "raw"
   });
 
@@ -53,7 +53,7 @@ test("extractLinks - playwright mode detects location", () => {
   const edges = extractLinks({
     domSource: "playwright",
     html,
-    baseUrl: "https://example.com",
+  baseUrl: "https://caifrazier.com",
     discoveredInMode: "prerender"
   });
 
@@ -75,7 +75,7 @@ test("extractLinks - separates internal and external", () => {
     <html>
       <body>
         <a href="/internal1">Internal 1</a>
-        <a href="https://example.com/internal2">Internal 2</a>
+  <a href="https://caifrazier.com/internal2">Internal 2</a>
         <a href="https://external.com">External</a>
       </body>
     </html>
@@ -84,7 +84,7 @@ test("extractLinks - separates internal and external", () => {
   const edges = extractLinks({
     domSource: "raw",
     html,
-    baseUrl: "https://example.com",
+  baseUrl: "https://caifrazier.com",
     discoveredInMode: "raw"
   });
 
@@ -107,7 +107,7 @@ test("extractAssets - enforces 1000 cap", () => {
   const result = extractAssets({
     domSource: "raw",
     html,
-    baseUrl: "https://example.com"
+  baseUrl: "https://caifrazier.com"
   });
 
   assert.strictEqual(result.assets.length, 1000, "Should cap at 1000 assets");
@@ -128,7 +128,7 @@ test("extractAssets - no truncation under cap", () => {
   const result = extractAssets({
     domSource: "raw",
     html,
-    baseUrl: "https://example.com"
+  baseUrl: "https://caifrazier.com"
   });
 
   assert.strictEqual(result.assets.length, 3);
@@ -158,14 +158,14 @@ test("extractPageFacts - extracts metadata", () => {
     domSource: "raw",
     html,
     fetchHeaders: {},
-    baseUrl: "https://example.com"
+  baseUrl: "https://caifrazier.com"
   });
 
   assert.strictEqual(facts.title, "Test Page");
   assert.strictEqual(facts.metaDescription, "Test description");
   assert.strictEqual(facts.h1, "Main Heading");
   assert.strictEqual(facts.canonicalHref, "/canonical");
-  assert.strictEqual(facts.canonicalResolved, "https://example.com/canonical");
+  assert.strictEqual(facts.canonicalResolved, "https://caifrazier.com/canonical");
   assert.strictEqual(facts.robotsMeta, "index, follow");
   assert.strictEqual(facts.linksOutCount, 1);
   assert.strictEqual(facts.mediaCount, 1);

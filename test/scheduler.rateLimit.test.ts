@@ -24,7 +24,7 @@ test('Scheduler per-host rate limiting respects perHostRps', async (t) => {
   // Allow enough concurrency and global RPS so per-host is the binding limit
   const perHostRps = 2; // expect ~500 ms min gap per host
   const seeds = [
-    'https://example.com/',
+  'https://caifrazier.com/',
     'https://httpbin.org/html',
   ];
 

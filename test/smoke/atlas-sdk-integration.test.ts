@@ -23,7 +23,7 @@ test("Atlas SDK can read engine output", async () => {
   
   // Create a test .atls file
   execSync(
-    `node dist/cli/index.js crawl --seeds https://example.com --out ${OUT_FILE} --max-pages 3 --mode raw`,
+  `node dist/cli/index.js crawl --seeds https://caifrazier.com --out ${OUT_FILE} --max-pages 3 --mode raw`,
     { encoding: "utf-8", stdio: "inherit" }
   );
   
