@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartographer Debug UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #logContainer { max-height: 500px; }
+        #logContainer::-webkit-scrollbar { width: 8px; }
+        #logContainer::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        #logContainer::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        #logContainer::-webkit-scrollbar-thumb:hover { background: #555; }
+        label { margin-bottom: 0.25rem; display: block;}
+        input[type=number] { max-width: 120px;}
+        input, select, textarea {
+             width: 100%;
+             padding: 0.5rem 0.75rem;
+             border: 1px solid #d1d5db;
+             border-radius: 0.375rem;
+             box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+         input:focus, select:focus, textarea:focus {
+             outline: none;
+             border-color: #4f46e5;
+             box-shadow: 0 0 0 1px #4f46e5;
+         }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+         .checkbox-label { display: flex; align-items: center; margin-top: 0.5rem; }
+         .checkbox-label input { width: auto; margin-right: 0.5rem;}
+    </style>
+     <link rel="preconnect" href="https://rsms.me/">
+     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800">Cartographer Debug UI</h1>
+        <form id="crawlForm" class="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700">Crawl Configuration</h2>
+            <div class="config-grid">
+                <div>
+                    <label for="seeds" class="block text-sm font-medium text-gray-600">Seed URLs (comma-separated):</label>
+                    <textarea id="seeds" name="seeds" rows="2" class="text-sm" placeholder="e.g., https://example.com, https://anothersite.com"></textarea>
+                </div>
+                <div>
+                    <label for="outPath" class="block text-sm font-medium text-gray-600">Output .atls Path:</label>
+                    <input type="text" id="outPath" name="outPath" class="text-sm" placeholder="e.g., tmp/mycrawl.atls">
+                </div>
+                <div>
+                    <label for="mode" class="block text-sm font-medium text-gray-600">Render Mode:</label>
+                    <select id="mode" name="mode" class="text-sm bg-white">
+                        <option value="raw">Raw</option>
+                        <option value="prerender" selected>Prerender</option>
+                        <option value="full">Full</option>
+                    </select>
+                </div>
+                 <div>
+                    <label for="maxPages" class="block text-sm font-medium text-gray-600">Max Pages (0=unlimited):</label>
+                    <input type="number" id="maxPages" name="maxPages" value="0" min="0" class="text-sm">
+                </div>
+                 <div>
+                    <label for="rps" class="block text-sm font-medium text-gray-600">Global RPS Limit:</label>
+                    <input type="number" id="rps" name="rps" value="3" min="1" class="text-sm">
+                 </div>
+                 <div>
+                     <label for="perHostRps" class="block text-sm font-medium text-gray-600">Per-Host RPS (0=global):</label>
+                     <input type="number" id="perHostRps" name="perHostRps" value="0" min="0" class="text-sm">
+                 </div>
+                 <div>
+                    <label for="userAgent" class="block text-sm font-medium text-gray-600">User Agent:</label>
+                    <input type="text" id="userAgent" name="userAgent" class="text-sm" placeholder="Default: CartographerBot/1.0">
+                </div>
+                 <div>
+                    <label for="concurrency" class="block text-sm font-medium text-gray-600">Concurrency:</label>
+                    <input type="number" id="concurrency" name="concurrency" value="8" min="1" class="text-sm">
+                 </div>
+                <div>
+                    <label for="timeoutMs" class="block text-sm font-medium text-gray-600">Render Timeout (ms):</label>
+                    <input type="number" id="timeoutMs" name="timeoutMs" value="30000" min="1000" step="1000" class="text-sm">
+                </div>
+                 <div>
+                    <label for="maxRequestsPerPage" class="block text-sm font-medium text-gray-600">Max Requests / Page:</label>
+                    <input type="number" id="maxRequestsPerPage" name="maxRequestsPerPage" value="250" min="10" class="text-sm">
+                </div>
+                 <div>
+                    <label for="maxBytesPerPage" class="block text-sm font-medium text-gray-600">Max Bytes / Page:</label>
+                    <input type="number" id="maxBytesPerPage" name="maxBytesPerPage" value="50000000" min="1000000" step="1000000" class="text-sm">
+                </div>
+                 <div>
+                    <label for="paramPolicy" class="block text-sm font-medium text-gray-600">Parameter Policy:</label>
+                    <select id="paramPolicy" name="paramPolicy" class="text-sm bg-white">
+                        <option value="keep" selected>Keep</option>
+                        <option value="sample">Sample</option>
+                        <option value="strip">Strip</option>
+                    </select>
+                </div>
+                 <div>
+                     <label for="blockList" class="block text-sm font-medium text-gray-600">Block List (comma-sep):</label>
+                     <textarea id="blockList" name="blockList" rows="2" class="text-sm" placeholder="Default tracking params"></textarea>
+                 </div>
+                  <div class="checkbox-label">
+                     <input type="checkbox" id="followExternal" name="followExternal">
+                     <label for="followExternal" class="text-sm font-medium text-gray-600">Follow External Links</label>
+                 </div>
+                 <div class="checkbox-label">
+                    <input type="checkbox" id="respectRobots" name="respectRobots" checked>
+                    <label for="respectRobots" class="text-sm font-medium text-gray-600">Respect Robots.txt</label>
+                </div>
+                 <div class="checkbox-label">
+                    <input type="checkbox" id="overrideRobots" name="overrideRobots">
+                    <label for="overrideRobots" class="text-sm font-medium text-gray-600">Override Robots.txt (Admin Only!)</label>
+                </div>
+                 <div class="checkbox-label">
+                     <input type="checkbox" id="checkpointEnabled" name="checkpointEnabled" checked>
+                    <label for="checkpointEnabled" class="text-sm font-medium text-gray-600">Enable Checkpoints</label>
+                </div>
+                 <div>
+                    <label for="checkpointInterval" class="block text-sm font-medium text-gray-600">Checkpoint Interval (Pages):</label>
+                    <input type="number" id="checkpointInterval" name="checkpointInterval" value="500" min="1" class="text-sm">
+                </div>
+                 <div>
+                    <label for="checkpointEverySeconds" class="block text-sm font-medium text-gray-600">Checkpoint Interval (Secs):</label>
+                    <input type="number" id="checkpointEverySeconds" name="checkpointEverySeconds" value="0" min="0" class="text-sm" placeholder="0 = disabled">
+                </div>
+                 <div>
+                    <label for="errorBudget" class="block text-sm font-medium text-gray-600">Error Budget (0=unlimited):</label>
+                    <input type="number" id="errorBudget" name="errorBudget" value="0" min="0" class="text-sm">
+                 </div>
+            </div>
+            <div class="mt-6 flex space-x-3">
+                 <button id="startCrawlBtn" type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">Start Crawl</button>
+                 <button id="cancelCrawlBtn" type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50" disabled>Cancel Crawl</button>
+            </div>
+             <p id="startError" class="text-red-500 text-sm mt-2 hidden"></p>
+        </form>
+        <div class="mb-6 p-4 border border-gray-200 rounded-md">
+            <h2 class="text-lg font-semibold mb-2 text-gray-700">Status</h2>
+            <div class="flex flex-wrap gap-x-6 gap-y-2">
+                 <p class="text-sm text-gray-600">State: <span id="crawlState" class="font-medium text-gray-900">idle</span></p>
+                 <p class="text-sm text-gray-600">Pages Crawled: <span id="pagesCrawled" class="font-medium text-gray-900">0</span></p>
+                 <p class="text-sm text-gray-600">Queue Size: <span id="queueSize" class="font-medium text-gray-900">0</span></p>
+                 <p class="text-sm text-gray-600">Errors: <span id="errorCount" class="font-medium text-gray-900">0</span></p>
+                  <p class="text-sm text-gray-600">Memory (RSS): <span id="rssUsage" class="font-medium text-gray-900">N/A</span></p>
+                 <p id="crawlIdDisplay" class="text-sm text-gray-600 hidden">Crawl ID: <span class="font-medium text-gray-900 break-all"></span></p>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-lg font-semibold mb-2 text-gray-700">Events / Log Stream</h2>
+            <div id="logContainer" class="w-full h-96 bg-gray-900 text-white p-4 rounded-md overflow-y-auto text-xs font-mono whitespace-pre-wrap">
+                Connecting to event stream...
+            </div>
+        </div>
+    </div>
+    <script>
+        const crawlForm = document.getElementById('crawlForm');
+        const startCrawlBtn = document.getElementById('startCrawlBtn');
+        const cancelCrawlBtn = document.getElementById('cancelCrawlBtn');
+        const startError = document.getElementById('startError');
+        const crawlState = document.getElementById('crawlState');
+        const pagesCrawled = document.getElementById('pagesCrawled');
+        const queueSize = document.getElementById('queueSize');
+        const errorCount = document.getElementById('errorCount');
+        const rssUsage = document.getElementById('rssUsage');
+        const crawlIdDisplay = document.getElementById('crawlIdDisplay');
+        const crawlIdSpan = crawlIdDisplay.querySelector('span');
+        const logContainer = document.getElementById('logContainer');
+
+        let isCrawling = false;
+        function updateUIState(crawling) {
+            isCrawling = crawling;
+            startCrawlBtn.disabled = crawling;
+            cancelCrawlBtn.disabled = !crawling;
+            Array.from(crawlForm.elements).forEach(input => {
+                if (input !== startCrawlBtn && input !== cancelCrawlBtn) {
+                    input.disabled = crawling;
+                }
+            });
+        }
+        function updateStatusDisplay(status) {
+            crawlState.textContent = status.state || 'unknown';
+            pagesCrawled.textContent = status.progress?.completed ?? pagesCrawled.textContent;
+            queueSize.textContent = status.progress?.queued ?? queueSize.textContent;
+            errorCount.textContent = status.progress?.errors ?? errorCount.textContent;
+            if (status.progress?.rssMB !== undefined) {
+                 rssUsage.textContent = `${status.progress.rssMB} MB`;
+            }
+            if (status.crawlId) {
+                crawlIdSpan.textContent = status.crawlId;
+                crawlIdDisplay.classList.remove('hidden');
+            } else if (status.state === 'idle' || status.state === 'done' || status.state === 'failed') {
+                 crawlIdDisplay.classList.add('hidden');
+                 rssUsage.textContent = 'N/A';
+            }
+            if (status.state === 'running' || status.state === 'starting' || status.state === 'canceling' || status.state === 'finalizing') {
+                updateUIState(true);
+            } else {
+                updateUIState(false);
+            }
+        }
+        function addLogMessage(event) {
+            const timestamp = new Date().toLocaleTimeString();
+            let message = `${timestamp} [${event.type}]`;
+            if (event.crawlId) message += ` (${event.crawlId.substring(0,10)}...)`;
+            if (event.type === 'crawl.pageProcessed') {
+                const totalMs = (event.fetchMs || 0) + (event.renderMs || 0) + (event.extractMs || 0) + (event.writeMs || 0);
+                message += `: ${event.status} ${event.url} (Depth: ${event.depth}, ${totalMs}ms)`;
+            } else if (event.type === 'error.occurred') {
+                message += `: ${event.error?.phase || 'crawl'} error - ${event.error?.message}`;
+                if(event.error?.url) message += ` @ ${event.error.url}`;
+            } else if (event.type === 'crawl.heartbeat') {
+                updateStatusDisplay(event);
+                message += `: Heartbeat. Pages=${event.progress?.completed || 0}, Queue=${event.progress?.queued || 0}, Errors=${event.progress?.errors || 0}`;
+            } else if (event.type === 'crawl.started') {
+                message += `: Seeds=${event.config?.seeds?.length}, Mode=${event.config?.render?.mode}`;
+                if (event.crawlId) {
+                   crawlIdSpan.textContent = event.crawlId;
+                   crawlIdDisplay.classList.remove('hidden');
+                }
+            } else if (event.type === 'crawl.finished') {
+                message += `: Crawl complete! Manifest=${event.manifestPath}, Incomplete=${event.incomplete}`;
+                // Show confirmation in UI
+                const confirmDiv = document.createElement('div');
+                confirmDiv.textContent = `✔️ Crawl finished. Archive created: ${event.manifestPath || 'unknown'}`;
+                confirmDiv.className = 'text-green-600 font-bold mt-2';
+                logContainer.appendChild(confirmDiv);
+            } else if (event.type === 'status.update') {
+                message += `: State=${event.state}, Pages=${event.progress?.completed || 0}, Errors=${event.progress?.errors || 0}`;
+            } else if (event.message) {
+                message += `: ${event.message}`;
+            } else if (event.type === 'checkpoint.saved') {
+                message += `: Checkpoint saved (Seq: ${event.seq})`;
+            } else if (event.type === 'crawl.shutdown') {
+                message += `: Shutdown requested (Reason: ${event.reason})`;
+            } else {
+                message += `: [${event.type}] Event received.`;
+            }
+            const logEntry = document.createElement('div');
+            logEntry.textContent = message;
+            if (event.type === 'error.occurred') {
+                logEntry.classList.add('text-red-400');
+            } else if (event.type?.includes('warn') || event.level === 'warn') {
+                 logEntry.classList.add('text-yellow-400');
+            } else if (event.type === 'ui.info' || event.type === 'ui.action' || event.type === 'status.update') {
+                 logEntry.classList.add('text-blue-300');
+            } else {
+                logEntry.classList.add('text-green-400');
+            }
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        let eventSource;
+        function connectEventSource() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            logContainer.innerHTML = '<div>Connecting to event stream...</div>';
+            eventSource = new EventSource('/events');
+            eventSource.onopen = () => {
+                addLogMessage({ type: 'ui.event', message: 'Connected to server event stream.' });
+            };
+            eventSource.onerror = (err) => {
+                addLogMessage({ type: 'ui.error', message: 'Connection error or stream closed. Attempting to reconnect...' });
+                updateUIState(false);
+                updateStatusDisplay({ state: 'disconnected', progress: {} });
+                setTimeout(connectEventSource, 5000);
+            };
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    addLogMessage(data);
+                    // Always update status for crawl.finished and status.update
+                    if (data.type === 'status.update') {
+                        updateStatusDisplay(data);
+                    } else if (data.type === 'crawl.started') {
+                        updateStatusDisplay({ state: 'running', progress: { completed: 0, queued: data.config?.seeds?.length || 0, errors: 0 }, crawlId: data.crawlId });
+                    } else if (data.type === 'crawl.finished') {
+                        updateStatusDisplay({ state: 'done', progress: crawlStatus.progress, incomplete: data.incomplete });
+                    } else if (data.type === 'error.occurred') {
+                        crawlStatus.progress.errors = (crawlStatus.progress.errors || 0) + 1;
+                        updateStatusDisplay(crawlStatus);
+                    } else if (data.type === 'crawl.shutdown') {
+                        updateStatusDisplay({ state: 'canceling', progress: crawlStatus.progress });
+                    }
+                } catch (e) {
+                    addLogMessage({ type: 'ui.error', message: 'Received unparsable event data.' });
+                }
+            };
+        }
+        crawlForm.addEventListener('submit', async (e) => {
+             e.preventDefault();
+            const formData = new FormData(crawlForm);
+            const params = new URLSearchParams();
+            for (const [key, value] of formData.entries()) {
+                if (value instanceof File) continue;
+                if (document.getElementById(key)?.type === 'checkbox') {
+                    if ((document.getElementById(key)).checked) {
+                        params.append(key, 'on');
+                    } else {
+                         params.append(key, 'off');
+                    }
+                } else {
+                   params.append(key, value);
+                }
+            }
+            if (!params.get('seeds')) {
+                startError.textContent = 'Please enter at least one seed URL.';
+                startError.classList.remove('hidden');
+                return;
+            }
+             if (!params.get('outPath')) {
+                startError.textContent = 'Please enter an output path.';
+                startError.classList.remove('hidden');
+                return;
+            }
+            startError.classList.add('hidden');
+            updateUIState(true);
+            addLogMessage({type: 'ui.action', message: 'Sending start crawl request...'});
+            try {
+                const response = await fetch('/crawl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP error! status: ${response.status}`);
+                }
+                addLogMessage({ type: 'ui.info', message: result.message || 'Crawl started successfully.' });
+            } catch (error) {
+                startError.textContent = `Error: ${error.message}`;
+                startError.classList.remove('hidden');
+                addLogMessage({ type: 'ui.error', message: `Failed to start crawl: ${error.message}` });
+                updateUIState(false);
+            }
+        });
+         cancelCrawlBtn.addEventListener('click', async () => {
+            if (!isCrawling) return;
+             addLogMessage({type: 'ui.action', message: 'Sending cancel crawl request...'});
+             try {
+                const response = await fetch('/cancel', { method: 'POST' });
+                 const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP error! status: ${response.status}`);
+                }
+                 addLogMessage({ type: 'ui.info', message: result.message || 'Cancel request sent.' });
+            } catch (error) {
+                addLogMessage({ type: 'ui.error', message: `Failed to send cancel request: ${error.message}` });
+            }
+         });
+        async function fetchInitialStatus() {
+             try {
+                 const response = await fetch('/status');
+                 if (response.ok) {
+                     const status = await response.json();
+                     updateStatusDisplay(status);
+                 } else {
+                      addLogMessage({ type: 'ui.warn', message: 'Could not fetch initial status.' });
+                 }
+             } catch (error) {
+                  addLogMessage({ type: 'ui.error', message: 'Error connecting to server for initial status.' });
+             }
+        }
+        document.getElementById('blockList').value = "gclid, fbclid, msclkid, yclid, irclickid, utm_*, mc_cid, mc_eid, ref, ref_*";
+        fetchInitialStatus();
+        connectEventSource();
+    </script>
+</body>
+</html>

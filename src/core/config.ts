@@ -49,6 +49,11 @@ export const DEFAULT_CONFIG: Partial<EngineConfig> = {
   
   accessibility: {
     enabled: true
+  },
+  checkpoint: {
+    enabled: true,
+    interval: 500,
+    everySeconds: 0
   }
 };
 
