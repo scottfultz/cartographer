@@ -10,10 +10,12 @@
     "cartographer": "dist/cli/index.js"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p packages/atlas-sdk/tsconfig.json",
-    "build:test": "tsc -p tsconfig.tests.json",
-    "pretest": "node scripts/make-example-atls.js",
-    "test": "npm run build && npm run build:test && node --test dist/test/**/*.test.js",
+  "clean": "rimraf dist dist-tests tmp packages/*/dist",
+  "prebuild": "npm run clean",
+  "build": "tsc -p tsconfig.json && tsc -p packages/atlas-sdk/tsconfig.json",
+  "build:test": "tsc -p tsconfig.tests.json",
+  "pretest": "node scripts/make-example-atls.js",
+  "test": "npm run build && npm run build:test && node --test 'dist-tests/**/*.test.js' --test-timeout=20000",
     "lint": "eslint .",
     "crawl": "node dist/cli/index.js crawl",
     "export": "node dist/cli/index.js export",

@@ -10,6 +10,7 @@ import { extractLinks } from "../src/core/extractors/links.js";
 import { extractAssets } from "../src/core/extractors/assets.js";
 import { extractPageFacts } from "../src/core/extractors/pageFacts.js";
 import { extractTextSample } from "../src/core/extractors/textSample.js";
+import { baseTestConfig } from './helpers/testConfig.js';
 
 test("extractLinks - raw mode uses location: unknown", () => {
   const html = `
@@ -23,9 +24,10 @@ test("extractLinks - raw mode uses location: unknown", () => {
   `;
 
   const edges = extractLinks({
+    ...baseTestConfig,
     domSource: "raw",
     html,
-  baseUrl: "https://caifrazier.com",
+    baseUrl: "https://caifrazier.com",
     discoveredInMode: "raw"
   });
 
@@ -51,9 +53,10 @@ test("extractLinks - playwright mode detects location", () => {
   `;
 
   const edges = extractLinks({
+    ...baseTestConfig,
     domSource: "playwright",
     html,
-  baseUrl: "https://caifrazier.com",
+    baseUrl: "https://caifrazier.com",
     discoveredInMode: "prerender"
   });
 

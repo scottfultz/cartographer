@@ -7,6 +7,7 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import { extractAccessibility } from "../src/core/extractors/accessibility.js";
+import { baseTestConfig } from './helpers/testConfig.js';
 
 test("should count missing alt attributes", () => {
   const html = `
@@ -20,6 +21,7 @@ test("should count missing alt attributes", () => {
   `;
   
   const result = extractAccessibility({
+    ...baseTestConfig,
     domSource: "raw",
     html,
     baseUrl: "https://example.com"
@@ -42,6 +44,7 @@ test("should build heading order", () => {
   `;
   
   const result = extractAccessibility({
+    ...baseTestConfig,
     domSource: "raw",
     html,
     baseUrl: "https://example.com"

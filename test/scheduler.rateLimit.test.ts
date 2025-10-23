@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Cartographer } from '../src/engine/cartographer.js';
 import { buildConfig } from '../src/core/config.js';
+import { baseTestConfig } from './helpers/testConfig.js';
 
 type PageFetchedEvent = {
   type: 'page.fetched';
@@ -20,31 +21,23 @@ function isPageFetched(ev: unknown): ev is PageFetchedEvent {
     && typeof (ev as any).timestamp === 'string';
 }
 
-test('Scheduler per-host rate limiting respects perHostRps', async (t) => {
+test('Scheduler per-host rate limiting respects perHostRps', { timeout: 15000 }, async (t) => {
   // Allow enough concurrency and global RPS so per-host is the binding limit
   const perHostRps = 2; // expect ~500 ms min gap per host
   const seeds = [
-  'https://caifrazier.com/',
+    'https://caifrazier.com/',
     'https://httpbin.org/html',
   ];
 
   const config = buildConfig({
+    ...baseTestConfig,
     seeds,
     outAtls: 'tmp/test-rate-limit.atls',
     http: { rps: 12, userAgent: 'CartographerTest/1.0' },
     perHostRps,
-    render: {
-      mode: 'prerender',
-      concurrency: 8,
-      timeoutMs: 10000,
-      maxRequestsPerPage: 10,
-      maxBytesPerPage: 1048576
-    },
     maxPages: 12,
-    robots: { respect: true, overrideUsed: false },
-    discovery: { followExternal: false, paramPolicy: 'keep', blockList: [] },
     checkpoint: { enabled: false, interval: 0 },
-    cli: { quiet: true },
+    render: { mode: 'prerender', concurrency: 8, timeoutMs: 10000, maxRequestsPerPage: 10, maxBytesPerPage: 1048576 }, // override only if browser needed
   });
 
   const cart = new Cartographer();

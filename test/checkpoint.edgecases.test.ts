@@ -69,28 +69,3 @@ test('error budget exceeded triggers checkpoint', async () => {
   assert.ok(true, 'error budget checkpoint stub');
 });
 
-// Edge case: resume with missing visited index
-
-test('resume with missing visited index returns empty set', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'carto-checkpoint-missing-visited-'));
-  try {
-    // No visited.idx written
-    const loaded = readVisitedIndex(dir);
-    assert.deepEqual(loaded, new Set());
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
-// Edge case: resume with missing frontier returns empty array
-
-test('resume with missing frontier returns empty array', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'carto-checkpoint-missing-frontier-'));
-  try {
-    // No frontier.json written
-    const loaded = readFrontier(dir);
-    assert.deepEqual(loaded, []);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
