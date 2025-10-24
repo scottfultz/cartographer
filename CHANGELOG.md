@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `test:unit`, `test:integration`, and `test:all` npm scripts
   - Updated CI/CD to run fast tests by default
   - `npm test` now completes in under 1 second (was hanging indefinitely)
+- **CI/CD Test Build** - Fixed GitHub Actions workflow to build tests before running
+  - Added `npm run build:test` step before test execution
+  - Added `npm run pretest` step before integration tests (creates test fixtures)
+  - Tests now pass on both Node 20 and Node 22
 
 ### 📚 Changed
 - **Test Organization** - Clear separation between unit and integration tests

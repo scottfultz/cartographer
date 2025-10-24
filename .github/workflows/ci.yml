@@ -39,6 +39,9 @@ jobs:
     - name: Build TypeScript
       run: npm run build
     
+    - name: Build tests
+      run: npm run build:test
+    
     - name: Lint code
       run: npm run lint
       continue-on-error: true
@@ -46,6 +49,11 @@ jobs:
     # Fast Unit Tests (176 tests, ~0.6s)
     - name: Run unit tests
       run: npm run test:unit
+    
+    # Prepare test fixtures for integration tests
+    - name: Create test fixtures
+      run: npm run pretest
+      continue-on-error: true
     
     # Integration Tests (slower, separate job)
     - name: Run integration tests
