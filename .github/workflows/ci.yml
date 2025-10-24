@@ -42,10 +42,6 @@ jobs:
     - name: Build tests
       run: npm run build:test
     
-    - name: Lint code
-      run: npm run lint
-      continue-on-error: true
-    
     # Fast Unit Tests (176 tests, ~0.6s)
     - name: Run unit tests
       run: npm run test:unit
