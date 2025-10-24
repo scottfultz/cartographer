@@ -92,7 +92,7 @@ export class AtlasWriter {
         this.config = config;
         this.uuid = crawlId || randomBytes(8).toString("hex");
         this.stagingDir = join(outPath + ".staging", this.uuid);
-        console.log(`[DIAGNOSTIC] AtlasWriter: Initializing with outPath: ${this.outPath}`);
+        log('debug', `AtlasWriter: Initializing with outPath: ${this.outPath}`);
         // Initialize identity from config
         this.stats.identity.seedUrls = config.seeds || [];
         if (config.seeds && config.seeds.length > 0) {

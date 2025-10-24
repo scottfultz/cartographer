@@ -11,10 +11,6 @@ import { sha1Hex } from "../utils/hashing.js";
 import { log, logEvent } from "../utils/logging.js";
 import bus from "./events.js";
 import { withCrawlId } from "./withCrawlId.js";
-function debugEventBus(label: string) {
-  console.log(`[EVENT AUDIT] ${label} | bus:`, bus, '| stack:', new Error().stack, '| time:', new Date().toISOString());
-}
-console.log("[EVENT AUDIT] Event bus identity (scheduler):", bus);
 import { Metrics } from "../utils/metrics.js";
 import { writeCheckpoint, writeVisitedIndex, writeFrontier, readCheckpoint, readVisitedIndex, readFrontier, type CheckpointState } from "./checkpoint.js";
 import pLimit from "p-limit";
@@ -61,6 +57,7 @@ export class Scheduler {
   private pageCount = 0;
   private errorCount = 0;
   private errorBudgetExceeded = false;
+  private inFlightCount = 0; // Track concurrent page processing
   private rpsLimiter: ReturnType<typeof pLimit>;
   private memoryPaused = false;
   private checkpointInterval: number;
@@ -73,7 +70,7 @@ export class Scheduler {
   private crawlState: "idle" | "running" | "paused" | "canceling" | "finalizing" | "done" | "failed" = "idle";
 
   constructor(config: EngineConfig, writer: AtlasWriter, metrics?: Metrics) {
-    console.log('[DIAGNOSTIC] Scheduler constructor received resume config:', JSON.stringify(config.resume, null, 2));
+    log('debug', `Scheduler constructor received resume config: ${JSON.stringify(config.resume, null, 2)}`);
     this.config = config;
     this.writer = writer;
     this.metrics = metrics || new Metrics();
@@ -93,7 +90,7 @@ export class Scheduler {
   getProgress(): import("./types.js").CrawlProgress {
     return {
       queued: this.queue.length,
-      inFlight: 0, // TODO: track in-flight
+      inFlight: this.inFlightCount,
       completed: this.pageCount,
       errors: this.errorCount,
       pagesPerSecond: this.metrics.getPagesPerSecond(),
@@ -215,20 +212,20 @@ export class Scheduler {
    * Write checkpoint if interval reached
    */
   private async writeCheckpointIfNeeded(force = false): Promise<void> {
-    console.log(`[DEBUG] writeCheckpointIfNeeded entry: force=${force}, checkpoint enabled=${this.config.checkpoint?.enabled}`);
+    log('debug', `writeCheckpointIfNeeded entry: force=${force}, checkpoint enabled=${this.config.checkpoint?.enabled}`);
     if (!this.config.checkpoint?.enabled && this.config.checkpoint?.enabled !== undefined) {
-      console.log('[DEBUG] writeCheckpointIfNeeded: checkpoint not enabled, returning');
+      log('debug', 'writeCheckpointIfNeeded: checkpoint not enabled, returning');
       return;
     }
 
     let shouldCheckpoint = force || 
       (this.pageCount - this.lastCheckpointAt >= this.checkpointInterval);
-    console.log(`[DEBUG] writeCheckpointIfNeeded: shouldCheckpoint=${shouldCheckpoint}, pageCount=${this.pageCount}, lastCheckpointAt=${this.lastCheckpointAt}, interval=${this.checkpointInterval}`);
+    log('debug', `writeCheckpointIfNeeded: shouldCheckpoint=${shouldCheckpoint}, pageCount=${this.pageCount}, lastCheckpointAt=${this.lastCheckpointAt}, interval=${this.checkpointInterval}`);
     // Time-based fallback
     if (!shouldCheckpoint && this.config.checkpoint?.everySeconds && this.config.checkpoint.everySeconds > 0) {
       const now = Date.now();
       const timeElapsed = (now - this.lastCheckpointTime) >= this.config.checkpoint.everySeconds * 1000;
-      console.log(`[DEBUG] writeCheckpointIfNeeded: timeElapsed=${timeElapsed}, now=${now}, lastCheckpointTime=${this.lastCheckpointTime}, everySeconds=${this.config.checkpoint.everySeconds}`);
+      log('debug', `writeCheckpointIfNeeded: timeElapsed=${timeElapsed}, now=${now}, lastCheckpointTime=${this.lastCheckpointTime}, everySeconds=${this.config.checkpoint.everySeconds}`);
       if (timeElapsed) {
         shouldCheckpoint = true;
         this.lastCheckpointTime = now;
@@ -236,7 +233,7 @@ export class Scheduler {
     }
 
     if (shouldCheckpoint) {
-      console.log(`[DEBUG] writeCheckpointIfNeeded: shouldCheckpoint is true, proceeding to write checkpoint and emit event.`);
+      log('debug', 'writeCheckpointIfNeeded: shouldCheckpoint is true, proceeding to write checkpoint and emit event');
       try {
         await this.writer.flushAndSync();
 
@@ -255,55 +252,49 @@ export class Scheduler {
         };
 
         const stagingDir = this.writer.getStagingDir();
-        console.log(`[DEBUG] Writing checkpoint to ${stagingDir}`);
-        console.log(`[DEBUG] CheckpointState:`, state);
+        log('debug', `Writing checkpoint to ${stagingDir}`);
+        log('debug', `CheckpointState: ${JSON.stringify(state)}`);
         writeCheckpoint(stagingDir, state);
         writeVisitedIndex(stagingDir, this.visited);
         writeFrontier(stagingDir, this.queue);
 
         // Emit checkpoint.saved event for integration test
         if (!this._eventSeq) this._eventSeq = 1;
-        debugEventBus('Emitting checkpoint.saved event in writeCheckpointIfNeeded');
-        console.log(`[DEBUG] bus.emit checkpoint.saved:`, {
-          type: 'checkpoint.saved',
-          crawlId: this.writer.getCrawlId(),
-          path: this.writer.getManifestPath(),
-          seq: this._eventSeq,
-          timestamp: new Date().toISOString()
-        });
-        bus.emit({
-          type: 'checkpoint.saved',
+        const checkpointEvent = {
+          type: 'checkpoint.saved' as const,
           crawlId: this.writer.getCrawlId(),
           path: this.writer.getManifestPath(),
           seq: this._eventSeq++,
           timestamp: new Date().toISOString()
-        });
+        };
+        log('debug', `bus.emit checkpoint.saved: ${JSON.stringify(checkpointEvent)}`);
+        bus.emit(checkpointEvent);
 
         this.lastCheckpointAt = this.pageCount;
         this.lastCheckpointTime = Date.now();
         log("info", `[Checkpoint] Saved at ${this.pageCount} pages`);
-        console.log(`[DEBUG] Checkpoint state updated: lastCheckpointAt=${this.lastCheckpointAt}, lastCheckpointTime=${this.lastCheckpointTime}`);
+        log('debug', `Checkpoint state updated: lastCheckpointAt=${this.lastCheckpointAt}, lastCheckpointTime=${this.lastCheckpointTime}`);
       } catch (error: any) {
-  log('error', `[Checkpoint] FAILED to write checkpoint: ${error.message}`);
-        console.error(`[DEBUG] Checkpoint write FAILED:`, error);
+        log('error', `[Checkpoint] FAILED to write checkpoint: ${error.message}`);
+        log('debug', `Checkpoint write error details: ${error.stack || error}`);
       }
     } else {
-      console.log(`[DEBUG] writeCheckpointIfNeeded: shouldCheckpoint is false, skipping checkpoint.`);
+      log('debug', 'writeCheckpointIfNeeded: shouldCheckpoint is false, skipping checkpoint');
     }
   }
   
   async run(): Promise<SchedulerResult> {
-    console.log(`[DIAGNOSTIC] Scheduler.run() checking for resume. stagingDir is: ${this.config.resume?.stagingDir}`);
+    log('debug', `Scheduler.run() checking for resume. stagingDir is: ${this.config.resume?.stagingDir}`);
     // Start periodic metrics logging (unless quiet mode)
     if (!this.config.cli?.quiet) {
-      console.log('[DEBUG] Starting periodic metrics logging');
+      log('debug', 'Starting periodic metrics logging');
       this.metrics.startPeriodicLogging();
     }
 
     // Start 1 Hz heartbeat event stream
     const crawlId = this.writer.getCrawlId();
     this.heartbeatInterval = setInterval(() => {
-      console.log('[DEBUG] Emitting crawl.heartbeat event');
+      log('debug', 'Emitting crawl.heartbeat event');
       bus.emit(withCrawlId(crawlId, {
         type: "crawl.heartbeat",
         progress: this.getProgress()
@@ -311,7 +302,7 @@ export class Scheduler {
     }, 1000);
 
     // Emit crawl.started event
-    console.log('[DEBUG] Emitting crawl.started event');
+    log('debug', 'Emitting crawl.started event');
     bus.emit(withCrawlId(crawlId, {
       type: "crawl.started",
       config: this.config
@@ -319,9 +310,9 @@ export class Scheduler {
 
     // Try to restore from checkpoint if resuming
     if (this.config.resume?.stagingDir) {
-      console.log('[DEBUG] Resume mode detected, attempting restore from checkpoint');
+      log('debug', 'Resume mode detected, attempting restore from checkpoint');
       const restored = await this.restoreFromCheckpoint();
-      console.log(`[DEBUG] restoreFromCheckpoint returned: ${restored}`);
+      log('debug', `restoreFromCheckpoint returned: ${restored}`);
       if (restored) {
         log("info", "[Resume] Successfully restored state from checkpoint");
         log('info', `[Resume] Repopulating host queues from restored frontier...`);
@@ -338,10 +329,10 @@ export class Scheduler {
         }
         this.queue.length = 0; // Clear the array
         log('info', `[Resume] Host queues repopulated. ${this.hostQueues.size} hosts active.`);
-        console.log('[AUDIT] Forcing checkpoint emission after resume');
-        console.log(`[DEBUG] Calling writeCheckpointIfNeeded(force=true) after resume`);
+        log('debug', 'Forcing checkpoint emission after resume');
+        log('debug', 'Calling writeCheckpointIfNeeded(force=true) after resume');
         await this.writeCheckpointIfNeeded(true);
-        console.log(`[DEBUG] writeCheckpointIfNeeded(force=true) after resume completed`);
+        log('debug', 'writeCheckpointIfNeeded(force=true) after resume completed');
       } else {
         log("warn", "[Resume] No checkpoint found, starting fresh");
       }
@@ -406,7 +397,12 @@ export class Scheduler {
           this.visited.add(item.url);
           await concurrencyLimit(async () => {
             await this.rpsLimiter(async () => {
-              await this.processPage(item);
+              this.inFlightCount++;
+              try {
+                await this.processPage(item);
+              } finally {
+                this.inFlightCount--;
+              }
             });
           });
           processed = true;

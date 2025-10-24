@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### 🐛 Fixed
+- **Manifest Statistics** - Fixed manifest.json to show actual record counts and file sizes
+  - Reads `summary.json` to populate `recordCount` for each dataset
+  - Calculates actual part file sizes using `fs.stat()`
+  - Resolves critical issue where manifest showed zeros for all statistics
+- **In-Flight Tracking** - Scheduler now properly tracks concurrent page processing
+  - Added `inFlightCount` property to Scheduler class
+  - Increments on page processing start, decrements on completion
+  - Progress metrics now show accurate concurrency usage
+- **Debug Logging** - Improved debug logging with proper structured logging
+  - Replaced 45+ `console.log()` debug statements with `log('debug', ...)` calls
+  - Debug logs now respect log level configuration (hidden by default)
+  - Cleaner output in production mode while preserving debug capability
+  - Files cleaned: `src/core/scheduler.ts` (21 instances), `src/io/atlas/writer.ts` (1 instance)
 - **Test Suite Hang** - Separated fast unit tests (176 tests, ~0.6s) from slow integration tests (~60s)
   - Moved `scheduler.rateLimit.test.ts` to `test/integration/`
   - Added `test:unit`, `test:integration`, and `test:all` npm scripts

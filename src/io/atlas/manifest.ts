@@ -4,9 +4,9 @@
  * Proprietary and confidential.
  */
 
-import { readFile } from "fs/promises";
+import { readFile, stat } from "fs/promises";
 import { sha256 } from "../../utils/hashing.js";
-import type { AtlasManifest } from "../../core/types.js";
+import type { AtlasManifest, AtlasSummary } from "../../core/types.js";
 
 /**
  * Build Atlas manifest with owner attribution and integrity hashes
@@ -52,6 +52,16 @@ export async function buildManifest(opts: {
     files[relativePath] = sha256(content);
   }
   
+  // Read summary.json for record counts
+  let summary: AtlasSummary | null = null;
+  try {
+    const summaryPath = `${opts.stagingDir}/summary.json`;
+    const summaryContent = await readFile(summaryPath, "utf-8");
+    summary = JSON.parse(summaryContent);
+  } catch (error) {
+    // summary.json not found or invalid - use zeros
+  }
+  
   // Spec and schema version
   const specVersion = "1.0.0";
   const schemaVersion = "2025-10-22";
@@ -75,11 +85,51 @@ export async function buildManifest(opts: {
   })) {
     const schemaFile = `schemas/${name}.schema.json`;
     const schemaAbs = `${opts.stagingDir}/${schemaFile}`;
+    
+    // Calculate total bytes for this dataset's parts
+    let totalBytes = 0;
+    for (const partPath of partList) {
+      try {
+        const stats = await stat(partPath);
+        totalBytes += stats.size;
+      } catch {
+        // Part file not found, skip
+      }
+    }
+    
+    // Get record count from summary.json
+    let recordCount = 0;
+    if (summary) {
+      switch (name) {
+        case "pages":
+          recordCount = summary.stats.totalPages;
+          break;
+        case "edges":
+          recordCount = summary.stats.totalEdges;
+          break;
+        case "assets":
+          recordCount = summary.stats.totalAssets;
+          break;
+        case "errors":
+          recordCount = summary.stats.totalErrors;
+          break;
+        case "accessibility":
+          recordCount = summary.stats.totalAccessibilityRecords || 0;
+          break;
+        case "console":
+          recordCount = summary.stats.totalConsoleRecords || 0;
+          break;
+        case "styles":
+          recordCount = summary.stats.totalStyleRecords || 0;
+          break;
+      }
+    }
+    
     datasets[name] = {
       name,
       partCount: partList.length,
-      recordCount: 0, // TODO: fill from summary
-      bytes: 0, // TODO: fill from part sizes
+      recordCount,
+      bytes: totalBytes,
       schema: `${schemaFile}#1`,
       schemaVersion,
       schemaHash: await schemaHash(schemaAbs)

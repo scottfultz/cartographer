@@ -24,6 +24,7 @@ export declare class Scheduler {
     private pageCount;
     private errorCount;
     private errorBudgetExceeded;
+    private inFlightCount;
     private rpsLimiter;
     private memoryPaused;
     private checkpointInterval;
