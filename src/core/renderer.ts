@@ -163,6 +163,7 @@ export async function renderPage(
 function detectChallengePage(page: any, html: string, statusCode?: number): boolean {
   // Check status codes commonly used for rate limiting/challenges
   if (statusCode === 503 || statusCode === 429) {
+    log('debug', `[Challenge Detection] Matched status code: ${statusCode}`);
     return true;
   }
 
@@ -180,26 +181,27 @@ function detectChallengePage(page: any, html: string, statusCode?: number): bool
       'access denied',
       'ddos protection'
     ];
-    if (challengeTitles.some(pattern => title.includes(pattern))) {
+    const matchedTitle = challengeTitles.find(pattern => title.includes(pattern));
+    if (matchedTitle) {
+      log('debug', `[Challenge Detection] Matched title pattern: "${matchedTitle}" in title: "${title}"`);
       return true;
     }
   }
 
-  // Check for common challenge page DOM patterns
-  const challengeSelectors = [
-    '#cf-challenge-form',
-    '.cf-browser-verification',
-    '#challenge-form',
-    '[data-ray-id]',
-    '.ray-id',
-    '#captcha',
-    '.g-recaptcha',
-    '[id*="challenge"]',
-    '[class*="challenge"]'
+  // Check for common challenge page DOM patterns using proper attribute/class checks
+  // Instead of checking for CSS selector strings, check for actual HTML patterns
+  const patterns = [
+    { name: 'cf-challenge-form', check: (h: string) => h.includes('id="cf-challenge-form"') || h.includes('cf-challenge-form') },
+    { name: 'cf-browser-verification', check: (h: string) => h.includes('cf-browser-verification') },
+    { name: 'challenge-form', check: (h: string) => h.includes('id="challenge-form"') || h.includes('challenge-form') },
+    { name: 'data-ray-id', check: (h: string) => h.includes('data-ray-id=') },
+    { name: 'ray-id class', check: (h: string) => h.includes('class="ray-id"') || h.includes('ray-id') },
+    { name: 'captcha', check: (h: string) => h.includes('id="captcha"') || h.includes('g-recaptcha') }
   ];
 
-  for (const selector of challengeSelectors) {
-    if (html.includes(selector) || html.includes(selector.replace(/[#.]/g, ''))) {
+  for (const pattern of patterns) {
+    if (pattern.check(html)) {
+      log('debug', `[Challenge Detection] Matched DOM pattern: ${pattern.name}`);
       return true;
     }
   }

@@ -550,6 +550,10 @@ export class AtlasWriter {
 
       // Build manifest with integrity hashes
       log("info", "[DIAGNOSTIC] AtlasWriter: Building manifest with integrity hashes...");
+      
+      // IMPORTANT: Write summary.json FIRST so buildManifest can read record counts
+      await writeFile(join(this.stagingDir, "summary.json"), JSON.stringify(this.stats, null, 2));
+      
       // Write manifest with incomplete=true first
       const manifestPath = join(this.stagingDir, "manifest.json");
       const manifest = await buildManifest({
@@ -571,7 +575,6 @@ export class AtlasWriter {
       });
       manifest.incomplete = true;
       await writeFile(manifestPath + ".tmp", JSON.stringify(manifest, null, 2));
-      await writeFile(join(this.stagingDir, "summary.json"), JSON.stringify(this.stats, null, 2));
       // Atomically rename manifest to manifest.json (incomplete=true)
       await rm(manifestPath, { force: true }).catch(() => {});
       await copyFile(manifestPath + ".tmp", manifestPath);
