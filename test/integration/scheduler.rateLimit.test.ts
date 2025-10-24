@@ -1,9 +1,9 @@
 // scheduler.rateLimit.test.ts
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Cartographer } from '../src/engine/cartographer.js';
-import { buildConfig } from '../src/core/config.js';
-import { baseTestConfig } from './helpers/testConfig.js';
+import { Cartographer } from '../../src/engine/cartographer.js';
+import { buildConfig } from '../../src/core/config.js';
+import { baseTestConfig } from '../helpers/testConfig.js';
 
 type PageFetchedEvent = {
   type: 'page.fetched';

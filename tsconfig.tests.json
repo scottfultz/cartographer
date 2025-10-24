@@ -1,15 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-  "outDir": "./dist/test",
+    "outDir": "./dist-tests",
     "module": "NodeNext",
     "target": "ES2022",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "allowJs": true,
-    "types": [],
-     // removed declaration property
+    "types": []
   },
-    "include": ["test/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["test/**/*.ts"],
+  "exclude": ["node_modules", "dist", "dist-tests"]
 }

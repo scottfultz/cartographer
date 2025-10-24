@@ -15,6 +15,7 @@ import type { CommandModule } from "yargs";
 import { startJob } from "../../core/startJob.js";
 import { z } from "zod";
 import { DEFAULT_CONFIG } from "../../core/config.js";
+import { resolveOutputPath } from "../../utils/filenameGenerator.js";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -23,7 +24,7 @@ export const crawlCommand: CommandModule = {
   describe: "Run a crawl and write an .atls file",
   builder: (y) => y
     .option("seeds", { type: "array", demandOption: true })
-    .option("out", { type: "string", demandOption: true })
+    .option("out", { type: "string", describe: "Output .atls path (default: auto-generated in ./export/)" })
     .option("mode", { type: "string", choices: ["raw","prerender","full"], default: "prerender" })
     .option("rps", { type: "number", default: 3 })
     .option("concurrency", { type: "number", default: 8 })
@@ -31,6 +32,7 @@ export const crawlCommand: CommandModule = {
     .option("overrideRobots", { type: "boolean", default: false })
     .option("userAgent", { type: "string", describe: "Custom User-Agent string" })
   .option("maxPages", { type: "number", default: 0 })
+  .option("maxDepth", { type: "number", default: -1, describe: "Maximum crawl depth (-1 = unlimited, 0 = seeds only)" })
   .option("maxBytesPerPage", { type: "number", default: 50000000, describe: "Maximum bytes to load per page (default: 50MB)" })
     .option("resume", { type: "string", describe: "Resume from staging directory" })
     .option("checkpointInterval", { type: "number", default: 500, describe: "Write checkpoint every N pages" })
@@ -42,7 +44,7 @@ export const crawlCommand: CommandModule = {
   handler: async (argv) => {
     const schema = z.object({
       seeds: z.array(z.string().url()).min(1),
-      out: z.string(),
+      out: z.string().optional(),
       mode: z.enum(["raw","prerender","full"]),
       rps: z.number().positive(),
       concurrency: z.number().positive(),
@@ -50,6 +52,7 @@ export const crawlCommand: CommandModule = {
       overrideRobots: z.boolean(),
       userAgent: z.string().optional(),
       maxPages: z.number().nonnegative(),
+      maxDepth: z.number().int(),
       resume: z.string().optional(),
       checkpointInterval: z.number().positive(),
       quiet: z.boolean(),
@@ -59,6 +62,12 @@ export const crawlCommand: CommandModule = {
       logLevel: z.enum(["info","warn","error","debug"])
     });
     const cfg = schema.parse(argv);
+
+    // Resolve output path (auto-generate if not provided)
+    const outAtls = await resolveOutputPath(cfg.out, {
+      seedUrl: cfg.seeds[0],
+      mode: cfg.mode
+    });
 
     const userAgent = cfg.userAgent || DEFAULT_CONFIG.http?.userAgent || "CartographerBot/1.0 (+contact:continuum)";
     const manifestNotes: string[] = [];
@@ -76,7 +85,7 @@ export const crawlCommand: CommandModule = {
     // Build config for Cartographer API
     const crawlConfig = {
       seeds: cfg.seeds as string[],
-      outAtls: cfg.out,
+      outAtls,
       render: {
         mode: cfg.mode,
         concurrency: cfg.concurrency,
@@ -94,6 +103,7 @@ export const crawlCommand: CommandModule = {
       },
       robots: { respect: cfg.respectRobots, overrideUsed: cfg.overrideRobots },
       maxPages: cfg.maxPages,
+      maxDepth: cfg.maxDepth,
       checkpoint: { interval: cfg.checkpointInterval, enabled: true },
       resume: cfg.resume ? { stagingDir: cfg.resume } : undefined,
       manifestNotes,

@@ -24,6 +24,7 @@ export interface PageFacts {
   robotsMeta?: string;
   xRobotsTagHeader?: string;
   hreflang: Array<{ lang: string; url: string }>;
+  faviconUrl?: string; // Resolved absolute URL to favicon
   linksOutCount: number;
   mediaCount: number;
   missingAltCount: number;
@@ -69,6 +70,33 @@ export function extractPageFacts(input: PageFactsInput): PageFacts {
     }
   });
 
+  // Favicon - check multiple possible locations
+  let faviconUrl: string | undefined;
+  
+  // Priority 1: <link rel="icon">
+  const iconHref = $('link[rel="icon"], link[rel="shortcut icon"]').first().attr("href");
+  if (iconHref) {
+    faviconUrl = safeJoinUrl(input.baseUrl, iconHref) || undefined;
+  }
+  
+  // Priority 2: <link rel="apple-touch-icon">
+  if (!faviconUrl) {
+    const appleIconHref = $('link[rel="apple-touch-icon"]').first().attr("href");
+    if (appleIconHref) {
+      faviconUrl = safeJoinUrl(input.baseUrl, appleIconHref) || undefined;
+    }
+  }
+  
+  // Priority 3: Default /favicon.ico (only if we're at the root of the origin)
+  if (!faviconUrl) {
+    try {
+      const baseUrlObj = new URL(input.baseUrl);
+      faviconUrl = `${baseUrlObj.origin}/favicon.ico`;
+    } catch {
+      // Invalid base URL, skip default favicon
+    }
+  }
+
   // Counts
   const linksOutCount = $("a[href]").length;
   const mediaCount = $("img, video").length;
@@ -91,6 +119,7 @@ export function extractPageFacts(input: PageFactsInput): PageFacts {
     robotsMeta,
     xRobotsTagHeader,
     hreflang,
+    faviconUrl,
     linksOutCount,
     mediaCount,
     missingAltCount,

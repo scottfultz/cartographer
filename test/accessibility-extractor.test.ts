@@ -7,7 +7,6 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import { extractAccessibility } from "../src/core/extractors/accessibility.js";
-import { baseTestConfig } from './helpers/testConfig.js';
 
 test("should count missing alt attributes", () => {
   const html = `
@@ -21,10 +20,10 @@ test("should count missing alt attributes", () => {
   `;
   
   const result = extractAccessibility({
-    ...baseTestConfig,
     domSource: "raw",
     html,
-    baseUrl: "https://example.com"
+    baseUrl: "https://example.com",
+    renderMode: "raw"
   });
   
   assert.equal(result.missingAltCount, 2); // banner.jpg and photo.png (empty alt)
@@ -44,10 +43,10 @@ test("should build heading order", () => {
   `;
   
   const result = extractAccessibility({
-    ...baseTestConfig,
     domSource: "raw",
     html,
-    baseUrl: "https://example.com"
+    baseUrl: "https://example.com",
+    renderMode: "raw"
   });
   
   assert.deepEqual(result.headingOrder, ["H1", "H2", "H3", "H2"]);
@@ -68,7 +67,8 @@ test("should detect landmarks", () => {
   const result = extractAccessibility({
     domSource: "raw",
     html,
-    baseUrl: "https://example.com"
+    baseUrl: "https://example.com",
+    renderMode: "raw"
   });
   
   assert.equal(result.landmarks.header, true);
@@ -92,7 +92,8 @@ test("should count ARIA roles", () => {
   const result = extractAccessibility({
     domSource: "raw",
     html,
-    baseUrl: "https://example.com"
+    baseUrl: "https://example.com",
+    renderMode: "raw"
   });
   
   assert.equal(result.roles["button"], 2);
@@ -111,7 +112,8 @@ test("should not include contrastViolations in raw mode", () => {
   const result = extractAccessibility({
     domSource: "raw",
     html,
-    baseUrl: "https://example.com"
+    baseUrl: "https://example.com",
+    renderMode: "raw"
   });
   
   assert.equal(result.contrastViolations, undefined);

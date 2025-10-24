@@ -5,6 +5,14 @@
 ### Summary
 The `resume avoids duplicates and flips incomplete correctly` integration test intermittently hangs during execution. The test runs two crawl phases, waiting for checkpoint and crawl.finished events before canceling. Despite correct event emission and diagnostic logs, the process does not exit cleanly after test completion.
 
+### Impact Analysis Findings (2025-10-23)
+
+- The hanging behavior in the resume integration test does **not** currently affect other features or tests.
+- All other tests use isolated configs, temp files, and teardown logic to clean up resources.
+- The event bus singleton and browser lifecycle are managed per test run; teardown closes the browser and removes artifacts.
+- No evidence of resource leaks or lingering async operations in other tests.
+- Only resume integration test reliability is impacted; other features (checkpointing, graceful shutdown, event bus, browser lifecycle) are not affected in current test suite.
+
 ### Reproduction Steps
 1. Run: `npm run build && npm run build:test && node --test dist/test/**/*.test.js`
 2. Observe: All tests pass except the resume integration test, which hangs after emitting crawl.finished.

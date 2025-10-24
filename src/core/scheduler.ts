@@ -372,7 +372,7 @@ export class Scheduler {
     }
 
     // Log crawl configuration
-    log("info", `[Scheduler] paramPolicy=${this.config.discovery.paramPolicy} blockList=[${this.config.discovery.blockList.join(", ")}] maxPages=${this.config.maxPages}`);
+    log("info", `[Scheduler] paramPolicy=${this.config.discovery.paramPolicy} blockList=[${this.config.discovery.blockList.join(", ")}] maxPages=${this.config.maxPages} maxDepth=${this.config.maxDepth}`);
 
     // Emit a seeded checkpoint immediately after seeding the frontier
     if (this.config.checkpoint?.enabled) {
@@ -441,6 +441,16 @@ export class Scheduler {
       errors: this.errorCount,
       rssMB: this.metrics.getCurrentRssMB()
     });
+    
+    // Determine completion reason
+    let completionReason: "finished" | "capped" | "error_budget" | "manual" = "finished";
+    if (this.config.maxPages > 0 && this.pageCount >= this.config.maxPages) {
+      completionReason = "capped";
+    } else if (this.gracefulShutdown) {
+      completionReason = "manual";
+    }
+    // Note: error_budget would be set earlier if errorBudget was exceeded
+    this.writer.setCompletionReason(completionReason);
     
     // Set provenance information on writer for manifest
     this.writer.setProvenance({
@@ -528,6 +538,28 @@ export class Scheduler {
       const renderResult = await renderPage(this.config, fetchResult.finalUrl, fetchResult);
       const renderMs = Math.round(performance.now() - renderStart);
       
+      // Check for challenge page detection
+      if (renderResult.challengeDetected) {
+        const errorMsg = "Page failed to load due to a server/CDN challenge (e.g., Cloudflare, Akamai). Challenge did not resolve within 15s. Data is not available.";
+        log('error', `[Scheduler] Challenge detected for ${item.url}: ${errorMsg}`);
+        
+        const errorRecord: ErrorRecord = {
+          url: item.url,
+          origin: new URL(item.url).origin,
+          hostname: new URL(item.url).hostname,
+          occurredAt: new Date().toISOString(),
+          phase: 'render',
+          code: 'CHALLENGE_DETECTED',
+          message: errorMsg
+        };
+        
+        await this.writer.writeError(errorRecord);
+        
+        // Do NOT create PageRecord with poisoned data - skip to next page
+        this.errorCount++;
+        return;
+      }
+      
       // Determine DOM source for extractors
       const domSource = renderResult.modeUsed === "raw" ? "raw" : "playwright";
       
@@ -571,7 +603,8 @@ export class Scheduler {
         accessibilityRecord = extractAccessibility({
           domSource,
           html: renderResult.dom,
-          baseUrl: fetchResult.finalUrl
+          baseUrl: fetchResult.finalUrl,
+          renderMode: renderResult.modeUsed
         });
       }
       
@@ -637,6 +670,9 @@ export class Scheduler {
         
         // Hreflang
         hreflangLinks: pageFacts.hreflang,
+        
+        // Favicon
+        faviconUrl: pageFacts.faviconUrl,
         
         // Discovery
         depth: item.depth,
@@ -754,6 +790,12 @@ export class Scheduler {
 
     if (!normalized) {
       log('debug', `[Enqueue] Skipping: URL normalized to null.`);
+      return;
+    }
+
+    // Check maxDepth (-1 = unlimited, 0 = seeds only, N = up to depth N)
+    if (this.config.maxDepth >= 0 && depth > this.config.maxDepth) {
+      log('debug', `[Enqueue] Skipping: Depth ${depth} exceeds maxDepth ${this.config.maxDepth}: ${normalized}`);
       return;
     }
 

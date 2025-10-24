@@ -20,6 +20,22 @@ export interface AccessibilityRecord {
     footer: boolean;
   };
   roles: Record<string, number>;
+  
+  // All modes
+  lang?: string; // lang attribute from <html> tag
+  
+  // Prerender/Full modes only
+  formControls?: {
+    totalInputs: number;
+    missingLabel: number;
+    inputsMissingLabel: string[]; // Array of selectors
+  };
+  focusOrder?: Array<{
+    selector: string;
+    tabindex: number;
+  }>;
+  
+  // Full mode only
   contrastViolations?: Array<{
     selector: string;
     fg?: string;
@@ -38,8 +54,12 @@ export function extractAccessibility(opts: {
   html: string;
   baseUrl: string;
   page?: Page;
+  renderMode: "raw" | "prerender" | "full";
 }): AccessibilityRecord {
   const $ = cheerio.load(opts.html);
+  
+  // Extract lang attribute (all modes)
+  const lang = $("html").attr("lang") || undefined;
   
   // Count missing alt attributes
   let missingAltCount = 0;
@@ -88,12 +108,64 @@ export function extractAccessibility(opts: {
     missingAltCount,
     headingOrder,
     landmarks,
-    roles
+    roles,
+    lang
   };
   
   // Add optional fields only if they have data
   if (missingAltSources.length > 0) {
     record.missingAltSources = missingAltSources;
+  }
+  
+  // Prerender/Full mode additions: form controls and focus order
+  if (opts.renderMode === "prerender" || opts.renderMode === "full") {
+    // Form controls
+    const inputs = $("input, textarea, select");
+    let missingLabel = 0;
+    const inputsMissingLabel: string[] = [];
+    
+    inputs.each((idx, el) => {
+      const id = $(el).attr("id");
+      const ariaLabel = $(el).attr("aria-label");
+      const ariaLabelledby = $(el).attr("aria-labelledby");
+      
+      // Check if has associated label
+      let hasLabel = false;
+      if (id && $(`label[for="${id}"]`).length > 0) {
+        hasLabel = true;
+      }
+      if (ariaLabel || ariaLabelledby) {
+        hasLabel = true;
+      }
+      if ($(el).parent("label").length > 0) {
+        hasLabel = true;
+      }
+      
+      if (!hasLabel) {
+        missingLabel++;
+        const selector = id ? `#${id}` : `${el.tagName.toLowerCase()}:nth-of-type(${idx + 1})`;
+        inputsMissingLabel.push(selector);
+      }
+    });
+    
+    record.formControls = {
+      totalInputs: inputs.length,
+      missingLabel,
+      inputsMissingLabel
+    };
+    
+    // Focus order (simplified - get all focusable elements)
+    const focusOrder: Array<{ selector: string; tabindex: number }> = [];
+    $("a[href], button, input, textarea, select, [tabindex]").each((idx, el) => {
+      const tabindex = parseInt($(el).attr("tabindex") || "0", 10);
+      const id = $(el).attr("id");
+      const selector = id ? `#${id}` : `${el.tagName.toLowerCase()}:nth-of-type(${idx + 1})`;
+      focusOrder.push({ selector, tabindex });
+    });
+    
+    if (focusOrder.length > 0) {
+      record.focusOrder = focusOrder;
+    }
   }
   
   return record;
@@ -112,7 +184,8 @@ export async function extractAccessibilityWithContrast(opts: {
     domSource: "playwright",
     html: opts.html,
     baseUrl: opts.baseUrl,
-    page: opts.page
+    page: opts.page,
+    renderMode: "full"
   });
   
   // Add contrast violations check

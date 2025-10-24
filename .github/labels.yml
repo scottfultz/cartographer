@@ -1,0 +1,144 @@
+# GitHub Labels Configuration
+# Use this file with https://github.com/marketplace/actions/github-labeler
+
+# Type Labels
+- name: "type: bug"
+  color: "d73a4a"
+  description: "Something isn't working correctly"
+
+- name: "type: feature"
+  color: "a2eeef"
+  description: "New feature or enhancement request"
+
+- name: "type: documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: "type: testing"
+  color: "bfdadc"
+  description: "Test suite improvements or additions"
+
+- name: "type: refactor"
+  color: "fbca04"
+  description: "Code refactoring without behavior changes"
+
+- name: "type: performance"
+  color: "5319e7"
+  description: "Performance improvements"
+
+- name: "type: ci/cd"
+  color: "1d76db"
+  description: "CI/CD pipeline and automation changes"
+
+# Priority Labels
+- name: "priority: critical"
+  color: "b60205"
+  description: "Critical issue requiring immediate attention"
+
+- name: "priority: high"
+  color: "d93f0b"
+  description: "High priority issue"
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: "Medium priority issue"
+
+- name: "priority: low"
+  color: "0e8a16"
+  description: "Low priority issue"
+
+# Status Labels
+- name: "status: blocked"
+  color: "d73a4a"
+  description: "Blocked by external dependency or decision"
+
+- name: "status: in-progress"
+  color: "0e8a16"
+  description: "Currently being worked on"
+
+- name: "status: needs-review"
+  color: "fbca04"
+  description: "Ready for code review"
+
+- name: "status: needs-testing"
+  color: "f9d0c4"
+  description: "Implementation complete, needs testing"
+
+- name: "status: on-hold"
+  color: "ffffff"
+  description: "Work paused temporarily"
+
+- name: "status: wontfix"
+  color: "ffffff"
+  description: "Will not be fixed or implemented"
+
+# Component Labels
+- name: "component: crawler"
+  color: "c5def5"
+  description: "Core crawling engine and scheduler"
+
+- name: "component: renderer"
+  color: "c5def5"
+  description: "Browser automation and rendering"
+
+- name: "component: atlas"
+  color: "c5def5"
+  description: "Atlas archive writer and format"
+
+- name: "component: cli"
+  color: "c5def5"
+  description: "Command-line interface"
+
+- name: "component: export"
+  color: "c5def5"
+  description: "CSV export functionality"
+
+- name: "component: sdk"
+  color: "c5def5"
+  description: "Atlas SDK for reading archives"
+
+# Effort Labels
+- name: "effort: small"
+  color: "c2e0c6"
+  description: "Less than 1 day of work"
+
+- name: "effort: medium"
+  color: "fef2c0"
+  description: "1-3 days of work"
+
+- name: "effort: large"
+  color: "f9d0c4"
+  description: "More than 3 days of work"
+
+# Special Labels
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers to the codebase"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: "breaking change"
+  color: "d73a4a"
+  description: "Introduces breaking API changes"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Pull requests that update dependencies"
+
+- name: "security"
+  color: "d73a4a"
+  description: "Security-related issue or fix"
+
+- name: "accessibility"
+  color: "5319e7"
+  description: "Related to WCAG accessibility features"
+
+- name: "challenge-detection"
+  color: "0e8a16"
+  description: "Related to bot challenge detection (Cloudflare, etc.)"
+
+- name: "depth-limiting"
+  color: "fbca04"
+  description: "Related to maxDepth and BFS depth limiting"

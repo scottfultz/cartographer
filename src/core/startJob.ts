@@ -138,10 +138,10 @@ export async function startJob(partialConfig: Partial<EngineConfig>): Promise<nu
       event: "crawl.finished",
       crawlId,
       durationMs: duration,
-      pages: summary.totalPages,
-      edges: summary.totalEdges,
-      assets: summary.totalAssets,
-      errors: summary.totalErrors,
+      pages: summary.stats.totalPages,
+      edges: summary.stats.totalEdges,
+      assets: summary.stats.totalAssets,
+      errors: summary.stats.totalErrors,
       atls: config.outAtls
     });
     
@@ -151,10 +151,10 @@ export async function startJob(partialConfig: Partial<EngineConfig>): Promise<nu
         crawlId,
         outFile: config.outAtls,
         summary: {
-          pages: summary.totalPages,
-          edges: summary.totalEdges,
-          assets: summary.totalAssets,
-          errors: summary.totalErrors,
+          pages: summary.stats.totalPages,
+          edges: summary.stats.totalEdges,
+          assets: summary.stats.totalAssets,
+          errors: summary.stats.totalErrors,
           durationMs: duration
         },
         perf: {

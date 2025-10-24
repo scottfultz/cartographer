@@ -79,6 +79,38 @@ export interface PageRecord {
     hasCanonical: boolean;
   };
   
+  // Technical (all modes)
+  securityHeaders?: {
+    "content-security-policy"?: string;
+    "strict-transport-security"?: string;
+    "x-frame-options"?: string;
+    "x-content-type-options"?: string;
+    "referrer-policy"?: string;
+    "permissions-policy"?: string;
+  };
+  faviconUrl?: string;
+  
+  // SEO & Tech (prerender/full modes only)
+  structuredData?: Array<{
+    type: "json-ld" | "microdata" | "microformat";
+    schemaType?: string;
+    data: any;
+  }>;
+  techStack?: string[]; // Detected technologies: ["React", "WordPress", etc.]
+  
+  // Performance (full mode only)
+  performance?: {
+    lcp?: number; // Largest Contentful Paint (ms)
+    cls?: number; // Cumulative Layout Shift
+    tbt?: number; // Total Blocking Time (ms)
+    fcp?: number; // First Contentful Paint (ms)
+    ttfb?: number; // Time to First Byte (ms)
+  };
+  
+  // Media (full mode only)
+  screenshotFile?: string; // "media/screenshots/{urlKey}.png"
+  viewportFile?: string; // "media/viewports/{urlKey}.png"
+  
   // Errors
   error?: string;
 }
@@ -134,12 +166,40 @@ export interface ErrorRecord {
 }
 
 /**
+ * ConsoleRecord - Browser console message (full mode only)
+ */
+export interface ConsoleRecord {
+  pageUrl: string;
+  type: "log" | "warn" | "error" | "info";
+  message: string;
+  stackTrace?: string;
+  source: "page" | "browser"; // Filter to only include "page" in dataset
+  timestamp: string; // ISO timestamp
+}
+
+/**
+ * ComputedTextNodeRecord - Computed styles for text nodes (full mode only)
+ */
+export interface ComputedTextNodeRecord {
+  pageUrl: string;
+  selector: string;
+  textSample: string; // First 50 chars
+  fontSize: string; // e.g., "16px"
+  fontWeight: string; // e.g., "400", "700"
+  color: string; // e.g., "rgb(51, 51, 51)"
+  backgroundColor: string; // e.g., "rgb(255, 255, 255)"
+  lineHeight?: string;
+  nodeType: "TEXT_NODE";
+}
+
+/**
  * Engine Configuration
  */
 export interface EngineConfig {
   seeds: string[];
   outAtls: string;
   maxPages: number; // 0 = unlimited
+  maxDepth: number; // -1 = unlimited, 0 = seeds only, N = up to depth N
 
   /**
    * Additional config for public API
@@ -270,6 +330,8 @@ export interface AtlasManifest {
     edges: string[];
     assets: string[];
     errors: string[];
+    console?: string[]; // Full mode only
+    styles?: string[]; // Full mode only
   };
   
   schemas: {
@@ -277,6 +339,8 @@ export interface AtlasManifest {
     edges: string;
     assets: string;
     errors: string;
+    console?: string; // Full mode only
+    styles?: string; // Full mode only
   };
   
   datasets?: {
@@ -296,6 +360,9 @@ export interface AtlasManifest {
   
   capabilities?: {
     renderModes: RenderMode[];
+    modesUsed: RenderMode[]; // All modes used in crawl
+    specLevel: 1 | 2 | 3; // 1=Raw, 2=Prerender, 3=Full
+    dataSets: string[]; // ["pages", "edges", "assets", "errors", "console", "styles"]
     robots: {
       respectsRobotsTxt: boolean;
       overrideUsed: boolean;
@@ -319,21 +386,51 @@ export interface AtlasManifest {
  * Summary statistics
  */
 export interface AtlasSummary {
-  totalPages: number;
-  totalEdges: number;
-  totalAssets: number;
-  totalErrors: number;
-  totalAccessibilityRecords?: number; // Optional for backward compatibility
+  // Identity - "what" was crawled
+  identity: {
+    seedUrls: string[];
+    primaryOrigin: string; // e.g., "https://drancich.com"
+    domain: string; // e.g., "drancich.com"
+    publicSuffix: string; // e.g., "com"
+  };
   
-  statusCodes: Record<number, number>;
-  renderModes: Record<RenderMode, number>;
+  // Context - "how" and "why" it was crawled
+  crawlContext: {
+    specLevel: number; // 1 = Raw, 2 = Prerender, 3 = Full
+    completionReason: "finished" | "capped" | "error_budget" | "manual";
+    config: {
+      maxPages?: number;
+      maxDepth?: number;
+      robotsRespect: boolean;
+      followExternal: boolean;
+    };
+  };
   
-  avgRenderMs?: number;
-  maxDepth: number;
+  // Statistics - counts
+  stats: {
+    totalPages: number;
+    totalEdges: number;
+    totalAssets: number;
+    totalErrors: number;
+    totalAccessibilityRecords?: number; // Optional for backward compatibility
+    totalConsoleRecords?: number; // Full mode only
+    totalStyleRecords?: number; // Full mode only
+    statusCodes: Record<number, number>;
+    renderModes: Record<RenderMode, number>;
+  };
   
-  crawlStartedAt: string;
-  crawlCompletedAt: string;
-  crawlDurationMs: number;
+  // Performance metrics
+  performance: {
+    avgRenderMs?: number;
+    maxDepthReached: number; // Renamed from maxDepth
+  };
+  
+  // Timestamps
+  timestamps: {
+    crawlStartedAt: string;
+    crawlCompletedAt: string;
+    crawlDurationMs: number;
+  };
 }
 
 /**

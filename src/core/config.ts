@@ -11,6 +11,7 @@ import type { EngineConfig } from "./types.js";
  */
 export const DEFAULT_CONFIG: Partial<EngineConfig> = {
   maxPages: 0, // unlimited
+  maxDepth: -1, // unlimited
   
   render: {
     mode: "prerender",
@@ -83,6 +84,9 @@ export function buildConfig(partial: Partial<EngineConfig>): EngineConfig {
   // Validate maxPages
   const maxPages = partial.maxPages ?? DEFAULT_CONFIG.maxPages!;
   if (typeof maxPages === "number" && maxPages < 0) throw new Error("Config validation error: maxPages must be >= 0");
+  // Validate maxDepth
+  const maxDepth = partial.maxDepth ?? DEFAULT_CONFIG.maxDepth!;
+  if (typeof maxDepth === "number" && maxDepth < -1) throw new Error("Config validation error: maxDepth must be >= -1 (-1 = unlimited)");
   // Validate discovery blockList
   const discovery = { ...DEFAULT_CONFIG.discovery!, ...partial.discovery };
   if (!Array.isArray(discovery.blockList)) discovery.blockList = DEFAULT_CONFIG.discovery!.blockList!;
@@ -95,6 +99,7 @@ export function buildConfig(partial: Partial<EngineConfig>): EngineConfig {
     seeds: partial.seeds,
     outAtls: partial.outAtls,
     maxPages,
+    maxDepth,
     perHostRps,
     render,
     http,

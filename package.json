@@ -1,11 +1,40 @@
 {
   "name": "@caifrazier/cartographer-engine",
   "version": "1.0.0",
-  "description": "Headless TypeScript web crawler that produces .atls (Atlas v1.0) archive files. Consumed by the Continuum application.",
+  "description": "Production-grade headless web crawler producing Atlas v1.0 (.atls) archives. Features unlimited depth crawling, challenge detection, three render modes (raw/prerender/full), and comprehensive WCAG accessibility auditing. Built with TypeScript + Playwright for the Continuum SEO platform.",
+  "keywords": [
+    "web-crawler",
+    "web-scraping",
+    "headless-browser",
+    "playwright",
+    "typescript",
+    "atlas",
+    "seo",
+    "accessibility",
+    "wcag",
+    "atls",
+    "archive",
+    "compression",
+    "zstandard",
+    "crawling",
+    "site-mapping",
+    "challenge-detection",
+    "cloudflare",
+    "link-extraction",
+    "structured-data"
+  ],
   "author": "Cai Frazier",
   "license": "UNLICENSED",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scottfultz/cartographer.git"
+  },
+  "homepage": "https://github.com/scottfultz/cartographer#readme",
+  "bugs": {
+    "url": "https://github.com/scottfultz/cartographer/issues"
+  },
   "bin": {
     "cartographer": "dist/cli/index.js"
   },
@@ -13,13 +42,18 @@
     "clean": "rimraf dist dist-tests tmp packages/*/dist",
     "prebuild": "npm run clean",
     "build": "tsc -p tsconfig.json && tsc -p packages/atlas-sdk/tsconfig.json",
+    "dev": "tsx src/cli/index.ts",
     "build:test": "tsc -p tsconfig.tests.json",
     "pretest": "node scripts/make-example-atls.js",
-    "test": "npm run build && npm run build:test && node --test 'dist-tests/**/*.test.js' --test-timeout=20000",
+    "test": "npm run build && npm run build:test && npm run test:unit",
+    "test:unit": "node --test 'dist-tests/test/*.test.js' --test-timeout=10000",
+    "test:integration": "node --test 'dist-tests/test/{cli,smoke,logs,integration}/**/*.test.js' --test-timeout=60000",
+    "test:all": "npm run build && npm run build:test && npm run pretest && npm run test:unit && npm run test:integration",
     "lint": "eslint .",
     "crawl": "node dist/cli/index.js crawl",
     "export": "node dist/cli/index.js export",
-    "stress": "node dist/cli/index.js stress"
+    "stress": "node dist/cli/index.js stress",
+    "validate": "node dist/cli/index.js validate"
   },
   "engines": {
     "node": ">=20.0.0"

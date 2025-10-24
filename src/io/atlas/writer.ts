@@ -12,7 +12,7 @@ import { fsync } from "fs";
 import { join } from "path";
 import { randomBytes } from "crypto";
 import archiver from "archiver";
-import type { EngineConfig, PageRecord, EdgeRecord, AssetRecord, ErrorRecord, AtlasManifest, AtlasSummary } from "../../core/types.js";
+import type { EngineConfig, PageRecord, EdgeRecord, AssetRecord, ErrorRecord, AtlasManifest, AtlasSummary, ConsoleRecord, ComputedTextNodeRecord, RenderMode } from "../../core/types.js";
 import type { AccessibilityRecord } from "../../core/extractors/accessibility.js";
 import { sha256 } from "../../utils/hashing.js";
 import { compressFile } from "./compressor.js";
@@ -42,6 +42,8 @@ export class AtlasWriter {
   private assetsPart = 1;
   private errorsPart = 1;
   private accessibilityPart = 1;
+  private consolePart = 1;
+  private stylesPart = 1;
   
   // Streams
   private pagesStream: ReturnType<typeof createWriteStream> | null = null;
@@ -49,6 +51,8 @@ export class AtlasWriter {
   private assetsStream: ReturnType<typeof createWriteStream> | null = null;
   private errorsStream: ReturnType<typeof createWriteStream> | null = null;
   private accessibilityStream: ReturnType<typeof createWriteStream> | null = null;
+  private consoleStream: ReturnType<typeof createWriteStream> | null = null;
+  private stylesStream: ReturnType<typeof createWriteStream> | null = null;
   
   // Byte counters (for rolling parts at 150MB)
   private pagesBytes = 0;
@@ -56,20 +60,46 @@ export class AtlasWriter {
   private assetsBytes = 0;
   private errorsBytes = 0;
   private accessibilityBytes = 0;
+  private consoleBytes = 0;
+  private stylesBytes = 0;
   
   // Stats
   private stats: AtlasSummary = {
-    totalPages: 0,
-    totalEdges: 0,
-    totalAssets: 0,
-    totalErrors: 0,
-    totalAccessibilityRecords: 0,
-    statusCodes: {},
-    renderModes: { raw: 0, prerender: 0, full: 0 },
-    maxDepth: 0,
-    crawlStartedAt: new Date().toISOString(),
-    crawlCompletedAt: "",
-    crawlDurationMs: 0
+    identity: {
+      seedUrls: [],
+      primaryOrigin: "",
+      domain: "",
+      publicSuffix: ""
+    },
+    crawlContext: {
+      specLevel: 1,
+      completionReason: "finished",
+      config: {
+        maxPages: 0,
+        maxDepth: -1,
+        robotsRespect: true,
+        followExternal: false
+      }
+    },
+    stats: {
+      totalPages: 0,
+      totalEdges: 0,
+      totalAssets: 0,
+      totalErrors: 0,
+      totalAccessibilityRecords: 0,
+      totalConsoleRecords: 0,
+      totalStyleRecords: 0,
+      statusCodes: {},
+      renderModes: { raw: 0, prerender: 0, full: 0 }
+    },
+    performance: {
+      maxDepthReached: 0
+    },
+    timestamps: {
+      crawlStartedAt: new Date().toISOString(),
+      crawlCompletedAt: "",
+      crawlDurationMs: 0
+    }
   };
   
   constructor(outPath: string, config: EngineConfig, crawlId?: string) {
@@ -78,6 +108,32 @@ export class AtlasWriter {
   this.uuid = crawlId || randomBytes(8).toString("hex");
   this.stagingDir = join(outPath + ".staging", this.uuid);
   console.log(`[DIAGNOSTIC] AtlasWriter: Initializing with outPath: ${this.outPath}`);
+  
+  // Initialize identity from config
+  this.stats.identity.seedUrls = config.seeds || [];
+  if (config.seeds && config.seeds.length > 0) {
+    try {
+      const primaryUrl = new URL(config.seeds[0]);
+      this.stats.identity.primaryOrigin = primaryUrl.origin;
+      this.stats.identity.domain = primaryUrl.hostname;
+      
+      // Extract public suffix (simple approach - last part after last dot)
+      const parts = primaryUrl.hostname.split(".");
+      this.stats.identity.publicSuffix = parts.length > 1 ? parts[parts.length - 1] : "";
+    } catch (e) {
+      // Invalid URL, leave defaults
+    }
+  }
+  
+  // Initialize crawl context from config
+  this.stats.crawlContext.config.maxPages = config.maxPages;
+  this.stats.crawlContext.config.maxDepth = config.maxDepth;
+  this.stats.crawlContext.config.robotsRespect = config.robots.respect;
+  this.stats.crawlContext.config.followExternal = config.discovery.followExternal;
+  
+  // Set specLevel based on render mode
+  const modeToLevel: Record<RenderMode, number> = { raw: 1, prerender: 2, full: 3 };
+  this.stats.crawlContext.specLevel = modeToLevel[config.render.mode] || 1;
 }
   
   async init(): Promise<void> {
@@ -89,12 +145,26 @@ export class AtlasWriter {
     await mkdir(join(this.stagingDir, "errors"), { recursive: true });
     await mkdir(join(this.stagingDir, "accessibility"), { recursive: true });
     
+    // Full mode datasets
+    if (this.config.render.mode === "full") {
+      await mkdir(join(this.stagingDir, "console"), { recursive: true });
+      await mkdir(join(this.stagingDir, "styles"), { recursive: true });
+      await mkdir(join(this.stagingDir, "media"), { recursive: true });
+      await mkdir(join(this.stagingDir, "media", "screenshots"), { recursive: true });
+      await mkdir(join(this.stagingDir, "media", "viewports"), { recursive: true });
+    }
+    
     // Initialize first part streams
     await this.rotatePagesPart();
     await this.rotateEdgesPart();
     await this.rotateAssetsPart();
     await this.rotateErrorsPart();
     await this.rotateAccessibilityPart();
+    
+    if (this.config.render.mode === "full") {
+      await this.rotateConsolePart();
+      await this.rotateStylesPart();
+    }
   }
   
   async writePage(page: PageRecord): Promise<void> {
@@ -108,10 +178,10 @@ export class AtlasWriter {
     
     this.pagesStream!.write(line);
     this.pagesBytes += bytes;
-    this.stats.totalPages++;
-    this.stats.statusCodes[page.statusCode] = (this.stats.statusCodes[page.statusCode] || 0) + 1;
-    this.stats.renderModes[page.renderMode]++;
-    this.stats.maxDepth = Math.max(this.stats.maxDepth, page.depth);
+    this.stats.stats.totalPages++;
+    this.stats.stats.statusCodes[page.statusCode] = (this.stats.stats.statusCodes[page.statusCode] || 0) + 1;
+    this.stats.stats.renderModes[page.renderMode]++;
+    this.stats.performance.maxDepthReached = Math.max(this.stats.performance.maxDepthReached, page.depth);
     
     this.recordsSinceFlush++;
     if (this.recordsSinceFlush >= this.FLUSH_INTERVAL) {
@@ -129,7 +199,7 @@ export class AtlasWriter {
     
     this.edgesStream!.write(line);
     this.edgesBytes += bytes;
-    this.stats.totalEdges++;
+    this.stats.stats.totalEdges++;
   }
   
   async writeAsset(asset: AssetRecord): Promise<void> {
@@ -142,7 +212,7 @@ export class AtlasWriter {
     
     this.assetsStream!.write(line);
     this.assetsBytes += bytes;
-    this.stats.totalAssets++;
+    this.stats.stats.totalAssets++;
   }
   
   async writeError(error: ErrorRecord): Promise<void> {
@@ -155,7 +225,7 @@ export class AtlasWriter {
     
     this.errorsStream!.write(line);
     this.errorsBytes += bytes;
-    this.stats.totalErrors++;
+    this.stats.stats.totalErrors++;
   }
   
   async writeAccessibility(record: AccessibilityRecord): Promise<void> {
@@ -168,7 +238,63 @@ export class AtlasWriter {
     
     this.accessibilityStream!.write(line);
     this.accessibilityBytes += bytes;
-    this.stats.totalAccessibilityRecords = (this.stats.totalAccessibilityRecords || 0) + 1;
+    this.stats.stats.totalAccessibilityRecords = (this.stats.stats.totalAccessibilityRecords || 0) + 1;
+  }
+  
+  async writeConsole(record: ConsoleRecord): Promise<void> {
+    // Only write in full mode and filter to source: "page" only
+    if (this.config.render.mode !== "full" || record.source !== "page") {
+      return;
+    }
+    
+    const line = JSON.stringify(record) + "\n";
+    const bytes = Buffer.byteLength(line);
+    
+    if (this.consoleBytes + bytes > 150_000_000) {
+      await this.rotateConsolePart();
+    }
+    
+    this.consoleStream!.write(line);
+    this.consoleBytes += bytes;
+    this.stats.stats.totalConsoleRecords = (this.stats.stats.totalConsoleRecords || 0) + 1;
+  }
+  
+  async writeStyle(record: ComputedTextNodeRecord): Promise<void> {
+    // Only write in full mode
+    if (this.config.render.mode !== "full") {
+      return;
+    }
+    
+    const line = JSON.stringify(record) + "\n";
+    const bytes = Buffer.byteLength(line);
+    
+    if (this.stylesBytes + bytes > 150_000_000) {
+      await this.rotateStylesPart();
+    }
+    
+    this.stylesStream!.write(line);
+    this.stylesBytes += bytes;
+    this.stats.stats.totalStyleRecords = (this.stats.stats.totalStyleRecords || 0) + 1;
+  }
+  
+  async writeScreenshot(urlKey: string, buffer: Buffer): Promise<void> {
+    // Only write in full mode
+    if (this.config.render.mode !== "full") {
+      return;
+    }
+    
+    const path = join(this.stagingDir, "media", "screenshots", `${urlKey}.png`);
+    await writeFile(path, buffer);
+  }
+  
+  async writeViewport(urlKey: string, buffer: Buffer): Promise<void> {
+    // Only write in full mode
+    if (this.config.render.mode !== "full") {
+      return;
+    }
+    
+    const path = join(this.stagingDir, "media", "viewports", `${urlKey}.png`);
+    await writeFile(path, buffer);
   }
   
   /**
@@ -197,6 +323,13 @@ export class AtlasWriter {
    */
   getSummary(): AtlasSummary {
     return { ...this.stats };
+  }
+
+  /**
+   * Set completion reason for crawl
+   */
+  setCompletionReason(reason: "finished" | "capped" | "error_budget" | "manual"): void {
+    this.stats.crawlContext.completionReason = reason;
   }
 
   /**
@@ -323,6 +456,26 @@ export class AtlasWriter {
     this.accessibilityBytes = 0;
   }
   
+  private async rotateConsolePart(): Promise<void> {
+    if (this.consoleStream) {
+      this.consoleStream.end();
+    }
+    const filename = `part-${String(this.consolePart).padStart(3, "0")}.jsonl`;
+    this.consoleStream = createWriteStream(join(this.stagingDir, "console", filename));
+    this.consolePart++;
+    this.consoleBytes = 0;
+  }
+  
+  private async rotateStylesPart(): Promise<void> {
+    if (this.stylesStream) {
+      this.stylesStream.end();
+    }
+    const filename = `part-${String(this.stylesPart).padStart(3, "0")}.jsonl`;
+    this.stylesStream = createWriteStream(join(this.stagingDir, "styles", filename));
+    this.stylesPart++;
+    this.stylesBytes = 0;
+  }
+  
   async finalize(): Promise<void> {
     log('info', '[DIAGNOSTIC] AtlasWriter: Starting finalize()...');
     try {
@@ -332,7 +485,8 @@ export class AtlasWriter {
         this.edgesStream,
         this.assetsStream,
         this.errorsStream,
-        this.accessibilityStream
+        this.accessibilityStream,
+        ...(this.config.render.mode === "full" ? [this.consoleStream, this.stylesStream] : [])
       ].filter((s): s is WriteStream => s !== null);
 
       log('debug', `[DIAGNOSTIC] AtlasWriter: Ending ${streamsToClose.length} streams...`);
@@ -349,8 +503,8 @@ export class AtlasWriter {
       }
 
       // Update stats
-      this.stats.crawlCompletedAt = new Date().toISOString();
-      this.stats.crawlDurationMs = new Date(this.stats.crawlCompletedAt).getTime() - new Date(this.stats.crawlStartedAt).getTime();
+      this.stats.timestamps.crawlCompletedAt = new Date().toISOString();
+      this.stats.timestamps.crawlDurationMs = new Date(this.stats.timestamps.crawlCompletedAt).getTime() - new Date(this.stats.timestamps.crawlStartedAt).getTime();
 
       log("info", "[DIAGNOSTIC] AtlasWriter: Compressing JSONL parts with Zstandard...");
 
@@ -360,11 +514,27 @@ export class AtlasWriter {
       const assetsParts = await this.compressParts("assets");
       const errorsParts = await this.compressParts("errors");
       const accessibilityParts = await this.compressParts("accessibility");
+      
+      // Compress full mode datasets
+      let consoleParts: string[] = [];
+      let stylesParts: string[] = [];
+      if (this.config.render.mode === "full") {
+        consoleParts = await this.compressParts("console");
+        stylesParts = await this.compressParts("styles");
+      }
 
       // Copy schemas into staging
       log("info", "[DIAGNOSTIC] AtlasWriter: Copying schemas to staging...");
       await mkdir(join(this.stagingDir, "schemas"), { recursive: true });
-      const schemaFiles = ["pages.schema.json", "edges.schema.json", "assets.schema.json", "errors.schema.json", "accessibility.schema.json", "perf.schema.json"];
+      const schemaFiles = [
+        "pages.schema.json",
+        "edges.schema.json",
+        "assets.schema.json",
+        "errors.schema.json",
+        "accessibility.schema.json",
+        "perf.schema.json",
+        ...(this.config.render.mode === "full" ? ["console.schema.json", "styles.schema.json"] : [])
+      ];
       for (const file of schemaFiles) {
         await copyFile(
           join(process.cwd(), "src/io/atlas/schemas", file),
@@ -388,7 +558,9 @@ export class AtlasWriter {
           edges: edgesParts,
           assets: assetsParts,
           errors: errorsParts,
-          accessibility: accessibilityParts.length > 0 ? accessibilityParts : undefined
+          accessibility: accessibilityParts.length > 0 ? accessibilityParts : undefined,
+          console: consoleParts.length > 0 ? consoleParts : undefined,
+          styles: stylesParts.length > 0 ? stylesParts : undefined
         },
         notes,
         stagingDir: this.stagingDir,
