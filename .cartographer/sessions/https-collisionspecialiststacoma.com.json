@@ -1,0 +1,157 @@
+{
+  "cookies": [
+    {
+      "name": "_gid",
+      "value": "GA1.2.1081564878.1761345123",
+      "domain": ".collisionspecialiststacoma.com",
+      "path": "/",
+      "expires": 1761433268,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "CLID",
+      "value": "993c49b0f48e4148bee322692b95c42f.20251024.20261024",
+      "domain": "www.clarity.ms",
+      "path": "/",
+      "expires": 1792881124.208142,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_clck",
+      "value": "m9f480%5E2%5Eg0f%5E0%5E2123",
+      "domain": ".collisionspecialiststacoma.com",
+      "path": "/",
+      "expires": 1792881124,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "MUID",
+      "value": "0046E32F46786ACC1B4BF5A047C26B19",
+      "domain": ".bing.com",
+      "path": "/",
+      "expires": 1795041124.728437,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "MR",
+      "value": "0",
+      "domain": ".c.bing.com",
+      "path": "/",
+      "expires": 1761949924.728502,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "SRM_B",
+      "value": "0046E32F46786ACC1B4BF5A047C26B19",
+      "domain": ".c.bing.com",
+      "path": "/",
+      "expires": 1795041124.728544,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "SM",
+      "value": "C",
+      "domain": ".c.clarity.ms",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "MUID",
+      "value": "0046E32F46786ACC1B4BF5A047C26B19",
+      "domain": ".clarity.ms",
+      "path": "/",
+      "expires": 1795041124.770308,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "MR",
+      "value": "0",
+      "domain": ".c.clarity.ms",
+      "path": "/",
+      "expires": 1761949924.77035,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "__cf_bm",
+      "value": "3lYWJ3vJ0JojI5WgI8Wo971qDMChWXlSjQhCgHZuqfs-1761346080-1.0.1.1-rBZKew5s5KiW9gobBuJBgS2jjEmtNxF3Qi.HxXF9Ss1.MqvSch2UI3u4OmtUCSalKNbcUfjq6aX1froRJ3BnwKw1NV6AtksEiL6vtCY1f5w",
+      "domain": ".collisionspecialiststacoma.com",
+      "path": "/",
+      "expires": 1761347880.287082,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "cf_clearance",
+      "value": ".L6E10qqRT7RDkM6.n_rW1_c1Sg72WX7_8uK1sfAmSA-1761346808-1.2.1.1-MQ1Qu.m57lLKvoC_ovQ7VNqwz0o_n613dBG2E1ZdjqT83Kc5s0b7XDJ0crbQBjv16QUcjGq4tFjRJV_BxuYagKbDHPP5ZSChOLyA2PX4t513wjrNGKURIlfuxGkZVLnLncB37dqad56VWGh8PLaOGIQGN0F86Av50eybFoNzqWDSw18MpWagAQmELmLcLVgGp12fxydJpFghZtXdo13I8kJneIfk6C2m7fcBWYUH2pQ",
+      "domain": ".collisionspecialiststacoma.com",
+      "path": "/",
+      "expires": 1792882808.505431,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None",
+      "partitionKey": "https://collisionspecialiststacoma.com",
+      "_crHasCrossSiteAncestor": false
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.925934037.1761345123",
+      "domain": ".collisionspecialiststacoma.com",
+      "path": "/",
+      "expires": 1795906869.029307,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_clsk",
+      "value": "19g1dtj%5E1761346869697%5E3%5E1%5Es.clarity.ms%2Fcollect",
+      "domain": ".collisionspecialiststacoma.com",
+      "path": "/",
+      "expires": 1761433269,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_XRS20HJLJV",
+      "value": "GS2.1.s1761345122$o1$g1$t1761346928$j60$l0$h0",
+      "domain": ".collisionspecialiststacoma.com",
+      "path": "/",
+      "expires": 1795906928.6986,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "rc::a",
+          "value": "NnkxbGI2dGVyb3U="
+        }
+      ]
+    }
+  ]
+}
