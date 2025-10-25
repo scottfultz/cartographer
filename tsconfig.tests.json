@@ -9,6 +9,6 @@
     "allowJs": true,
     "types": []
   },
-  "include": ["test/**/*.ts"],
+  "include": ["test/**/*.ts", "src/**/*.ts"],
   "exclude": ["node_modules", "dist", "dist-tests"]
 }
