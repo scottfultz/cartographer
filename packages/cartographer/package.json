@@ -29,6 +29,8 @@
     "clean": "rimraf dist dist-tests"
   },
   "dependencies": {
+    "@atlas/spec": "workspace:*",
+    "@cf/url-tools": "workspace:*",
     "@fast-csv/format": "^5.0.0",
     "@mongodb-js/zstd": "^1.2.0",
     "ajv": "^8.17.1",

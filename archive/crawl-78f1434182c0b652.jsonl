@@ -1,3 +1,0 @@
-{"ts":"2025-10-23T04:13:43.403Z","level":"info","event":"crawl.started","crawlId":"78f1434182c0b652","seeds":["https://example.com"],"mode":"raw","paramPolicy":"sample","rps":3}
-{"ts":"2025-10-23T04:13:43.404Z","level":"info","event":"crawl.checkpoint","crawlId":"78f1434182c0b652","pageCount":0,"edges":0,"assets":0,"errors":0,"rssMB":138}
-{"ts":"2025-10-23T04:13:43.576Z","level":"info","event":"crawl.finished","crawlId":"78f1434182c0b652","durationMs":192,"pages":0,"edges":0,"assets":0,"errors":0,"atls":"./tmp/ndjson-test.atls"}

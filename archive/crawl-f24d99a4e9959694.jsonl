@@ -1,3 +1,0 @@
-{"ts":"2025-10-23T04:05:32.516Z","level":"info","event":"crawl.started","crawlId":"f24d99a4e9959694","seeds":["https://example.com"],"mode":"raw","paramPolicy":"sample","rps":3}
-{"ts":"2025-10-23T04:05:32.518Z","level":"info","event":"crawl.checkpoint","crawlId":"f24d99a4e9959694","pageCount":0,"edges":0,"assets":0,"errors":0,"rssMB":154}
-{"ts":"2025-10-23T04:05:32.693Z","level":"info","event":"crawl.finished","crawlId":"f24d99a4e9959694","durationMs":196,"pages":0,"edges":0,"assets":0,"errors":0,"atls":"./tmp/cli-polish-test.atls"}

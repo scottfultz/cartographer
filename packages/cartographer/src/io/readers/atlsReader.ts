@@ -1,5 +1,14 @@
-// src/io/readers/atlsReader.ts
-// Pure re-export shim so compiled tests can resolve dist/src/io/readers/atlsReader.js
-export * from '../../../packages/atlas-sdk/src/reader.js';
-// If you have a default export, re-export it as well:
-// export { default as createAtlsReader } from '../../../packages/atlas-sdk/src/reader.js';
+/*
+ * Copyright © 2025 Cai Frazier.
+ * All rights reserved. Unauthorized copying, modification, or distribution is prohibited.
+ * Proprietary and confidential.
+ */
+
+/**
+ * Re-export Atlas SDK reader for backward compatibility
+ * 
+ * This shim allows the cartographer engine to use the Atlas SDK reader
+ * through the monorepo workspace dependency.
+ */
+
+export * from '@atlas/sdk';

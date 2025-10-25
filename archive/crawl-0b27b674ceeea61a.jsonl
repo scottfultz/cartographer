@@ -1,3 +1,0 @@
-{"ts":"2025-10-23T03:55:14.108Z","level":"info","event":"crawl.started","crawlId":"0b27b674ceeea61a","seeds":["https://example.com"],"mode":"raw","paramPolicy":"sample","rps":3}
-{"ts":"2025-10-23T03:55:14.110Z","level":"info","event":"crawl.checkpoint","crawlId":"0b27b674ceeea61a","pageCount":0,"edges":0,"assets":0,"errors":0,"rssMB":143}
-{"ts":"2025-10-23T03:55:14.364Z","level":"info","event":"crawl.finished","crawlId":"0b27b674ceeea61a","durationMs":283,"pages":0,"edges":0,"assets":0,"errors":0,"atls":"tmp/sdk-integration-test.atls"}

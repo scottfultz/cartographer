@@ -96,6 +96,9 @@ importers:
 
   packages/atlas-sdk:
     dependencies:
+      '@atlas/spec':
+        specifier: workspace:*
+        version: link:../atlas-spec
       '@mongodb-js/zstd':
         specifier: ^1.2.0
         version: 1.2.2
@@ -156,6 +159,12 @@ importers:
 
   packages/cartographer:
     dependencies:
+      '@atlas/spec':
+        specifier: workspace:*
+        version: link:../atlas-spec
+      '@cf/url-tools':
+        specifier: workspace:*
+        version: link:../url-tools
       '@fast-csv/format':
         specifier: ^5.0.0
         version: 5.0.5

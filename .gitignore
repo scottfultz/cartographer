@@ -1,10 +1,53 @@
+# Dependency directories
 node_modules/
+**/node_modules/
+
+# Build output
 dist/
-*.log
+dist-tests/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+
+# OS files
 .DS_Store
-*.atls
-*.staging/
+Thumbs.db
+
+# IDE files
 .vscode/
 .idea/
-playwright-report/
-test-results/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# Test coverage
+coverage/
+
+# Turborepo cache
+.turbo/
+
+# pnpm
+.pnpm-debug.log
+node_modules/.pnpm
+
+# Archive files (examples can stay)
+*.atls
+archive/*.atls
+!examples/**/*.atls
+
+# Log files
+logs/*.jsonl
+!logs/.gitkeep
+# Archive staging directories
+*.atls.staging/
+archive/**/*.atls.staging/
+export/**/*.atls.staging/
+custom/**/*.atls.staging/

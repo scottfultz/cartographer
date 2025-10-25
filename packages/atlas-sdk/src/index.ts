@@ -4,7 +4,7 @@
  * Proprietary and confidential.
  */
 
-import { readManifest, readSummary, iterateDataset } from "./reader.js";
+import { readManifest, readSummary, iterateDataset, iterateParts } from "./reader.js";
 import type {
   AtlasManifest,
   AtlasSummary,
@@ -17,6 +17,9 @@ import type {
 } from "./types.js";
 
 export * from "./types.js";
+
+// Re-export low-level functions for engine use
+export { readManifest, readSummary, iterateParts } from "./reader.js";
 
 /**
  * Atlas reader interface

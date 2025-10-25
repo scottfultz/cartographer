@@ -1,4 +1,0 @@
-{"ts":"2025-10-23T02:04:00.216Z","level":"info","event":"crawl.started","crawlId":"e55ba1e126b98e79","seeds":["https://example.com"],"mode":"raw","paramPolicy":"sample","rps":3}
-{"ts":"2025-10-23T02:04:06.468Z","level":"info","event":"crawl.pageProcessed","crawlId":"e55ba1e126b98e79","url":"https://example.com/","depth":0,"status":200,"fetchMs":673,"renderMs":1,"extractMs":25,"writeMs":0,"rssMB":165}
-{"ts":"2025-10-23T02:04:06.482Z","level":"info","event":"crawl.checkpoint","crawlId":"e55ba1e126b98e79","pageCount":1,"edges":1,"assets":0,"errors":0,"rssMB":169}
-{"ts":"2025-10-23T02:04:06.651Z","level":"info","event":"crawl.finished","crawlId":"e55ba1e126b98e79","durationMs":6451,"pages":1,"edges":1,"assets":0,"errors":0,"atls":"./tmp/ndjson-test.atls"}

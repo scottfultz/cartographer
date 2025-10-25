@@ -1,3 +1,0 @@
-{"ts":"2025-10-23T03:55:13.994Z","level":"info","event":"crawl.started","crawlId":"822cbeafaea86fe2","seeds":["https://example.com"],"mode":"raw","paramPolicy":"sample","rps":3}
-{"ts":"2025-10-23T03:55:13.996Z","level":"info","event":"crawl.checkpoint","crawlId":"822cbeafaea86fe2","pageCount":0,"edges":0,"assets":0,"errors":0,"rssMB":153}
-{"ts":"2025-10-23T03:55:14.238Z","level":"info","event":"crawl.finished","crawlId":"822cbeafaea86fe2","durationMs":275,"pages":0,"edges":0,"assets":0,"errors":0,"atls":"tmp/accessibility-test.atls"}
