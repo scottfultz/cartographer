@@ -26,17 +26,17 @@ test('checkpoint writer/loader round-trip', () => {
     };
     writeCheckpoint(dir, state);
     const loaded = readCheckpoint(dir);
-    expect(loaded).toBe(state);
+    expect(loaded).toStrictEqual(state);
     // Visited index
     const visited = new Set(['a', 'b']);
     writeVisitedIndex(dir, visited);
     const loadedVisited = readVisitedIndex(dir);
-    expect(loadedVisited).toBe(visited);
+    expect(loadedVisited).toStrictEqual(visited);
     // Frontier
     const frontier = [{ url: 'http://x', depth: 1 }];
     writeFrontier(dir, frontier);
     const loadedFrontier = readFrontier(dir);
-    expect(loadedFrontier).toBe(frontier);
+    expect(loadedFrontier).toStrictEqual(frontier);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

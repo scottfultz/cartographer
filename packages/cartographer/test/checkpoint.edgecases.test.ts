@@ -32,7 +32,7 @@ test('checkpoint emitted with empty queue', async () => {
     writeVisitedIndex(dir, new Set());
     writeFrontier(dir, []);
     const loaded = readCheckpoint(dir);
-    expect(loaded).toBe(state);
+    expect(loaded).toStrictEqual(state);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
