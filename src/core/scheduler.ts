@@ -25,7 +25,7 @@ import { extractAccessibility, extractAccessibilityWithContrast } from "./extrac
 import { extractStructuredData, filterRelevantStructuredData } from "./extractors/structuredData.js";
 import { extractAllOpenGraph } from "./extractors/openGraph.js";
 import { extractAllTwitterCards } from "./extractors/twitterCard.js";
-import { detectTechStack } from "./extractors/techStack.js";
+import { detectTechStack, extractScriptUrls } from "./extractors/wappalyzer.js";
 import { extractViewportMeta, detectMixedContent, checkSubresourceIntegrity, extractEncoding, countResources, extractCompression, detectSitemaps, countBrokenLinks, extractOutboundDomains } from "./extractors/enhancedMetrics.js";
 import { extractLighthouseMetrics } from "./extractors/lighthouse.js";
 import { extractEnhancedSEOMetadata } from "./extractors/enhancedSEO.js";
@@ -669,10 +669,14 @@ export class Scheduler {
           normalizedHeaders[key] = Array.isArray(value) ? value[0] : value;
         }
         
-        const detected = detectTechStack({
+        // Extract script URLs from HTML for better detection
+        const scriptUrls = extractScriptUrls(renderResult.dom);
+        
+        const detected = await detectTechStack({
           html: renderResult.dom,
           url: fetchResult.finalUrl,
-          headers: normalizedHeaders
+          headers: normalizedHeaders,
+          scripts: scriptUrls
         });
         
         if (detected.length > 0) {

@@ -72,6 +72,7 @@
     "playwright": "^1.48.0",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "simple-wappalyzer": "^1.1.83",
     "undici": "^6.19.8",
     "yargs": "^17.7.2",
     "yauzl": "^3.2.0",
