@@ -35,14 +35,68 @@ A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** arc
 
 ---
 
+## 📦 Monorepo Structure
+
+Cartographer is organized as a pnpm monorepo with shared workspace packages:
+
+```
+cartographer/
+├── packages/
+│   ├── cartographer/         # Main crawler engine
+│   │   ├── src/              # TypeScript source code
+│   │   ├── test/             # Vitest test suites (351 tests)
+│   │   └── dist/             # Compiled JavaScript
+│   ├── atlas-spec/           # @atlas/spec - Type definitions
+│   │   └── src/types.ts      # Shared Atlas v1.0 types
+│   ├── atlas-sdk/            # @atlas/sdk - Reading .atls files
+│   │   ├── src/              # SDK implementation
+│   │   └── examples/         # Usage examples
+│   └── url-tools/            # @cf/url-tools - URL utilities
+│       └── src/              # Shared URL/domain logic
+├── scripts/                  # Build and utility scripts
+└── pnpm-workspace.yaml       # Workspace configuration
+```
+
+### Workspace Packages
+
+| Package | Description | Used By |
+|---------|-------------|---------|
+| **@atlas/spec** | TypeScript types for Atlas v1.0 format | Engine, SDK, tests |
+| **@atlas/sdk** | Read and query .atls archives | Tests, external tools |
+| **@cf/url-tools** | URL parsing, normalization, validation | Engine |
+
+### Package Manager
+
+This project uses **pnpm** for workspace management. All dependencies are shared across packages, with automatic linking for internal packages.
+
+```bash
+# Install all workspace dependencies
+pnpm install
+
+# Build all packages
+pnpm build
+
+# Run tests (uses Vitest)
+pnpm test
+
+# Run tests for specific package
+pnpm test --filter=@cf/cartographer
+
+# Run commands in specific workspace
+pnpm --filter=@cf/cartographer run build
+```
+
+---
+
 ## 🧪 Testing & Quality Assurance
 
 ### Test Coverage
 
-- **295+ Test Cases** across 38 test suites and 40+ test categories
+- **351 Test Cases** across 41 test suites - migrated to Vitest
 - **Node.js 20 & 22** - Full CI matrix on both LTS versions
 - **Automated CI** - GitHub Actions with artifact preservation
 - **Test Artifacts** - All test runs preserved for 7 days with downloadable results
+- **93% Pass Rate** - 325/351 tests passing (remaining failures are pre-existing test logic issues)
 
 **View Live Results:** [GitHub Actions CI Runs](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml)
 
@@ -64,14 +118,20 @@ A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** arc
 ### Running Tests
 
 ```bash
-# Run all tests
-npm test
+# Run all tests (Vitest)
+pnpm test
 
-# Run unit tests only (fast)
-npm run test:unit
+# Run tests for specific package
+pnpm test --filter=@cf/cartographer
 
-# Run integration tests
-npm run test:integration
+# Run specific test file
+pnpm test --filter=@cf/cartographer -- test/url.test.ts
+
+# Run tests in watch mode
+pnpm test --filter=@cf/cartographer -- --watch
+
+# Generate coverage report
+pnpm test --filter=@cf/cartographer -- --coverage
 
 # Count tests and generate report
 node scripts/count-tests.js
@@ -85,11 +145,12 @@ node scripts/benchmark.js --pages=100
 Our CI pipeline runs on every push and pull request:
 
 1. **Build & Test Matrix** - Node.js 20 and 22
-2. **Unit Tests** - ~380 tests in under 4 seconds
-3. **Integration Tests** - Real crawl validation
-4. **Performance Benchmark** - Automated benchmarking with artifacts
-5. **Archive Validation** - Schema and integrity checks
-6. **Artifact Preservation** - Test results and benchmarks stored for 7 days
+2. **Workspace Build** - All packages built with pnpm
+3. **Unit Tests** - ~351 tests with Vitest
+4. **Integration Tests** - Real crawl validation
+5. **Performance Benchmark** - Automated benchmarking with artifacts
+6. **Archive Validation** - Schema and integrity checks
+7. **Artifact Preservation** - Test results and benchmarks stored for 7 days
 
 **CI Status:** [![CI](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml/badge.svg)](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml)
 
@@ -137,18 +198,35 @@ node scripts/benchmark.js --pages=500 --seeds=https://example.com --mode=full
 
 ## 🚀 Quick Start
 
+### Prerequisites
+
+- **Node.js**: 20.0.0 or higher
+- **pnpm**: 8.0.0 or higher (for workspace management)
+
+```bash
+# Install pnpm globally if needed
+npm install -g pnpm
+```
+
 ### Installation
 
 ```bash
-npm install
-npm run build
+# Clone repository
+git clone https://github.com/scottfultz/cartographer.git
+cd cartographer
+
+# Install all workspace dependencies
+pnpm install
+
+# Build all packages
+pnpm build
 ```
 
 ### Basic Crawl
 
 ```bash
 # Crawl with auto-generated filename in ./export/
-node dist/src/cli/index.js crawl \
+node packages/cartographer/dist/cli/index.js crawl \
   --seeds https://example.com \
   --mode prerender \
   --maxPages 100
@@ -159,7 +237,7 @@ node dist/src/cli/index.js crawl \
 ### Custom Configuration
 
 ```bash
-node dist/src/cli/index.js crawl \
+node packages/cartographer/dist/cli/index.js crawl \
   --seeds https://example.com \
   --out my-crawl.atls \
   --mode full \
@@ -177,7 +255,7 @@ node dist/src/cli/index.js crawl \
 ### Crawl Command
 
 ```bash
-node dist/src/cli/index.js crawl [options]
+node packages/cartographer/dist/cli/index.js crawl [options]
 ```
 
 **Required:**
@@ -248,7 +326,7 @@ Examples:
 ### Export Command
 
 ```bash
-node dist/src/cli/index.js export --atls <file.atls> --report <type> --out <file.csv>
+node packages/cartographer/dist/cli/index.js export --atls <file.atls> --report <type> --out <file.csv>
 ```
 
 **Reports:**
@@ -265,7 +343,7 @@ node dist/src/cli/index.js export --atls <file.atls> --report <type> --out <file
 
 ```bash
 # Crawl entire site with no depth limit
-node dist/src/cli/index.js crawl \
+node packages/cartographer/dist/cli/index.js crawl \
   --seeds https://example.com \
   --maxPages 5000 \
   --maxDepth -1
@@ -275,7 +353,7 @@ node dist/src/cli/index.js crawl \
 
 ```bash
 # Crawl only seed URLs, no following links
-node dist/src/cli/index.js crawl \
+node packages/cartographer/dist/cli/index.js crawl \
   --seeds https://example.com https://example.com/about \
   --maxDepth 0
 ```
@@ -284,7 +362,7 @@ node dist/src/cli/index.js crawl \
 
 ```bash
 # Crawl seeds + 2 levels of links
-node dist/src/cli/index.js crawl \
+node packages/cartographer/dist/cli/index.js crawl \
   --seeds https://example.com \
   --maxDepth 2 \
   --maxPages 100
@@ -294,7 +372,7 @@ node dist/src/cli/index.js crawl \
 
 ```bash
 # Automatically detect and wait for Cloudflare challenges
-node dist/src/cli/index.js crawl \
+node packages/cartographer/dist/cli/index.js crawl \
   --seeds https://protected-site.com \
   --mode prerender
   
@@ -832,7 +910,7 @@ npx playwright install chromium
 **Out of memory errors:**
 ```bash
 # Reduce concurrency and increase backpressure threshold
-node dist/src/cli/index.js crawl \
+node packages/cartographer/dist/cli/index.js crawl \
   --seeds https://example.com \
   --concurrency 4
 ```
@@ -845,7 +923,7 @@ node dist/src/cli/index.js crawl \
 **Archive validation fails:**
 ```bash
 # Run validation command
-node dist/src/cli/index.js validate --atls example.atls
+node packages/cartographer/dist/cli/index.js validate --atls example.atls
 
 # Check manifest integrity
 unzip -l example.atls | grep manifest.json
