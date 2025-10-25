@@ -10,7 +10,7 @@ import { existsSync } from "fs";
 import { mkdir, rm } from "fs/promises";
 import { execSync } from "child_process";
 import { open } from "yauzl";
-import { readManifest, iterateParts } from "../../src/io/readers/atlsReader.js";
+import { openAtlas } from "@atlas/sdk";
 
 test("crawl small site", async () => {
   // Ensure tmp directory exists
@@ -39,7 +39,8 @@ test("crawl small site", async () => {
     });
     
     // Verify manifest.json exists and has correct structure
-    const manifest = await readManifest("./tmp/example.atls");
+    const atlas = await openAtlas("./tmp/example.atls");
+    const manifest = atlas.manifest;
     
     expect(manifest.atlasVersion).toBe("1.0");
     expect(manifest.owner.name).toBe("Cai Frazier");
@@ -59,16 +60,14 @@ test("crawl small site", async () => {
     
     // Read first PageRecord
     let pageCount = 0;
-    for await (const line of iterateParts("./tmp/example.atls", "pages")) {
+    for await (const page of atlas.readers.pages()) {
       if (pageCount >= 1) break;
-      
-      const page = JSON.parse(line);
       
       // Verify required fields
       expect(page.rawHtmlHash).toBeTruthy();
-      expect(page.rawHtmlHash.length > 0).toBeTruthy();
+      expect(page.rawHtmlHash!.length > 0).toBeTruthy();
       expect(page.domHash).toBeTruthy();
-      expect(page.domHash.length > 0).toBeTruthy();
+      expect(page.domHash!.length > 0).toBeTruthy();
       expect(page.renderMode).toBe("prerender");
       
       pageCount++;

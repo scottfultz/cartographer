@@ -34,7 +34,7 @@ test("export pages CSV", async () => {
   expect(lines.length >= 2).toBeTruthy();
   
   // Verify exact header order
-  const expectedHeader = "url,finalUrl,normalizedUrl,statusCode,contentType,rawHtmlHash,domHash,renderMode,navEndReason,depth,discoveredFrom,section,title,metaDescription,h1,internalLinksCount,externalLinksCount,mediaAssetsCount,canonicalHref,canonicalResolved,noindexSurface,fetchMs,renderMs";
+  const expectedHeader = "url,finalUrl,normalizedUrl,statusCode,contentType,rawHtmlHash,domHash,renderMode,navEndReason,depth,discoveredFrom,section,title,metaDescription,h1,internalLinksCount,externalLinksCount,mediaAssetsCount,canonicalHref,canonicalResolved,noindexSurface,fetchMs,renderMs,network.totalRequests,network.totalBytes,network.totalDuration,enhancedSEO.indexability.isNoIndex,enhancedSEO.content.titleLength.pixels,enhancedSEO.international.hreflangCount,performance.scores.performance,performance.scores.accessibility";
   const actualHeader = lines[0];
   
   expect(actualHeader).toBe(expectedHeader);
@@ -80,7 +80,7 @@ test("export pages CSV", async () => {
   console.log(`✓ Exported ${rows.length} pages with correct header order`);
   console.log(`✓ rawHtmlHash: ${firstPage.rawHtmlHash.substring(0, 16)}...`);
   console.log(`✓ domHash: ${firstPage.domHash.substring(0, 16)}...`);
-  console.log(`✓ Found page with ${pageWithExternalLinks.externalLinksCount} external link(s)`);
+  console.log(`✓ Found page with ${pageWithExternalLinks!.externalLinksCount} external link(s)`);
 });
 
 /**
