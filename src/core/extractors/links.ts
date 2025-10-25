@@ -33,6 +33,8 @@ export function extractLinks(input: LinksInput): EdgeRecord[] {
     const anchorText = $(el).text().trim();
     const rel = $(el).attr("rel") || undefined;
     const nofollow = rel?.includes("nofollow") || false;
+    const sponsored = rel?.includes("sponsored") || false;
+    const ugc = rel?.includes("ugc") || false;
     const isExternal = !isSameOrigin(input.baseUrl, targetUrl);
 
     // Determine location
@@ -68,6 +70,8 @@ export function extractLinks(input: LinksInput): EdgeRecord[] {
       anchorText,
       rel,
       nofollow,
+      sponsored,
+      ugc,
       isExternal,
       location,
       selectorHint,

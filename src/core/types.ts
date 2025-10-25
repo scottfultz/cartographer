@@ -151,22 +151,113 @@ export interface PageRecord {
   
   // Performance (full mode only)
   performance?: {
+    // Core Web Vitals
     lcp?: number; // Largest Contentful Paint (ms)
     cls?: number; // Cumulative Layout Shift
     tbt?: number; // Total Blocking Time (ms)
     fcp?: number; // First Contentful Paint (ms)
     ttfb?: number; // Time to First Byte (ms)
-    fid?: number; // First Input Delay (ms) - Core Web Vital
-    inp?: number; // Interaction to Next Paint (ms) - Core Web Vital
+    fid?: number; // First Input Delay (ms) - Legacy Core Web Vital
+    inp?: number; // Interaction to Next Paint (ms) - Core Web Vital (replaces FID)
     speedIndex?: number; // Speed Index
     tti?: number; // Time to Interactive (ms)
     jsExecutionTime?: number; // JavaScript execution time (ms)
+    
+    // Lighthouse-style scores (0-100)
+    scores?: {
+      performance?: number;
+      accessibility?: number;
+      bestPractices?: number;
+      seo?: number;
+    };
+    
+    // Resource metrics
     renderBlockingResources?: Array<{
       url: string;
       type: "script" | "stylesheet";
       size?: number;
     }>;
     thirdPartyRequestCount?: number;
+  };
+  
+  // Network Performance (collected with --performance flag)
+  network?: {
+    totalRequests: number;
+    totalBytes: number;
+    totalDuration?: number; // Total time from first to last request (ms)
+    
+    // Breakdown by resource type
+    breakdown: {
+      document: { count: number; bytes: number };
+      stylesheet: { count: number; bytes: number };
+      script: { count: number; bytes: number };
+      image: { count: number; bytes: number };
+      font: { count: number; bytes: number };
+      media: { count: number; bytes: number };
+      xhr: { count: number; bytes: number };
+      fetch: { count: number; bytes: number };
+      other: { count: number; bytes: number };
+    };
+    
+    // Compression analysis
+    compression: {
+      gzip: number;
+      brotli: number;
+      deflate: number;
+      none: number;
+      uncompressibleTypes: number;
+    };
+    
+    // Status code summary
+    statusCodes: {
+      [code: number]: number;
+    };
+    
+    // Cache performance
+    cachedRequests: number;
+    uncachedRequests: number;
+  };
+  
+  // Enhanced SEO metadata
+  enhancedSEO?: {
+    // Indexability
+    indexability: {
+      isNoIndex: boolean;
+      isNoFollow: boolean;
+    };
+    
+    // Content metrics
+    content: {
+      titleLength?: { characters: number; pixels: number };
+      descriptionLength?: { characters: number; pixels: number };
+      h1Count: number;
+      h2Count: number;
+      h3Count: number;
+      h4Count: number;
+      h5Count: number;
+      h6Count: number;
+      wordCount: number;
+      textContentLength: number;
+    };
+    
+    // International
+    international: {
+      hreflangCount: number;
+      hreflangErrors?: string[];
+    };
+    
+    // Social (OpenGraph & Twitter)
+    social: {
+      hasOpenGraph: boolean;
+      hasTwitterCard: boolean;
+    };
+    
+    // Schema
+    schema: {
+      hasJsonLd: boolean;
+      hasMicrodata: boolean;
+      schemaTypes: string[];
+    };
   };
   
   // Media
@@ -195,6 +286,8 @@ export interface EdgeRecord {
   anchorText: string;
   rel?: string;
   nofollow: boolean;
+  sponsored?: boolean; // Link has rel="sponsored"
+  ugc?: boolean; // Link has rel="ugc" (user-generated content)
   isExternal: boolean;
   location: EdgeLocation; // nav, head, footer, aside, main, other
   selectorHint?: string; // CSS selector hint for debugging

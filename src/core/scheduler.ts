@@ -27,6 +27,8 @@ import { extractAllOpenGraph } from "./extractors/openGraph.js";
 import { extractAllTwitterCards } from "./extractors/twitterCard.js";
 import { detectTechStack } from "./extractors/techStack.js";
 import { extractViewportMeta, detectMixedContent, checkSubresourceIntegrity, extractEncoding, countResources, extractCompression, detectSitemaps, countBrokenLinks, extractOutboundDomains } from "./extractors/enhancedMetrics.js";
+import { extractLighthouseMetrics } from "./extractors/lighthouse.js";
+import { extractEnhancedSEOMetadata } from "./extractors/enhancedSEO.js";
 import { validateEdgeRecord, validateAssetRecord } from "../io/validator.js";
 import { robotsCache } from "./robotsCache.js";
 import * as perHostTokens from './perHostTokens.js';
@@ -787,6 +789,57 @@ export class Scheduler {
       
       const extractMs = Math.round(performance.now() - extractStart);
       
+      // Extract enhanced SEO metadata (full and prerender modes)
+      let enhancedSEO;
+      if (renderResult.modeUsed === "full" || renderResult.modeUsed === "prerender") {
+        try {
+          log('debug', `[Scheduler] Extracting enhanced SEO metadata from ${item.url}`);
+          const seoData = extractEnhancedSEOMetadata({
+            html: renderResult.dom,
+            baseUrl: fetchResult.finalUrl,
+            headers: fetchResult.headers,
+            bodyText: textSample
+          });
+          
+          // Transform to PageRecord format
+          enhancedSEO = {
+            indexability: {
+              isNoIndex: seoData.indexability.isNoIndex,
+              isNoFollow: seoData.indexability.isNoFollow
+            },
+            content: {
+              titleLength: seoData.content.titleLength,
+              descriptionLength: seoData.content.descriptionLength,
+              h1Count: seoData.content.h1Count,
+              h2Count: seoData.content.h2Count,
+              h3Count: seoData.content.h3Count,
+              h4Count: seoData.content.h4Count,
+              h5Count: seoData.content.h5Count,
+              h6Count: seoData.content.h6Count,
+              wordCount: seoData.content.wordCount,
+              textContentLength: seoData.content.textContentLength
+            },
+            international: {
+              hreflangCount: seoData.international.hreflangCount,
+              hreflangErrors: seoData.international.hreflangErrors
+            },
+            social: {
+              hasOpenGraph: !!(seoData.social.openGraph.ogTitle || seoData.social.openGraph.ogDescription),
+              hasTwitterCard: !!seoData.social.twitter.twitterCard
+            },
+            schema: {
+              hasJsonLd: seoData.schema.hasJsonLd,
+              hasMicrodata: seoData.schema.hasMicrodata,
+              schemaTypes: seoData.schema.schemaTypes
+            }
+          };
+          
+          log('debug', `[Scheduler] Enhanced SEO collected: wordCount=${enhancedSEO.content.wordCount}, h1Count=${enhancedSEO.content.h1Count}, hasOG=${enhancedSEO.social.hasOpenGraph}`);
+        } catch (seoError: any) {
+          log('warn', `[Scheduler] Failed to extract enhanced SEO metadata from ${item.url}: ${seoError.message}`);
+        }
+      }
+      
       // Detect noindex
       let noindexSurface: "meta" | "header" | "both" | undefined;
       const hasMetaNoindex = pageFacts.robotsMeta?.includes("noindex");
@@ -887,9 +940,25 @@ export class Scheduler {
           speedIndex: renderResult.performance.speedIndex,
           tti: renderResult.performance.tti,
           jsExecutionTime: renderResult.performance.jsExecutionTime,
+          scores: renderResult.performance.lighthouseScores as any,
           renderBlockingResources: renderResult.performance.renderBlockingResources as any,
           thirdPartyRequestCount: renderResult.performance.thirdPartyRequestCount,
         } : undefined,
+        
+        // Network performance (prerender/full modes - from renderResult.networkMetrics)
+        network: renderResult.networkMetrics ? {
+          totalRequests: renderResult.networkMetrics.totalRequests,
+          totalBytes: renderResult.networkMetrics.totalBytes,
+          totalDuration: renderResult.networkMetrics.totalDuration,
+          breakdown: renderResult.networkMetrics.breakdown,
+          compression: renderResult.networkMetrics.compression,
+          statusCodes: renderResult.networkMetrics.statusCodes,
+          cachedRequests: renderResult.networkMetrics.cachedRequests,
+          uncachedRequests: renderResult.networkMetrics.uncachedRequests
+        } : undefined,
+        
+        // Enhanced SEO (full/prerender modes)
+        enhancedSEO,
         
         // SEO Quick Wins
         seo: (sitemapData || brokenLinksCount !== undefined || outboundDomains) ? {

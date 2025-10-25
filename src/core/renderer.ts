@@ -15,6 +15,8 @@ import { BrowserContextPool } from "./browserContextPool.js";
 import { collectRuntimeWCAGData } from "./extractors/wcagData.js";
 import { collectAdvancedPerformanceMetrics, detectFlashingContent } from "./extractors/enhancedMetrics.js";
 import { detectKeyboardTraps, detectSkipLinks, analyzeMediaElements } from "./extractors/runtimeAccessibility.js";
+import { createNetworkPerformanceCollector, type NetworkPerformanceMetrics } from "./extractors/networkPerformance.js";
+import { extractLighthouseMetrics } from "./extractors/lighthouse.js";
 
 // Browser lifecycle state
 let browser: Browser | null = null;
@@ -44,6 +46,7 @@ export interface RenderResult {
     mimeType: string;
   };
   runtimeWCAGData?: any; // Runtime-only WCAG data collected in Playwright mode
+  networkMetrics?: NetworkPerformanceMetrics; // Network performance data (prerender/full modes)
 }
 
 /**
@@ -310,6 +313,10 @@ async function renderWithPlaywright(
   let bytesLoaded = 0;
   let navEndReason: NavEndReason = "networkidle";
   let pageClosedPrematurely = false;
+  
+  // Initialize network performance collector
+  const networkCollector = createNetworkPerformanceCollector(page);
+  networkCollector.start();
 
   try {
     // Request interception for caps
@@ -371,13 +378,19 @@ async function renderWithPlaywright(
     log('debug', `[Renderer] Page state before evaluate for ${url}: isClosed=${page.isClosed()}`);
     if (page.isClosed()) {
       log('error', `[Renderer] Cannot evaluate DOM for ${url}, page is already closed (Reason: ${navEndReason}).`);
+      
+      // Stop network collector before returning
+      networkCollector.stop();
+      const networkMetrics = networkCollector.getMetrics();
+      
       return {
         modeUsed: cfg.render.mode,
         navEndReason,
         dom: '',
         domHash: sha256Hex(''),
         performance: perfMetrics,
-        challengeDetected: false
+        challengeDetected: false,
+        networkMetrics
       };
     }
 
@@ -437,6 +450,11 @@ async function renderWithPlaywright(
           });
           
           const domHash = sha256Hex(resolvedHTML);
+          
+          // Stop network collector and get metrics
+          networkCollector.stop();
+          const networkMetrics = networkCollector.getMetrics();
+          
           await page.close();
           
           return {
@@ -445,7 +463,8 @@ async function renderWithPlaywright(
             dom: resolvedHTML,
             domHash,
             performance: perfMetrics,
-            challengeDetected: false // Resolved successfully
+            challengeDetected: false, // Resolved successfully
+            networkMetrics
           };
           
         } catch (waitError: any) {
@@ -454,6 +473,11 @@ async function renderWithPlaywright(
           // Instead of erroring, capture the challenge page content
           // Mark it as untrusted so consumers know it's not real page data
           const domHash = sha256Hex(outerHTML);
+          
+          // Stop network collector and get metrics
+          networkCollector.stop();
+          const networkMetrics = networkCollector.getMetrics();
+          
           await page.close();
           
           return {
@@ -463,7 +487,8 @@ async function renderWithPlaywright(
             domHash,
             performance: perfMetrics,
             challengeDetected: true,
-            challengePageCaptured: true // Flag for consumers: this is challenge page, not real content
+            challengePageCaptured: true, // Flag for consumers: this is challenge page, not real content
+            networkMetrics
           };
         }
       } else {
@@ -472,6 +497,11 @@ async function renderWithPlaywright(
         log('warn', `[Renderer] Challenge patterns detected but page already timed out (${perfMetrics.navMs}ms). Likely false positive - capturing page as-is.`);
         
         const domHash = sha256Hex(outerHTML);
+        
+        // Stop network collector and get metrics
+        networkCollector.stop();
+        const networkMetrics = networkCollector.getMetrics();
+        
         await page.close();
         
         return {
@@ -481,7 +511,8 @@ async function renderWithPlaywright(
           domHash,
           performance: perfMetrics,
           challengeDetected: false, // Don't set flag - likely false positive
-          challengePageCaptured: undefined // Not a challenge, just slow
+          challengePageCaptured: undefined, // Not a challenge, just slow
+          networkMetrics
         };
       }
     }
@@ -583,6 +614,27 @@ async function renderWithPlaywright(
         log('warn', `[Renderer] Failed to collect advanced performance metrics for ${url}: ${perfError.message}`);
         // Don't fail the crawl if performance metrics fail
       }
+      
+      // Collect Lighthouse-style metrics (Core Web Vitals, etc.)
+      try {
+        log('debug', `[Renderer] Collecting Lighthouse metrics for ${url}`);
+        const lighthouseMetrics = await extractLighthouseMetrics(page);
+        // Merge into perfMetrics
+        Object.assign(perfMetrics, {
+          lcp: lighthouseMetrics.lcp,
+          cls: lighthouseMetrics.cls,
+          inp: lighthouseMetrics.inp,
+          ttfb: lighthouseMetrics.ttfb,
+          fcp: lighthouseMetrics.fcp,
+          tbt: lighthouseMetrics.tbt,
+          speedIndex: lighthouseMetrics.speedIndex,
+          lighthouseScores: lighthouseMetrics.scores
+        });
+        log('debug', `[Renderer] Lighthouse metrics collected (LCP: ${lighthouseMetrics.lcp}ms, CLS: ${lighthouseMetrics.cls}, INP: ${lighthouseMetrics.inp}ms)`);
+      } catch (lhError: any) {
+        log('warn', `[Renderer] Failed to collect Lighthouse metrics for ${url}: ${lhError.message}`);
+        // Don't fail the crawl if Lighthouse metrics fail
+      }
     }
     
     // Collect favicon if enabled (full mode only)
@@ -643,6 +695,11 @@ async function renderWithPlaywright(
       }
     }
 
+    // Stop network collector and get metrics
+    networkCollector.stop();
+    const networkMetrics = networkCollector.getMetrics();
+    log('debug', `[Renderer] Network metrics collected: ${networkMetrics.totalRequests} requests, ${Math.round(networkMetrics.totalBytes / 1024)}KB`);
+
     await page.close();
 
     return {
@@ -654,7 +711,8 @@ async function renderWithPlaywright(
       challengeDetected: false,
       screenshots: Object.keys(screenshots).length > 0 ? screenshots : undefined,
       favicon,
-      runtimeWCAGData
+      runtimeWCAGData,
+      networkMetrics
     };
 
   } catch (error: any) {
