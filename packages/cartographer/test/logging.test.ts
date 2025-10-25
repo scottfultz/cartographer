@@ -408,7 +408,7 @@ describe("logEvent", () => {
     expect(event.depth).toBe(2);
     expect(event.fetchMs).toBe(150);
     expect(event.customField).toBe("custom value");
-    expect(event.nested).toBe({ data: "here" });
+    expect(event.nested).toStrictEqual({ data: "here" });
   });
 
   test("real-world crawl event sequence", async () => {

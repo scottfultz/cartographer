@@ -67,13 +67,20 @@ export function initLogging(config: LogConfig): void {
 }
 
 /**
- * Close the log file stream
+ * Close the log file stream and reset logging state
  */
 export function closeLogFile(): void {
   if (logFileStream) {
+    // Suppress errors during close (e.g., file deleted by test cleanup)
+    logFileStream.on('error', () => {});
     logFileStream.end();
     logFileStream = null;
   }
+  logFilePath = null;
+  // Reset to defaults
+  currentLevel = "info";
+  quietMode = false;
+  jsonMode = false;
 }
 
 /**

@@ -240,8 +240,17 @@ export async function analyzeMediaElements(page: Page): Promise<{
           if (kind === 'descriptions') hasDescriptions = true;
         });
         
+        // Extract src: try direct src attribute, then currentSrc, then first source element
+        let videoSrc = video.src || video.currentSrc || '';
+        if (!videoSrc) {
+          const sourceElement = video.querySelector('source[src]');
+          if (sourceElement) {
+            videoSrc = sourceElement.getAttribute('src') || '';
+          }
+        }
+        
         videos.push({
-          src: (video.src || video.currentSrc || '').substring(0, 200),
+          src: videoSrc.substring(0, 200),
           hasCaptions,
           hasSubtitles,
           hasDescriptions,
@@ -267,8 +276,17 @@ export async function analyzeMediaElements(page: Page): Promise<{
                          );
         }
         
+        // Extract src: try direct src attribute, then currentSrc, then first source element
+        let audioSrc = audio.src || audio.currentSrc || '';
+        if (!audioSrc) {
+          const sourceElement = audio.querySelector('source[src]');
+          if (sourceElement) {
+            audioSrc = sourceElement.getAttribute('src') || '';
+          }
+        }
+        
         audios.push({
-          src: (audio.src || audio.currentSrc || '').substring(0, 200),
+          src: audioSrc.substring(0, 200),
           hasTranscript,
           autoplay: audio.hasAttribute('autoplay'),
           controls: audio.hasAttribute('controls')
