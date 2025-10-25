@@ -1114,9 +1114,11 @@ export function extractAriaLiveRegions($: CheerioAPI): {
     selector: string;
   }> = [];
   
+  const processedElements = new Set<any>();
+  
   // Find explicit aria-live attributes
   $('[aria-live]').each((i, el) => {
-    if (i >= 50) return false; // Limit to 50 regions
+    if (regions.length >= 50) return false; // Limit to 50 regions
     
     const $el = $(el);
     const live = $el.attr('aria-live') as "polite" | "assertive" | "off";
@@ -1127,6 +1129,7 @@ export function extractAriaLiveRegions($: CheerioAPI): {
       (el.attribs.id ? `#${el.attribs.id}` : '') +
       (el.attribs.class ? `.${el.attribs.class.split(' ').slice(0, 2).join('.')}` : '');
     
+    processedElements.add(el);
     regions.push({
       live: live || 'polite',
       atomic,
@@ -1139,6 +1142,9 @@ export function extractAriaLiveRegions($: CheerioAPI): {
   $('[role="status"], [role="alert"], [role="log"]').each((i, el) => {
     if (regions.length >= 50) return false;
     
+    // Skip if already processed (has explicit aria-live)
+    if (processedElements.has(el)) return;
+    
     const $el = $(el);
     const role = $el.attr('role');
     const atomic = $el.attr('aria-atomic') === 'true';
@@ -1150,6 +1156,7 @@ export function extractAriaLiveRegions($: CheerioAPI): {
     
     const selector = el.tagName.toLowerCase() +
       (el.attribs.id ? `#${el.attribs.id}` : '') +
+      (el.attribs.role ? `[role="${el.attribs.role}"]` : '') +
       (el.attribs.class ? `.${el.attribs.class.split(' ').slice(0, 2).join('.')}` : '');
     
     regions.push({
@@ -1190,22 +1197,21 @@ export function analyzeFocusOrder($: CheerioAPI): {
     const $el = $(el);
     const tabindex = parseInt($el.attr('tabindex') || '0');
     
-    if (tabindex !== 0) {
-      customTabIndexCount++;
+    // Count all explicit tabindex attributes as "custom"
+    customTabIndexCount++;
+    
+    if (tabindex < 0) {
+      negativeTabIndexCount++;
+    } else if (tabindex > 0 && positiveTabIndexElements.length < 100) {
+      // Positive tabindex is an anti-pattern
+      const selector = el.tagName.toLowerCase() +
+        (el.attribs.id ? `#${el.attribs.id}` : '') +
+        (el.attribs.class ? `.${el.attribs.class.split(' ').slice(0, 2).join('.')}` : '');
       
-      if (tabindex < 0) {
-        negativeTabIndexCount++;
-      } else if (tabindex > 0 && positiveTabIndexElements.length < 20) {
-        // Positive tabindex is an anti-pattern
-        const selector = el.tagName.toLowerCase() +
-          (el.attribs.id ? `#${el.attribs.id}` : '') +
-          (el.attribs.class ? `.${el.attribs.class.split(' ').slice(0, 2).join('.')}` : '');
-        
-        positiveTabIndexElements.push({
-          selector: selector.substring(0, 100),
-          tabindex
-        });
-      }
+      positiveTabIndexElements.push({
+        selector: selector.substring(0, 100),
+        tabindex
+      });
     }
   });
   
@@ -1245,14 +1251,15 @@ export function analyzeFormAutocomplete($: CheerioAPI): {
   const personalDataPatterns = [
     { selector: 'input[type="email"]', type: 'email' },
     { selector: 'input[type="tel"]', type: 'tel' },
-    { selector: 'input[name*="email"]', type: 'email' },
-    { selector: 'input[name*="phone"]', type: 'tel' },
-    { selector: 'input[name*="address"]', type: 'address' },
-    { selector: 'input[name*="name"]', type: 'name' },
-    { selector: 'input[name*="postal"]', type: 'postal' },
-    { selector: 'input[name*="zip"]', type: 'postal' },
-    { selector: 'input[name*="city"]', type: 'city' },
-    { selector: 'input[name*="country"]', type: 'country' },
+    { selector: 'input[name*="email" i]', type: 'email' },
+    { selector: 'input[name*="phone" i]', type: 'tel' },
+    { selector: 'input[name*="address" i]', type: 'address' },
+    { selector: 'input[name*="street" i]', type: 'address' },
+    { selector: 'input[name*="name" i]', type: 'name' },
+    { selector: 'input[name*="postal" i]', type: 'postal' },
+    { selector: 'input[name*="zip" i]', type: 'postal' },
+    { selector: 'input[name*="city" i]', type: 'city' },
+    { selector: 'input[name*="country" i]', type: 'country' },
   ];
   
   personalDataPatterns.forEach(pattern => {
