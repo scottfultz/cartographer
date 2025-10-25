@@ -89,7 +89,7 @@ Disallow: /admin/
   const result = cache['checkRules'](robotsTxt, '/api/endpoint', "CartographerBot/1.0");
   
   expect(result.allow).toBe(false);
-  expect(result.matchedRule?.includes('/api/').toBeTruthy());
+  expect(result.matchedRule?.includes('/api/')).toBeTruthy());
 });
 
 test("RobotsCache - allows when no matching rules", async () => {

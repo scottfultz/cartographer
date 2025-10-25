@@ -91,7 +91,7 @@ test("extractAriaLiveRegions - detects implicit status role", () => {
   
   expect(result.count).toBe(1);
   expect(result.regions[0].live).toBe("polite");
-  expect(result.regions[0].selector.includes("status").toBeTruthy());
+  expect(result.regions[0].selector.includes("status")).toBeTruthy());
 });
 
 test("extractAriaLiveRegions - detects implicit alert role", () => {
@@ -385,7 +385,7 @@ test("analyzeFocusOrder - includes selector in positive elements", () => {
   const result = analyzeFocusOrder($);
   
   expect(result.positiveTabIndexElements.length).toBe(1);
-  expect(result.positiveTabIndexElements[0].selector.includes("focus-me").toBeTruthy());
+  expect(result.positiveTabIndexElements[0].selector.includes("focus-me")).toBeTruthy());
 });
 
 // =============================================================================
@@ -501,7 +501,7 @@ test("analyzeFormAutocomplete - detects name fields by name attribute", () => {
   const result = analyzeFormAutocomplete($);
   
   expect(result.personalDataInputs.length).toBe(3);
-  expect(result.personalDataInputs.some(i => i.type === "name").toBeTruthy());
+  expect(result.personalDataInputs.some(i => i.type === "name")).toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - detects address fields", () => {
@@ -520,7 +520,7 @@ test("analyzeFormAutocomplete - detects address fields", () => {
   const result = analyzeFormAutocomplete($);
   
   expect(result.personalDataInputs.length).toBe(2);
-  expect(result.personalDataInputs.every(i => i.type === "address").toBeTruthy());
+  expect(result.personalDataInputs.every(i => i.type === "address")).toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - detects postal code fields", () => {
@@ -540,7 +540,7 @@ test("analyzeFormAutocomplete - detects postal code fields", () => {
   const result = analyzeFormAutocomplete($);
   
   expect(result.personalDataInputs.length).toBe(3);
-  expect(result.personalDataInputs.every(i => i.type === "postal").toBeTruthy());
+  expect(result.personalDataInputs.every(i => i.type === "postal")).toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - detects city and country fields", () => {
@@ -559,8 +559,8 @@ test("analyzeFormAutocomplete - detects city and country fields", () => {
   const result = analyzeFormAutocomplete($);
   
   expect(result.personalDataInputs.length).toBe(2);
-  expect(result.personalDataInputs.some(i => i.type === "city").toBeTruthy());
-  expect(result.personalDataInputs.some(i => i.type === "country").toBeTruthy());
+  expect(result.personalDataInputs.some(i => i.type === "city")).toBeTruthy());
+  expect(result.personalDataInputs.some(i => i.type === "country")).toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - counts forms with autocomplete", () => {
@@ -608,7 +608,7 @@ test("analyzeFormAutocomplete - handles complex form", () => {
   expect(result.totalForms).toBe(1);
   expect(result.formsWithAutocomplete).toBe(1);
   expect(result.personalDataInputs.length).toBe(8);
-  expect(result.personalDataInputs.every(i => i.hasAutocomplete).toBeTruthy());
+  expect(result.personalDataInputs.every(i => i.hasAutocomplete)).toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - includes selectors", () => {
@@ -626,7 +626,7 @@ test("analyzeFormAutocomplete - includes selectors", () => {
   const result = analyzeFormAutocomplete($);
   
   expect(result.personalDataInputs.length).toBe(1);
-  expect(result.personalDataInputs[0].selector.includes("user-email").toBeTruthy());
+  expect(result.personalDataInputs[0].selector.includes("user-email")).toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - enforces 100 input cap", () => {

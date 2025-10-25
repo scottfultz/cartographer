@@ -250,7 +250,7 @@ describe("filterRelevantStructuredData", () => {
     
     // SearchAction and WebSite might be filtered (depends on implementation)
     // At minimum, Article should be kept
-    expect(result.some(item => item.schemaType === "Article").toBeTruthy());
+    expect(result.some(item => item.schemaType === "Article")).toBeTruthy());
   });
 
   test("keeps BreadcrumbList", () => {

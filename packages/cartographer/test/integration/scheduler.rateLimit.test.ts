@@ -73,8 +73,7 @@ test('Scheduler per-host rate limiting respects perHostRps', { timeout: 15000 },
     const times = hostEvents[host].sort((a, b) => a - b);
     for (let i = 1; i < times.length; i++) {
       const dt = times[i] - times[i - 1];
-      expect(dt >= minIntervalMs).toBeTruthy()`
-      );
+      expect(dt >= minIntervalMs).toBeTruthy();
     }
   }
 });

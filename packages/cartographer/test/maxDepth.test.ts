@@ -23,7 +23,7 @@ test("maxDepth - accepts 0 (seeds only)", () => {
     outAtls: "test.atls",
     maxDepth: 0
   });
-  expect(config.maxDepth, 0);
+  expect(config.maxDepth).toBe(0);
 });
 
 test("maxDepth - accepts positive integers", () => {
@@ -32,7 +32,7 @@ test("maxDepth - accepts positive integers", () => {
     outAtls: "test.atls",
     maxDepth: 5
   });
-  expect(config.maxDepth, 5);
+  expect(config.maxDepth).toBe(5);
 });
 
 test("maxDepth - accepts -1 explicitly", () => {
@@ -66,7 +66,7 @@ test("maxDepth - accepts very large values", () => {
     outAtls: "test.atls",
     maxDepth: 1000000
   });
-  expect(config.maxDepth, 1000000);
+  expect(config.maxDepth).toBe(1000000);
 });
 
 test("maxDepth - handles undefined gracefully", () => {

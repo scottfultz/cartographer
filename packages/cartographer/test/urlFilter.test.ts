@@ -134,7 +134,7 @@ describe('URLFilter - Helper Methods', () => {
   it('getDenyReason should return correct message for deny pattern', () => {
     const filter = new URLFilter(undefined, ['**/admin/**']);
     const reason = filter.getDenyReason('https://example.com/admin/users');
-    expect(reason || '').toBe(/Matched deny pattern/);
+    expect(reason || '').toMatch(/Matched deny pattern/);
   });
 
   it('getDenyReason should return correct message for missing allow pattern', () => {

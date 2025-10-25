@@ -29,7 +29,7 @@ test("crawl with accessibility should write accessibility stream and enrich mani
   );
   
   // Verify .atls was created
-  assert(existsSync(OUT_FILE), ".atls file should exist");
+  expect(existsSync(OUT_FILE)).toBeTruthy();
   
   // Read manifest
   const manifest = await readManifest(OUT_FILE);
@@ -38,16 +38,16 @@ test("crawl with accessibility should write accessibility stream and enrich mani
   expect(manifest.atlasVersion).toBe("1.0");
   
   // Verify datasets map exists and includes accessibility
-  assert(manifest.datasets).toBe("Manifest should have datasets map");
-  assert(manifest.datasets.accessibility, "datasets should include accessibility");
-  expect(manifest.datasets.accessibility.present, true);
-  assert(manifest.datasets.accessibility.parts >= 1).toBe("accessibility should have at least 1 part");
+  expect(manifest.datasets).toBeTruthy();
+  expect(manifest.datasets.accessibility).toBeTruthy();
+  expect(manifest.datasets.accessibility.present).toBe(true);
+  expect(manifest.datasets.accessibility.parts >= 1).toBeTruthy();
   expect(manifest.datasets.accessibility.schema).toBe("schemas/accessibility.schema.json#1");
   
   // Verify capabilities exists
-  assert(manifest.capabilities).toBe("Manifest should have capabilities");
+  expect(manifest.capabilities).toBeTruthy();
   assert(Array.isArray(manifest.capabilities.renderModes), "capabilities.renderModes should be array");
-  assert(manifest.capabilities.robots, "capabilities should have robots info");
+  expect(manifest.capabilities.robots).toBeTruthy();
   
   // Verify we can read accessibility records
   let accessibilityCount = 0;
@@ -56,17 +56,17 @@ test("crawl with accessibility should write accessibility stream and enrich mani
     accessibilityCount++;
     
     // Validate structure
-    assert(record.pageUrl, "accessibility record should have pageUrl");
-    assert(typeof record.missingAltCount === "number", "should have missingAltCount");
+    expect(record.pageUrl).toBeTruthy();
+    expect(typeof record.missingAltCount === "number").toBeTruthy();
     assert(Array.isArray(record.headingOrder), "should have headingOrder array");
-    assert(record.landmarks, "should have landmarks object");
-    assert(record.roles, "should have roles object");
+    expect(record.landmarks).toBeTruthy();
+    expect(record.roles).toBeTruthy();
     
     // Raw mode shouldn't have contrastViolations
     expect(record.contrastViolations, undefined).toBe("raw mode shouldn't have contrastViolations");
   }
   
-  assert(accessibilityCount > 0, "Should have at least one accessibility record");
+  expect(accessibilityCount > 0).toBeTruthy();
   
   console.log(`✓ Found ${accessibilityCount} accessibility records`);
   console.log(`✓ Manifest datasets: ${Object.keys(manifest.datasets || {}).join(", ")}`);

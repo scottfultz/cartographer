@@ -4,11 +4,10 @@
  */
 
 import { test, expect } from "vitest";
-// Migrated to vitest expect()
 import { existsSync } from "fs";
 import { rm } from "fs/promises";
 import { execSync } from "child_process";
-import { openAtlas, select } from "../../packages/atlas-sdk/src/index.js";
+import { openAtlas, select } from "@atlas/sdk";
 
 const OUT_FILE = "tmp/sdk-integration-test.atls";
 
@@ -27,24 +26,24 @@ test("Atlas SDK can read engine output", async () => {
     { encoding: "utf-8", stdio: "inherit" }
   );
   
-  assert(existsSync(OUT_FILE), ".atls file should exist");
+  expect(existsSync(OUT_FILE)).toBeTruthy();
   
   // Test 1: openAtlas
   const atlas = await openAtlas(OUT_FILE);
   
   expect(atlas.manifest.atlasVersion).toBe("1.0");
-  assert(atlas.summary.totalPages > 0);
-  assert(atlas.datasets.has("pages"));
-  assert(atlas.datasets.has("accessibility"));
+  expect(atlas.summary.stats.totalPages > 0).toBeTruthy();
+  expect(atlas.datasets.has("pages")).toBeTruthy();
+  expect(atlas.datasets.has("accessibility")).toBeTruthy();
   
   // Test 2: Iterate pages
   let pageCount = 0;
   for await (const page of atlas.readers.pages()) {
-    assert(page.url);
-    assert(typeof page.statusCode === "number");
+    expect(page.url).toBeTruthy();
+    expect(typeof page.statusCode === "number").toBeTruthy();
     pageCount++;
   }
-  expect(pageCount).toBe(atlas.summary.totalPages);
+  expect(pageCount).toBe(atlas.summary.stats.totalPages);
   
   // Test 3: select with filter
   let successCount = 0;
@@ -55,16 +54,16 @@ test("Atlas SDK can read engine output", async () => {
     expect(page.statusCode).toBe(200);
     successCount++;
   }
-  assert(successCount > 0);
+  expect(successCount > 0).toBeTruthy();
   
   // Test 4: Accessibility stream
   let accCount = 0;
   for await (const record of atlas.readers.accessibility()) {
-    assert(record.pageUrl);
-    assert(typeof record.missingAltCount === "number");
+    expect(record.pageUrl).toBeTruthy();
+    expect(typeof record.missingAltCount === "number").toBeTruthy();
     accCount++;
   }
-  assert(accCount > 0);
+  expect(accCount > 0).toBeTruthy();
   
   console.log(`✓ SDK successfully read ${pageCount} pages and ${accCount} accessibility records`);
 });

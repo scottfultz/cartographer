@@ -13,7 +13,7 @@
  * - Data structures match expected interfaces
  */
 
-import { test, expect } from "vitest";
+import { test, expect, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
 import { strict as assert } from "node:assert";
 import * as cheerio from "cheerio";
 import { chromium, type Browser, type Page } from "playwright";
@@ -31,23 +31,23 @@ let page: Page | null = null;
 // TEST LIFECYCLE
 // =============================================================================
 
-test.before(async () => {
+beforeAll(async () => {
   browser = await chromium.launch({ headless: true });
 });
 
-test.after(async () => {
+afterAll(async () => {
   if (browser) {
     await browser.close();
   }
 });
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   if (browser) {
     page = await browser.newPage();
   }
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   if (page) {
     await page.close();
   }

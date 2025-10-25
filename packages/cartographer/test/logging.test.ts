@@ -81,7 +81,7 @@ describe("initLogging", () => {
     initLogging({ logFile, crawlId: "test" });
     
     const dir = path.dirname(logFile);
-    expect(fs.existsSync(dir).toBeTruthy());
+    expect(fs.existsSync(dir)).toBeTruthy());
   });
 
   test("returns null log file path when not configured", () => {
@@ -310,7 +310,7 @@ describe("logEvent", () => {
     expect(event.ts).toBeTruthy();
     expect(event.ts.length > 0).toBeTruthy();
     // Should be valid ISO date
-    expect(!isNaN(Date.parse(event.ts).toBeTruthy()));
+    expect(!isNaN(Date.parse(event.ts)).toBeTruthy()));
   });
 
   test("respects log level filtering", async () => {

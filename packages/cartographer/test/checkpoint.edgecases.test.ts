@@ -49,7 +49,7 @@ test('corrupted checkpoint file returns null', async () => {
     const loaded = readCheckpoint(dir);
     expect(loaded).toBe(null);
   } finally {
-    rmSync(dir, { recursive: true).toBe(force: true });
+    rmSync(dir, { recursive: true, force: true });
   }
 });
 

@@ -80,10 +80,10 @@ test("crawl small site", async () => {
     const summaryData = await readZipEntry("./tmp/example.atls", "summary.json");
     const summary = JSON.parse(summaryData.toString("utf-8"));
     
-    expect(summary.totalPages >= 1).toBeTruthy()`);
-    expect(summary.totalEdges >= 1).toBeTruthy()`);
+    expect(summary.stats.totalPages >= 1).toBeTruthy();
+    expect(summary.stats.totalEdges >= 1).toBeTruthy();
     
-    console.log(`✓ Crawl produced: ${summary.totalPages} pages, ${summary.totalEdges} edges, ${summary.totalAssets} assets`);
+    console.log(`✓ Crawl produced: ${summary.stats.totalPages} pages, ${summary.stats.totalEdges} edges, ${summary.stats.totalAssets} assets`);
 });
 
 /**

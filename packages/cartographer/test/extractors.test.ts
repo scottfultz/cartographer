@@ -31,7 +31,7 @@ test("extractLinks - raw mode uses location: unknown", () => {
     discoveredInMode: "raw"
   });
 
-  expect(edges.length, 3);
+  expect(edges.length).toBe(3);
   
   // All raw mode links should have location: unknown
   for (const edge of edges) {
@@ -95,8 +95,8 @@ test("extractLinks - separates internal and external", () => {
   const externalEdges = edges.filter(e => e.isExternal);
 
   expect(internalEdges.length).toBe(2);
-  expect(externalEdges.length, 1);
-  expect(externalEdges[0].targetUrl.startsWith("https://external.com").toBeTruthy());
+  expect(externalEdges.length).toBe(1);
+  expect(externalEdges[0].targetUrl.startsWith("https://external.com")).toBeTruthy());
 });
 
 test("extractAssets - enforces 1000 cap", () => {
@@ -114,7 +114,7 @@ test("extractAssets - enforces 1000 cap", () => {
   });
 
   expect(result.assets.length).toBe(1000);
-  expect(result.truncated, true);
+  expect(result.truncated).toBe(true);
 });
 
 test("extractAssets - no truncation under cap", () => {
@@ -135,7 +135,7 @@ test("extractAssets - no truncation under cap", () => {
   });
 
   expect(result.assets.length).toBe(3);
-  expect(result.truncated, false);
+  expect(result.truncated).toBe(false);
 });
 
 test("extractPageFacts - extracts metadata", () => {

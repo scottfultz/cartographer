@@ -121,7 +121,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.cssCount, 3);
+    expect(result.cssCount).toBe(3);
   });
 
   test("counts inline styles", () => {
@@ -139,7 +139,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.inlineStyles, 3);
+    expect(result.inlineStyles).toBe(3);
   });
 
   test("counts external scripts", () => {
@@ -157,7 +157,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.jsCount, 3);
+    expect(result.jsCount).toBe(3);
   });
 
   test("counts inline scripts", () => {
@@ -174,7 +174,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.inlineScripts, 2);
+    expect(result.inlineScripts).toBe(2);
   });
 
   test("counts font preloads", () => {
@@ -189,7 +189,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.fontCount, 2);
+    expect(result.fontCount).toBe(2);
   });
 
   test("counts @font-face declarations", () => {
@@ -224,7 +224,7 @@ describe("countResources", () => {
     expect(result.jsCount).toBe(0);
     expect(result.fontCount).toBe(0);
     expect(result.inlineStyles).toBe(0);
-    expect(result.inlineScripts, 0);
+    expect(result.inlineScripts).toBe(0);
   });
 
   test("real-world example: typical page", () => {
@@ -250,7 +250,7 @@ describe("countResources", () => {
     expect(result.jsCount).toBe(2);
     expect(result.inlineStyles).toBe(1);
     expect(result.inlineScripts).toBe(1);
-    expect(result.fontCount, 1);
+    expect(result.fontCount).toBe(1);
   });
 });
 
@@ -335,7 +335,7 @@ describe("extractViewportMeta", () => {
     expect(result).toBeTruthy();
     expect(result.hasViewport).toBeTruthy();
     expect(result.width).toBe("device-width");
-    expect(result.initialScale, 1);
+    expect(result.initialScale).toBe(1);
   });
 
   test("returns undefined when missing", () => {
@@ -381,8 +381,8 @@ describe("detectMixedContent", () => {
     });
     
     expect(result.length > 0).toBeTruthy();
-    expect(result.some(item => item.type === "image").toBeTruthy());
-    expect(result.some(item => item.type === "script").toBeTruthy());
+    expect(result.some(item => item.type === "image")).toBeTruthy());
+    expect(result.some(item => item.type === "script")).toBeTruthy());
   });
 
   test("no mixed content on HTTP page", () => {
@@ -399,7 +399,7 @@ describe("detectMixedContent", () => {
       pageUrl: "http://example.com/page"
     });
     
-    expect(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("no mixed content when all resources are HTTPS", () => {
@@ -417,7 +417,7 @@ describe("detectMixedContent", () => {
       pageUrl: "https://example.com/page"
     });
     
-    expect(result.length, 0);
+    expect(result.length).toBe(0);
   });
 });
 
@@ -436,7 +436,7 @@ describe("checkSubresourceIntegrity", () => {
     const result = checkSubresourceIntegrity(html);
     
     expect(result.totalScripts).toBe(1);
-    expect(result.scriptsWithSRI, 1);
+    expect(result.scriptsWithSRI).toBe(1);
   });
 
   test("counts scripts without SRI", () => {
@@ -454,7 +454,7 @@ describe("checkSubresourceIntegrity", () => {
     expect(result.totalScripts).toBe(2);
     expect(result.scriptsWithSRI).toBe(0);
     expect(result.missingResources).toBeTruthy();
-    expect(result.missingResources.length, 2);
+    expect(result.missingResources.length).toBe(2);
   });
 });
 
@@ -469,7 +469,7 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    expect(result, 2);
+    expect(result).toBe(2);
   });
 
   test("counts 5xx server errors", () => {
@@ -481,7 +481,7 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    expect(result, 2);
+    expect(result).toBe(2);
   });
 
   test("returns zero for all successful links", () => {
@@ -493,13 +493,13 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    expect(result, 0);
+    expect(result).toBe(0);
   });
 
   test("handles empty edges array", () => {
     const result = countBrokenLinks([]);
     
-    expect(result, 0);
+    expect(result).toBe(0);
   });
 });
 
@@ -514,7 +514,7 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    expect(result.length, 2);
+    expect(result.length).toBe(2);
     expect(result.includes("example.com")).toBeTruthy();
     expect(result.includes("google.com")).toBeTruthy();
   });
@@ -528,7 +528,7 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    expect(result.length, 1);
+    expect(result.length).toBe(1);
     expect(result[0]).toBe("example.com");
   });
 
@@ -540,13 +540,13 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    expect(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("handles empty edges array", () => {
     const result = extractOutboundDomains([]);
     
-    expect(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("handles mixed internal and external", () => {
@@ -559,7 +559,7 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    expect(result.length, 2);
+    expect(result.length).toBe(2);
     expect(result.includes("external1.com")).toBeTruthy();
     expect(result.includes("external2.com")).toBeTruthy();
   });

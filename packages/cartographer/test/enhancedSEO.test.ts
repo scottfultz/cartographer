@@ -34,8 +34,8 @@ test("extractEnhancedSEOMetadata - detects noindex from meta robots", () => {
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
   expect(result.indexability.isNoIndex).toBe(true);
-  expect(result.indexability.isNoFollow, true);
-  expect(result.indexability.metaRobots).toBe("noindex);
+  expect(result.indexability.isNoFollow).toBe(true);
+  expect(result.indexability.metaRobots).toBe("noindex, nofollow");
 });
 
 test("extractEnhancedSEOMetadata - detects noindex from X-Robots-Tag header", () => {
@@ -46,7 +46,7 @@ test("extractEnhancedSEOMetadata - detects noindex from X-Robots-Tag header", ()
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com", headers });
 
-  expect(result.indexability.isNoIndex, true);
+  expect(result.indexability.isNoIndex).toBe(true);
   expect(result.indexability.xRobotsTag).toBe("noindex");
 });
 
@@ -130,7 +130,7 @@ test("extractEnhancedSEOMetadata - counts headings", () => {
   expect(result.content.h3Count).toBe(1);
   expect(result.content.h4Count).toBe(1);
   expect(result.content.h5Count).toBe(0);
-  expect(result.content.h6Count, 0);
+  expect(result.content.h6Count).toBe(0);
 });
 
 test("extractEnhancedSEOMetadata - counts words in body text", () => {
@@ -169,7 +169,7 @@ test("extractEnhancedSEOMetadata - extracts hreflang links", () => {
 
   expect(result.international).toBeTruthy();
   expect(result.international.hreflangTags).toBeTruthy();
-  expect(result.international.hreflangTags.length, 3);
+  expect(result.international.hreflangTags.length).toBe(3);
   
   const enLink = result.international.hreflangTags.find((link: any) => link.lang === "en");
   expect(enLink).toBeTruthy();
@@ -195,7 +195,7 @@ test("extractEnhancedSEOMetadata - validates hreflang codes", () => {
   // Hreflang validation may or may not flag certain codes as invalid
   // Just check that hreflang tags were extracted
   expect(result.international.hreflangTags).toBeTruthy();
-  expect(result.international.hreflangTags.length, 2);
+  expect(result.international.hreflangTags.length).toBe(2);
 });
 
 test("extractEnhancedSEOMetadata - extracts Open Graph metadata", () => {
@@ -266,7 +266,7 @@ test("extractEnhancedSEOMetadata - extracts schema types from JSON-LD", () => {
 
   expect(result.schema).toBeTruthy();
   expect(result.schema.schemaTypes).toBeTruthy();
-  expect(result.schema.schemaTypes.includes("Article").toBeTruthy());
+  expect(result.schema.schemaTypes.includes("Article")).toBeTruthy());
 });
 
 test("extractEnhancedSEOMetadata - handles multiple schema types", () => {
@@ -293,8 +293,8 @@ test("extractEnhancedSEOMetadata - handles multiple schema types", () => {
 
   expect(result.schema).toBeTruthy();
   expect(result.schema.schemaTypes).toBeTruthy();
-  expect(result.schema.schemaTypes.includes("Organization").toBeTruthy());
-  expect(result.schema.schemaTypes.includes("WebSite").toBeTruthy());
+  expect(result.schema.schemaTypes.includes("Organization")).toBeTruthy());
+  expect(result.schema.schemaTypes.includes("WebSite")).toBeTruthy());
 });
 
 test("extractEnhancedSEOMetadata - handles missing title gracefully", () => {
