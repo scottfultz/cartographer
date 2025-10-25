@@ -24,11 +24,20 @@ const FIELD_MAPS = {
     "rawHtmlHash", "domHash", "renderMode", "navEndReason", "depth",
     "discoveredFrom", "section", "title", "metaDescription", "h1",
     "internalLinksCount", "externalLinksCount", "mediaAssetsCount",
-    "canonicalHref", "canonicalResolved", "noindexSurface", "fetchMs", "renderMs"
+    "canonicalHref", "canonicalResolved", "noindexSurface", "fetchMs", "renderMs",
+    // Network metrics
+    "network.totalRequests", "network.totalBytes", "network.totalDuration",
+    // Enhanced SEO
+    "enhancedSEO.indexability.isNoIndex", "enhancedSEO.content.titleLength.pixels",
+    "enhancedSEO.international.hreflangCount",
+    // Performance scores
+    "performance.scores.performance", "performance.scores.accessibility"
   ],
   edges: [
     "sourceUrl", "targetUrl", "isExternal", "anchorText", "rel",
-    "nofollow", "location", "selectorHint", "discoveredInMode"
+    "nofollow", "location", "selectorHint", "discoveredInMode",
+    // Link attributes
+    "sponsored", "ugc"
   ],
   assets: [
     "pageUrl", "src", "type", "alt", "hasAlt",
@@ -114,12 +123,25 @@ function mapRecordToRow(record: any, report: string): any[] {
   const fields = FIELD_MAPS[report as keyof typeof FIELD_MAPS];
   
   return fields.map(field => {
-    // Handle nested fields for assets
-    if (report === "assets" && field !== "pageUrl") {
-      return record[field] ?? "";
+    // Handle nested fields (e.g., "network.totalRequests", "enhancedSEO.indexability.isNoIndex")
+    if (field.includes('.')) {
+      const parts = field.split('.');
+      let value = record;
+      for (const part of parts) {
+        value = value?.[part];
+        if (value === undefined || value === null) break;
+      }
+      
+      // Handle null/undefined
+      if (value == null) return "";
+      
+      // Convert objects/arrays to JSON strings
+      if (typeof value === "object") return JSON.stringify(value);
+      
+      return value;
     }
     
-    // Get value from record, return empty string if missing
+    // Handle simple fields
     const value = record[field];
     
     // Handle null/undefined

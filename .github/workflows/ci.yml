@@ -44,7 +44,25 @@ jobs:
     
     # Fast Unit Tests (176 tests, ~0.6s)
     - name: Run unit tests
-      run: npm run test:unit
+      run: |
+        echo "Running unit tests..."
+        npm run test:unit > tmp/test-output.txt 2>&1 || true
+        cat tmp/test-output.txt
+        
+        # Extract test counts
+        TOTAL=$(grep "ℹ tests" tmp/test-output.txt | tail -1 | awk '{print $3}')
+        PASSED=$(grep "ℹ pass" tmp/test-output.txt | tail -1 | awk '{print $3}')
+        FAILED=$(grep "ℹ fail" tmp/test-output.txt | tail -1 | awk '{print $3}')
+        
+        echo "TEST_TOTAL=$TOTAL" >> $GITHUB_ENV
+        echo "TEST_PASSED=$PASSED" >> $GITHUB_ENV
+        echo "TEST_FAILED=$FAILED" >> $GITHUB_ENV
+        
+        # Exit with error if tests failed
+        if [ "$FAILED" != "0" ]; then
+          echo "::error::$FAILED tests failed"
+          exit 1
+        fi
     
     # Prepare test fixtures for integration tests
     - name: Create test fixtures
@@ -57,6 +75,13 @@ jobs:
       continue-on-error: true
       timeout-minutes: 5
     
+    # Run performance benchmark
+    - name: Performance Benchmark
+      run: |
+        echo "Running performance benchmark..."
+        node scripts/benchmark.js --pages=50 --mode=prerender
+      continue-on-error: true
+    
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
@@ -64,17 +89,26 @@ jobs:
         name: test-results-node-${{ matrix.node-version }}
         path: |
           dist-tests/
-          tmp/
+          tmp/test-output.txt
+          tmp/benchmarks/
+          tmp/test-reports/
         retention-days: 7
     
     - name: Test summary
       if: always()
       run: |
         echo "## Test Results 🧪" >> $GITHUB_STEP_SUMMARY
-        echo "- Node.js: ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
-        echo "- Build: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-        echo "- Unit tests: 176 tests (~0.6s)" >> $GITHUB_STEP_SUMMARY
-        echo "- Integration tests: Validated" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Node.js:** ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Total Tests | ${TEST_TOTAL:-N/A} |" >> $GITHUB_STEP_SUMMARY
+        echo "| ✅ Passed | ${TEST_PASSED:-N/A} |" >> $GITHUB_STEP_SUMMARY
+        echo "| ❌ Failed | ${TEST_FAILED:-N/A} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Build Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📦 [Download Test Artifacts](../actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
 
   validate-archives:
     name: Validate Atlas Archives

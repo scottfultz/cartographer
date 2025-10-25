@@ -32,6 +32,7 @@ import { extractEnhancedSEOMetadata } from "./extractors/enhancedSEO.js";
 import { validateEdgeRecord, validateAssetRecord } from "../io/validator.js";
 import { robotsCache } from "./robotsCache.js";
 import * as perHostTokens from './perHostTokens.js';
+import { URLFilter } from "../utils/urlFilter.js";
 
 interface QueueItem {
   url: string;
@@ -77,6 +78,8 @@ export class Scheduler {
   private faviconCache = new Map<string, string>(); // origin -> path in archive
   // Public API state
   private crawlState: "idle" | "running" | "paused" | "canceling" | "finalizing" | "done" | "failed" = "idle";
+  // URL filtering
+  private urlFilter?: URLFilter;
 
   constructor(config: EngineConfig, writer: AtlasWriter, metrics?: Metrics) {
     log('debug', `Scheduler constructor received resume config: ${JSON.stringify(config.resume, null, 2)}`);
@@ -88,6 +91,12 @@ export class Scheduler {
     this.rpsLimiter = pLimit(1);
     this.setupSignalHandlers();
     this.crawlState = "idle";
+    
+    // Initialize URL filter if patterns are provided
+    if (config.discovery.allowUrls || config.discovery.denyUrls) {
+      this.urlFilter = new URLFilter(config.discovery.allowUrls, config.discovery.denyUrls);
+      log('info', `[URLFilter] Initialized with ${config.discovery.allowUrls?.length || 0} allow patterns, ${config.discovery.denyUrls?.length || 0} deny patterns`);
+    }
   }
 
   /** Get current crawl state */
@@ -516,6 +525,24 @@ export class Scheduler {
     
     try {
       log("debug", `[Crawl] depth=${item.depth} ${item.url}`);
+      
+      // URL filter check (allow/deny lists)
+      if (this.urlFilter && !this.urlFilter.shouldAllow(item.url)) {
+        const reason = this.urlFilter.getDenyReason(item.url) || "URL filtered";
+        log("warn", `[URLFilter] Blocked: ${item.url} - ${reason}`);
+        
+        await this.writer.writeError({
+          url: item.url,
+          origin: new URL(item.url).origin,
+          hostname: new URL(item.url).hostname,
+          occurredAt: new Date().toISOString(),
+          phase: "fetch",
+          code: "URL_FILTERED",
+          message: reason
+        });
+        
+        return;
+      }
       
       // Robots check (unless overridden)
       if (!this.config.robots.overrideUsed && this.config.robots.respect) {

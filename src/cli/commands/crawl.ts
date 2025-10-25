@@ -31,6 +31,8 @@ export const crawlCommand: CommandModule = {
     .option("respectRobots", { type: "boolean", default: true })
     .option("overrideRobots", { type: "boolean", default: false })
     .option("userAgent", { type: "string", describe: "Custom User-Agent string" })
+    .option("allowUrls", { type: "array", describe: "URL patterns to allow (glob or regex). Only matching URLs will be crawled." })
+    .option("denyUrls", { type: "array", describe: "URL patterns to deny (glob or regex). Matching URLs will be skipped." })
   .option("maxPages", { type: "number", default: 0 })
   .option("maxDepth", { type: "number", default: -1, describe: "Maximum crawl depth (-1 = unlimited, 0 = seeds only)" })
   .option("maxBytesPerPage", { type: "number", default: 50000000, describe: "Maximum bytes to load per page (default: 50MB)" })
@@ -59,6 +61,8 @@ export const crawlCommand: CommandModule = {
       respectRobots: z.boolean(),
       overrideRobots: z.boolean(),
       userAgent: z.string().optional(),
+      allowUrls: z.array(z.string()).optional(),
+      denyUrls: z.array(z.string()).optional(),
       maxPages: z.number().nonnegative(),
       maxDepth: z.number().int(),
       resume: z.string().optional(),
@@ -130,7 +134,9 @@ export const crawlCommand: CommandModule = {
       discovery: { 
         followExternal: false, 
   paramPolicy: parseParamPolicy((argv as any).paramPolicy),
-        blockList: ["gclid", "fbclid", "msclkid", "yclid", "irclickid", "utm_*", "mc_cid", "mc_eid", "ref", "ref_*"]
+        blockList: ["gclid", "fbclid", "msclkid", "yclid", "irclickid", "utm_*", "mc_cid", "mc_eid", "ref", "ref_*"],
+        allowUrls: cfg.allowUrls,
+        denyUrls: cfg.denyUrls
       },
       robots: { respect: cfg.respectRobots, overrideUsed: cfg.overrideRobots },
       maxPages: cfg.maxPages,

@@ -31,7 +31,107 @@ A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** arc
 - **📊 CSV Export** - Extract pages, edges, assets, errors, accessibility data
 - **🔍 Structured Logging** - NDJSON event stream for monitoring
 - **✅ Archive Validation** - Automatic post-creation QA checks for data integrity
-- **🧪 Comprehensive Testing** - 130+ edge case tests
+- **🧪 Comprehensive Testing** - 295+ test cases across 38 test suites ([see test artifacts](https://github.com/scottfultz/cartographer/actions))
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+### Test Coverage
+
+- **295+ Test Cases** across 38 test suites and 40+ test categories
+- **Node.js 20 & 22** - Full CI matrix on both LTS versions
+- **Automated CI** - GitHub Actions with artifact preservation
+- **Test Artifacts** - All test runs preserved for 7 days with downloadable results
+
+**View Live Results:** [GitHub Actions CI Runs](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml)
+
+### Test Categories
+
+| Category | Tests | Coverage |
+|----------|-------|----------|
+| **Extractors** | 50+ | Links, assets, SEO, accessibility, tech stack |
+| **Integration** | 25+ | End-to-end crawl workflows |
+| **Atlas Format** | 30+ | Archive creation, validation, compression |
+| **CLI Commands** | 20+ | Crawl, export, validate, diff |
+| **Edge Cases** | 40+ | Checkpoints, rate limiting, error budgets |
+| **Performance** | 15+ | Network metrics, Lighthouse, benchmarks |
+| **Data Quality** | 30+ | Schema validation, integrity checks |
+| **Wappalyzer** | 9 | Technology detection |
+| **Enhanced SEO** | 15 | Metadata, indexability, hreflang |
+| **Enhanced Links** | 5 | Sponsored/UGC attributes |
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run unit tests only (fast)
+npm run test:unit
+
+# Run integration tests
+npm run test:integration
+
+# Count tests and generate report
+node scripts/count-tests.js
+
+# Run performance benchmark
+node scripts/benchmark.js --pages=100
+```
+
+### CI/CD Pipeline
+
+Our CI pipeline runs on every push and pull request:
+
+1. **Build & Test Matrix** - Node.js 20 and 22
+2. **Unit Tests** - ~380 tests in under 4 seconds
+3. **Integration Tests** - Real crawl validation
+4. **Performance Benchmark** - Automated benchmarking with artifacts
+5. **Archive Validation** - Schema and integrity checks
+6. **Artifact Preservation** - Test results and benchmarks stored for 7 days
+
+**CI Status:** [![CI](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml/badge.svg)](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml)
+
+---
+
+## ⚡ Performance Benchmarks
+
+### Reproducible Benchmarking
+
+```bash
+# Run standard benchmark (100 pages, prerender mode)
+node scripts/benchmark.js --pages=100 --mode=prerender
+
+# Custom benchmark
+node scripts/benchmark.js --pages=500 --seeds=https://example.com --mode=full
+```
+
+### Reference Performance (M1 Max, 10 cores, 64GB RAM)
+
+| Pages | Mode | Duration | Pages/sec | System |
+|-------|------|----------|-----------|--------|
+| 100 | Raw | ~8s | 12.5 | M1 Max |
+| 100 | Prerender | ~35s | 2.8 | M1 Max |
+| 100 | Full | ~90s | 1.1 | M1 Max |
+| 5,000 | Prerender | ~45min | 1.8 | M1 Max |
+
+**Benchmark Artifacts:** All benchmark runs generate JSON reports with:
+- System information (CPU, memory, Node.js version)
+- Crawl configuration (seeds, mode, limits)
+- Performance metrics (duration, pages/sec, throughput)
+- Log event counts and file sizes
+- Reproducible command for re-running
+
+**View CI Benchmarks:** [Latest Benchmark Artifacts](https://github.com/scottfultz/cartographer/actions)
+
+### Optimization Tips
+
+- **Raw mode** is fastest (no browser rendering)
+- **Prerender mode** balances speed and SEO data quality
+- **Full mode** includes WCAG audits (slowest but most comprehensive)
+- Increase `--concurrency` for more parallelism (default: 8)
+- Adjust `--rps` based on target site's rate limits (default: 3)
 
 ---
 
@@ -92,6 +192,8 @@ node dist/src/cli/index.js crawl [options]
 - `--concurrency <N>` - Browser tabs (default: 8)
 - `--respectRobots` - Honor robots.txt (default: true)
 - `--errorBudget <N>` - Max errors before abort (default: 0=unlimited)
+- `--allowUrls <patterns...>` - URL patterns to allow (glob or regex, see below)
+- `--denyUrls <patterns...>` - URL patterns to deny (glob or regex, see below)
 - `--quiet` - Suppress periodic metrics
 - `--json` - Emit JSON summary to stdout
 - `--logFile <path>` - NDJSON log file (default: logs/crawl-<crawlId>.jsonl)
@@ -101,6 +203,42 @@ node dist/src/cli/index.js crawl [options]
 - `--screenshotQuality <1-100>` - JPEG quality for screenshots (default: 80)
 - `--screenshotFormat <jpeg|png>` - Screenshot format (default: jpeg)
 - `--noFavicons` - Disable favicon collection in full mode (favicons enabled by default)
+
+**URL Filtering:**
+URL allow/deny lists support both glob patterns and regular expressions:
+
+- **Glob patterns** (default): Standard glob syntax with wildcards
+  - `https://example.com/**` - Match all URLs under example.com
+  - `**/*.pdf` - Match all PDF files
+  - `**/admin/**` - Match all URLs containing `/admin/`
+  
+- **Regex patterns**: Wrap in slashes `/pattern/flags`
+  - `/\.pdf$/` - Match URLs ending in .pdf
+  - `/admin/i` - Case-insensitive match for "admin"
+  - `/\/(login|logout)$/` - Match specific endpoints
+
+**Filtering Logic:**
+1. Deny list checked first - if matched, URL is blocked
+2. If allow list exists and URL doesn't match, it's blocked
+3. Otherwise, URL is allowed
+
+Examples:
+```bash
+# Only crawl blog section
+--allowUrls 'https://example.com/blog/**'
+
+# Exclude admin and auth pages
+--denyUrls '**/admin/**' '**/login' '**/logout'
+
+# Exclude all PDFs and ZIPs
+--denyUrls '**/*.pdf' '**/*.zip'
+
+# Allow only blog, deny PDFs
+--allowUrls 'https://example.com/blog/**' --denyUrls '**/*.pdf'
+
+# Regex: exclude image extensions (case-insensitive)
+--denyUrls '/\.(jpg|png|gif)$/i'
+```
 
 **Render Modes:**
 - `raw` - Static HTML only (no JavaScript execution)
@@ -168,7 +306,262 @@ node dist/src/cli/index.js crawl \
 
 ---
 
-## 🔧 CI/CD Recipes
+## �️ Safety & Ethics
+
+Cartographer Engine is designed with **responsible crawling** as a core principle. All safety features are enabled by default to ensure respectful interaction with web servers.
+
+### Default Safety Behavior
+
+**✅ Robots.txt Respect (Default: Enabled)**
+
+```bash
+# Default behavior - respects robots.txt
+node dist/cli/index.js crawl --seeds https://example.com --respectRobots
+
+# Respect is ON by default, equivalent to:
+node dist/cli/index.js crawl --seeds https://example.com --respectRobots=true
+```
+
+**What happens when `--respectRobots` is enabled (default):**
+1. **Automatic robots.txt Fetching** - Downloads `/robots.txt` for each origin
+2. **Rule Enforcement** - Blocks URLs disallowed by robots.txt rules
+3. **User-Agent Matching** - Respects rules for your specific User-Agent
+4. **Cache & Revalidation** - Caches robots.txt (24h TTL) with ETag/Last-Modified headers
+5. **Crawl-Delay** - **Not yet implemented** (planned for future release)
+6. **Logging** - Logs blocked URLs: `[Robots] Blocked by robots.txt: <url> (rule: <pattern>)`
+
+**⚠️ Override (Use with Caution):**
+
+```bash
+# ONLY use on sites you own or administer
+node dist/cli/index.js crawl --seeds https://your-own-site.com --overrideRobots
+```
+
+When `--overrideRobots` is used:
+- ⚠️ **Warning logged**: "Robots override used. Only crawl sites you administer."
+- ⚠️ **Manifest annotation**: Archive includes override notice
+- ⚠️ **Owner attribution**: "Owner: Cai Frazier" added to manifest
+
+**Robots.txt Implementation:**
+- **File**: `src/core/robotsCache.ts`
+- **Caching**: In-memory with 24h TTL
+- **LRU Eviction**: Max 1000 origins
+- **Revalidation**: Uses ETag/Last-Modified headers
+- **Spec Compliance**: RFC 9309 (robots.txt)
+
+---
+
+### Rate Limiting & Backpressure
+
+**Per-Host Rate Limiting:**
+
+```bash
+# Default: 3 requests per second
+node dist/cli/index.js crawl --seeds https://example.com --rps 3
+
+# Conservative (slow sites or high latency):
+node dist/cli/index.js crawl --seeds https://example.com --rps 1
+
+# Aggressive (local testing or with permission):
+node dist/cli/index.js crawl --seeds https://example.com --rps 10
+```
+
+**Rate Limiting Strategy:**
+- **Global RPS Limit** - Enforced across all hosts with `p-limit` concurrency control
+- **Per-Host Budgeting** - Implicit via global limiter (future: explicit per-host queues)
+- **Exponential Backoff** - Automatic retry with backoff for transient failures
+- **Memory Backpressure** - Context recycling every 50 pages to prevent memory leaks
+
+**Implementation:**
+- **File**: `src/core/fetcher.ts`
+- **Library**: `p-limit` for rate limiting
+- **Retry Logic**: Exponential backoff (1s → 2s → 5s max)
+- **Max Retries**: 2 attempts per request
+
+---
+
+### Retry Logic & Error Handling
+
+**Automatic Retry with Exponential Backoff:**
+
+Cartographer automatically retries transient failures:
+
+| Condition | Retry? | Backoff | Max Attempts |
+|-----------|--------|---------|--------------|
+| `ECONNRESET` (connection reset) | ✅ Yes | 1s → 2s → 5s | 3 |
+| `ETIMEDOUT` (timeout) | ✅ Yes | 1s → 2s → 5s | 3 |
+| `5xx` server errors | ✅ Yes | 1s → 2s → 5s | 3 |
+| `429 Too Many Requests` | ✅ Yes | 1s → 2s → 5s | 3 |
+| `503 Service Unavailable` | ✅ Yes | 1s → 2s → 5s | 3 |
+| `4xx` client errors (except 429) | ❌ No | - | 1 |
+| `2xx` success | ❌ No | - | 1 |
+
+**HTTP 429 Handling:**
+
+```typescript
+// Automatic 429 detection and retry in renderer.ts
+if (statusCode === 429 || statusCode === 503) {
+  log("warn", `Rate limited (${statusCode}) for ${url}, will retry`);
+  // Exponential backoff applied automatically
+}
+```
+
+**Error Budget:**
+
+```bash
+# Abort crawl after 100 errors
+node dist/cli/index.js crawl --seeds https://example.com --errorBudget 100
+
+# Unlimited errors (default)
+node dist/cli/index.js crawl --seeds https://example.com --errorBudget 0
+```
+
+**Error Budget Behavior:**
+- **Threshold Enforcement** - Crawl aborts when error count exceeds budget
+- **Exit Code 2** - Indicates error budget exceeded
+- **Error Types Counted** - `FETCH_FAILED`, `RENDER_FAILED`, `CHALLENGE_DETECTED`, `ROBOTS_BLOCKED`
+- **Manifest Annotation** - `finishReason: "error_budget"` in summary.json
+
+---
+
+### User-Agent & Attribution
+
+**Default User-Agent:**
+
+```
+CartographerBot/1.0 (+contact:continuum)
+```
+
+**Custom User-Agent:**
+
+```bash
+# Recommended: Include contact information
+node dist/cli/index.js crawl \
+  --seeds https://example.com \
+  --userAgent "MyBot/1.0 (+https://mysite.com/bot-info)"
+
+# Include email contact for abuse reports
+node dist/cli/index.js crawl \
+  --seeds https://example.com \
+  --userAgent "MyBot/1.0 (+mailto:bot@example.com)"
+```
+
+**User-Agent Best Practices:**
+1. **Always include contact info** - Website operators need a way to reach you
+2. **Use descriptive names** - Avoid generic names like "Bot" or "Crawler"
+3. **Version your bot** - Include version numbers for tracking changes
+4. **Document your bot** - Create a `/bot-info` page with crawl details
+5. **Honor opt-outs** - Respect robots.txt and HTTP headers
+
+---
+
+### Concurrency & Resource Limits
+
+**Concurrency Control:**
+
+```bash
+# Default: 8 parallel browser tabs
+node dist/cli/index.js crawl --seeds https://example.com --concurrency 8
+
+# Conservative (single-threaded):
+node dist/cli/index.js crawl --seeds https://example.com --concurrency 1
+
+# Aggressive (high-end hardware):
+node dist/cli/index.js crawl --seeds https://example.com --concurrency 16
+```
+
+**Resource Limits:**
+
+```bash
+# Maximum bytes per page (default: 50MB)
+node dist/cli/index.js crawl \
+  --seeds https://example.com \
+  --maxBytesPerPage 50000000
+
+# Page timeout (default: 30s)
+node dist/cli/index.js crawl \
+  --seeds https://example.com \
+  --timeout 30000
+```
+
+**Memory Management:**
+- **Context Recycling** - Browser contexts recycled every 50 pages
+- **Explicit Cleanup** - Page resources closed after each render
+- **Backpressure** - Automatic throttling when memory usage is high
+- **Checkpoint Recovery** - Resume from last checkpoint after OOM crashes
+
+---
+
+### Per-Host Crawl Budget
+
+**Future Enhancement (Not Yet Implemented):**
+
+Planned features for responsible per-host crawling:
+
+```bash
+# Future: Per-host page limits
+--maxPagesPerHost 100
+
+# Future: Per-host rate limits
+--rpsPerHost 3
+
+# Future: Crawl-delay enforcement from robots.txt
+--enforceCrawlDelay
+```
+
+**Current Workaround:**
+
+Use `--seeds` to target specific sections and `--maxDepth` to limit scope:
+
+```bash
+# Limit scope to /blog section
+node dist/cli/index.js crawl \
+  --seeds https://example.com/blog \
+  --maxDepth 2 \
+  --maxPages 100
+```
+
+---
+
+### Responsible Crawling Checklist
+
+Before running a large crawl, verify:
+
+- ✅ **Robots.txt respect enabled** - `--respectRobots=true` (default)
+- ✅ **Conservative RPS** - `--rps 3` or lower for external sites
+- ✅ **Custom User-Agent with contact** - `--userAgent "MyBot/1.0 (+mailto:bot@example.com)"`
+- ✅ **Reasonable concurrency** - `--concurrency 8` or lower
+- ✅ **Error budget set** - `--errorBudget 100` to abort on repeated failures
+- ✅ **Page limits defined** - `--maxPages` and `--maxDepth` to prevent runaway crawls
+- ✅ **Timeout configured** - `--timeout 30000` to avoid hanging on slow pages
+- ✅ **Log monitoring** - Review `--logFile` for blocked URLs and errors
+
+**For Large-Scale Crawls (1000+ pages):**
+
+```bash
+node dist/cli/index.js crawl \
+  --seeds https://example.com \
+  --maxPages 5000 \
+  --maxDepth 5 \
+  --rps 2 \
+  --concurrency 4 \
+  --respectRobots \
+  --userAgent "CartographerBot/1.0 (+mailto:crawler@yourcompany.com)" \
+  --errorBudget 200 \
+  --timeout 30000 \
+  --logFile ./logs/large-crawl.jsonl
+```
+
+**Monitoring Recommendations:**
+1. **Monitor log events** - Watch for `ROBOTS_BLOCKED`, `FETCH_FAILED`, `RATE_LIMITED`
+2. **Track error budget** - Abort if error rate exceeds 5%
+3. **Respect 429 responses** - Reduce `--rps` if rate limited
+4. **Check server load** - Monitor target site's response times
+5. **Use checkpoints** - Enable `--checkpointInterval 500` for resumability
+
+---
+
+## �🔧 CI/CD Recipes
 
 ### Quiet Mode + JSON Output
 

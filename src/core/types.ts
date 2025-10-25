@@ -401,6 +401,8 @@ export interface EngineConfig {
     followExternal: boolean;
     paramPolicy: ParamPolicy;
     blockList: string[]; // Tracking params to strip (supports wildcards like "utm_*")
+    allowUrls?: string[]; // URL patterns to allow (glob or regex)
+    denyUrls?: string[]; // URL patterns to deny (glob or regex)
   };
 
   robots: {
