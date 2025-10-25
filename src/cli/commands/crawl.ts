@@ -40,7 +40,15 @@ export const crawlCommand: CommandModule = {
     .option("json", { type: "boolean", default: false, describe: "Emit final crawl summary as JSON to stdout" })
     .option("errorBudget", { type: "number", default: 0, describe: "Max errors before aborting (0 = unlimited)" })
     .option("logFile", { type: "string", default: "logs/crawl-<crawlId>.jsonl", describe: "Path for NDJSON log file" })
-    .option("logLevel", { type: "string", choices: ["info","warn","error","debug"], default: "info", describe: "Minimum log level" }),
+    .option("logLevel", { type: "string", choices: ["info","warn","error","debug"], default: "info", describe: "Minimum log level" })
+    .option("persistSession", { type: "boolean", default: false, describe: "Persist browser sessions per origin to bypass bot detection" })
+    .option("stealth", { type: "boolean", default: false, describe: "Enable stealth mode to hide automation signals (requires playwright-extra)" })
+    .option("timeout", { type: "number", default: 30000, describe: "Page load timeout in milliseconds (default: 30000)" })
+    .option("validateArchive", { type: "boolean", default: true, describe: "Validate .atls archive after creation (QA check)" })
+    .option("noScreenshots", { type: "boolean", default: false, describe: "Disable screenshot capture in full mode (screenshots enabled by default)" })
+    .option("screenshotQuality", { type: "number", default: 80, describe: "JPEG quality for screenshots (1-100, default: 80)" })
+    .option("screenshotFormat", { type: "string", choices: ["jpeg", "png"], default: "jpeg", describe: "Screenshot format (default: jpeg)" })
+    .option("noFavicons", { type: "boolean", default: false, describe: "Disable favicon collection in full mode (favicons enabled by default)" }),
   handler: async (argv) => {
     const schema = z.object({
       seeds: z.array(z.string().url()).min(1),
@@ -59,7 +67,14 @@ export const crawlCommand: CommandModule = {
       json: z.boolean(),
       errorBudget: z.number().nonnegative(),
       logFile: z.string(),
-      logLevel: z.enum(["info","warn","error","debug"])
+      logLevel: z.enum(["info","warn","error","debug"]),
+      persistSession: z.boolean(),
+      stealth: z.boolean(),
+      validateArchive: z.boolean(),
+      noScreenshots: z.boolean(),
+      screenshotQuality: z.number().min(1).max(100),
+      screenshotFormat: z.enum(["jpeg", "png"]),
+      noFavicons: z.boolean()
     });
     const cfg = schema.parse(argv);
 
@@ -81,6 +96,22 @@ export const crawlCommand: CommandModule = {
     if (cfg.userAgent) {
       manifestNotes.push(`Custom User-Agent: ${cfg.userAgent}`);
     }
+    
+    // Determine screenshot capture: enabled by default in full mode unless --noScreenshots
+    const captureScreenshots = cfg.mode === 'full' && !cfg.noScreenshots;
+    
+    // Info message if screenshots disabled in full mode
+    if (cfg.mode === 'full' && cfg.noScreenshots) {
+      console.log("[INFO] Screenshot capture disabled via --noScreenshots");
+    }
+    
+    // Determine favicon collection: enabled by default in full mode unless --noFavicons
+    const captureFavicons = cfg.mode === 'full' && !cfg.noFavicons;
+    
+    // Info message if favicons disabled in full mode
+    if (cfg.mode === 'full' && cfg.noFavicons) {
+      console.log("[INFO] Favicon collection disabled via --noFavicons");
+    }
 
     // Build config for Cartographer API
     const crawlConfig = {
@@ -89,7 +120,7 @@ export const crawlCommand: CommandModule = {
       render: {
         mode: cfg.mode,
         concurrency: cfg.concurrency,
-        timeoutMs: 30000,
+        timeoutMs: typeof argv.timeout === 'number' ? argv.timeout : 30000,
         maxRequestsPerPage: 250, // Default increased from 100 to 250
         maxBytesPerPage: typeof argv.maxBytesPerPage === 'number' && !isNaN(argv.maxBytesPerPage)
           ? argv.maxBytesPerPage
@@ -107,12 +138,27 @@ export const crawlCommand: CommandModule = {
       checkpoint: { interval: cfg.checkpointInterval, enabled: true },
       resume: cfg.resume ? { stagingDir: cfg.resume } : undefined,
       manifestNotes,
+      media: {
+        screenshots: {
+          enabled: captureScreenshots,
+          desktop: true, // Always capture desktop if enabled
+          mobile: true,  // Always capture mobile if enabled
+          quality: cfg.screenshotQuality,
+          format: cfg.screenshotFormat
+        },
+        favicons: {
+          enabled: captureFavicons
+        }
+      },
       cli: {
         quiet: cfg.quiet,
         json: cfg.json,
         errorBudget: cfg.errorBudget,
         logFile: cfg.logFile,
-        logLevel: cfg.logLevel
+        logLevel: cfg.logLevel,
+        persistSession: cfg.persistSession,
+        stealth: cfg.stealth,
+        validateArchive: cfg.validateArchive
       }
     };
 

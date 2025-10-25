@@ -99,6 +99,13 @@ export function log(level: LogLevel, message: string): void {
   if (levels[level] >= levels[currentLevel]) {
     // In quiet mode, only show errors on console
     if (!quietMode || level === "error") {
+      // Format timestamp as HH:MM:SS (24-hour)
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timestamp = `${hours}:${minutes}:${seconds}`;
+      
       const prefix = {
         debug: pc.gray("[DEBUG]"),
         info: pc.blue("[INFO]"),
@@ -107,7 +114,7 @@ export function log(level: LogLevel, message: string): void {
       }[level];
       
       // Always write to stderr (except in json mode for non-errors)
-      const output = `${prefix} ${message}`;
+      const output = `[${timestamp}] ${prefix} ${message}`;
       if (jsonMode && level !== "error") {
         process.stderr.write(output + '\n');
       } else {

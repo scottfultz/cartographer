@@ -94,6 +94,8 @@ export function buildConfig(partial: Partial<EngineConfig>): EngineConfig {
   const robots = { ...DEFAULT_CONFIG.robots!, ...partial.robots };
   // Validate accessibility
   const accessibility = { ...DEFAULT_CONFIG.accessibility!, ...partial.accessibility };
+  // Validate media config
+  const media = partial.media;
   // Compose final config
   const finalConfig: EngineConfig = {
     seeds: partial.seeds,
@@ -106,6 +108,7 @@ export function buildConfig(partial: Partial<EngineConfig>): EngineConfig {
     discovery,
     robots,
     accessibility,
+    media,
     resume: partial.resume,
     checkpoint: partial.checkpoint,
     cli: partial.cli,

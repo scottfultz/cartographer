@@ -84,7 +84,9 @@ export class Cartographer {
     bus.emit({ type: "crawl.started", crawlId, config: finalConfig, seq: seq++, timestamp: new Date().toISOString() });
 
     // Initialize the browser
-    await initBrowser(finalConfig);
+    const persistSession = finalConfig.cli?.persistSession === true;
+    const stealth = finalConfig.cli?.stealth === true;
+    await initBrowser(finalConfig, persistSession, stealth);
 
   this.writer = new (await import("../io/atlas/writer.js")).AtlasWriter(finalConfig.outAtls, finalConfig, crawlId);
   await this.writer.init();

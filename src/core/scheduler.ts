@@ -7,7 +7,7 @@
 import type { EngineConfig, PageRecord, ErrorRecord } from "./types.js";
 import type { AtlasWriter } from "../io/atlas/writer.js";
 import { normalizeUrl, isSameOrigin, sectionOf, applyParamPolicy } from "../utils/url.js";
-import { sha1Hex } from "../utils/hashing.js";
+import { sha1Hex, sha256Hex } from "../utils/hashing.js";
 import { log, logEvent } from "../utils/logging.js";
 import bus from "./events.js";
 import { withCrawlId } from "./withCrawlId.js";
@@ -22,6 +22,11 @@ import { extractLinks } from "./extractors/links.js";
 import { extractAssets } from "./extractors/assets.js";
 import { extractTextSample } from "./extractors/textSample.js";
 import { extractAccessibility, extractAccessibilityWithContrast } from "./extractors/accessibility.js";
+import { extractStructuredData, filterRelevantStructuredData } from "./extractors/structuredData.js";
+import { extractAllOpenGraph } from "./extractors/openGraph.js";
+import { extractAllTwitterCards } from "./extractors/twitterCard.js";
+import { detectTechStack } from "./extractors/techStack.js";
+import { extractViewportMeta, detectMixedContent, checkSubresourceIntegrity, extractEncoding, countResources, extractCompression, detectSitemaps, countBrokenLinks, extractOutboundDomains } from "./extractors/enhancedMetrics.js";
 import { validateEdgeRecord, validateAssetRecord } from "../io/validator.js";
 import { robotsCache } from "./robotsCache.js";
 import * as perHostTokens from './perHostTokens.js';
@@ -66,6 +71,8 @@ export class Scheduler {
   private resumeOf?: string;
   private shutdownRequested = false;
   private gracefulShutdown = false;
+  // Favicon cache (deduplicate by origin)
+  private faviconCache = new Map<string, string>(); // origin -> path in archive
   // Public API state
   private crawlState: "idle" | "running" | "paused" | "canceling" | "finalizing" | "done" | "failed" = "idle";
 
@@ -440,7 +447,11 @@ export class Scheduler {
     
     // Determine completion reason
     let completionReason: "finished" | "capped" | "error_budget" | "manual" = "finished";
+    // Check if we hit maxPages limit (whether we processed exactly maxPages or stopped early with remaining queue)
     if (this.config.maxPages > 0 && this.pageCount >= this.config.maxPages) {
+      completionReason = "capped";
+    } else if (this.config.maxPages > 0 && this.visited.size >= this.config.maxPages) {
+      // Also mark as capped if visited count reached maxPages (accounts for edge cases)
       completionReason = "capped";
     } else if (this.gracefulShutdown) {
       completionReason = "manual";
@@ -536,24 +547,31 @@ export class Scheduler {
       
       // Check for challenge page detection
       if (renderResult.challengeDetected) {
-        const errorMsg = "Page failed to load due to a server/CDN challenge (e.g., Cloudflare, Akamai). Challenge did not resolve within 15s. Data is not available.";
-        log('error', `[Scheduler] Challenge detected for ${item.url}: ${errorMsg}`);
-        
-        const errorRecord: ErrorRecord = {
-          url: item.url,
-          origin: new URL(item.url).origin,
-          hostname: new URL(item.url).hostname,
-          occurredAt: new Date().toISOString(),
-          phase: 'render',
-          code: 'CHALLENGE_DETECTED',
-          message: errorMsg
-        };
-        
-        await this.writer.writeError(errorRecord);
-        
-        // Do NOT create PageRecord with poisoned data - skip to next page
-        this.errorCount++;
-        return;
+        if (renderResult.challengePageCaptured) {
+          // We captured the challenge page content - log warning but continue processing
+          // The challengePageCaptured flag will be set in PageRecord to warn consumers
+          log('warn', `[Scheduler] Challenge page captured for ${item.url}. Content may not be reliable.`);
+        } else {
+          // Challenge detected but no content captured - this is an error
+          const errorMsg = "Page failed to load due to a server/CDN challenge (e.g., Cloudflare, Akamai). Challenge did not resolve within 15s. Data is not available.";
+          log('error', `[Scheduler] Challenge detected for ${item.url}: ${errorMsg}`);
+          
+          const errorRecord: ErrorRecord = {
+            url: item.url,
+            origin: new URL(item.url).origin,
+            hostname: new URL(item.url).hostname,
+            occurredAt: new Date().toISOString(),
+            phase: 'render',
+            code: 'CHALLENGE_DETECTED',
+            message: errorMsg
+          };
+          
+          await this.writer.writeError(errorRecord);
+          
+          // Do NOT create PageRecord with poisoned data - skip to next page
+          this.errorCount++;
+          return;
+        }
       }
       
       // Determine DOM source for extractors
@@ -600,8 +618,171 @@ export class Scheduler {
           domSource,
           html: renderResult.dom,
           baseUrl: fetchResult.finalUrl,
-          renderMode: renderResult.modeUsed
+          renderMode: renderResult.modeUsed,
+          runtimeWCAGData: renderResult.runtimeWCAGData
         });
+      }
+      
+      // Extract structured data (JSON-LD and Microdata)
+      let structuredData;
+      try {
+        log('debug', `[Scheduler] Extracting structured data from ${item.url}`);
+        const allStructuredData = extractStructuredData({
+          html: renderResult.dom,
+          url: fetchResult.finalUrl
+        });
+        
+        log('debug', `[Scheduler] Found ${allStructuredData.length} total structured data items on ${item.url}`);
+        
+        // Filter to only relevant types to reduce noise
+        const relevant = filterRelevantStructuredData(allStructuredData);
+        
+        // Extract Open Graph metadata
+        const ogData = extractAllOpenGraph(renderResult.dom);
+        relevant.push(...ogData);
+        
+        // Extract Twitter Card metadata
+        const twitterData = extractAllTwitterCards(renderResult.dom);
+        relevant.push(...twitterData);
+        
+        // Only include if we found something
+        if (relevant.length > 0) {
+          structuredData = relevant;
+          log('info', `[Scheduler] Captured ${relevant.length} structured data items on ${item.url} (types: ${relevant.map(r => r.schemaType).join(', ')})`);
+        } else if (allStructuredData.length > 0) {
+          log('debug', `[Scheduler] Found ${allStructuredData.length} structured data items but none were relevant types`);
+        }
+      } catch (sdError: any) {
+        log('warn', `[Scheduler] Failed to extract structured data from ${item.url}: ${sdError.message}`);
+      }
+      
+      // Detect tech stack (frameworks, CMS, analytics, etc.)
+      let techStack;
+      try {
+        log('debug', `[Scheduler] Detecting tech stack on ${item.url}`);
+        
+        // Normalize headers (convert string[] to string)
+        const normalizedHeaders: Record<string, string> = {};
+        for (const [key, value] of Object.entries(fetchResult.headers)) {
+          normalizedHeaders[key] = Array.isArray(value) ? value[0] : value;
+        }
+        
+        const detected = detectTechStack({
+          html: renderResult.dom,
+          url: fetchResult.finalUrl,
+          headers: normalizedHeaders
+        });
+        
+        if (detected.length > 0) {
+          techStack = detected;
+          log('info', `[Scheduler] Detected ${detected.length} technologies on ${item.url}: ${detected.join(', ')}`);
+        } else {
+          log('debug', `[Scheduler] No technologies detected on ${item.url}`);
+        }
+      } catch (techError: any) {
+        log('warn', `[Scheduler] Failed to detect tech stack on ${item.url}: ${techError.message}`);
+      }
+      
+      // Extract viewport meta tag
+      let viewportMeta;
+      try {
+        viewportMeta = extractViewportMeta(renderResult.dom);
+        if (viewportMeta) {
+          log('debug', `[Scheduler] Viewport meta found on ${item.url}: ${viewportMeta.content}`);
+        }
+      } catch (viewportError: any) {
+        log('warn', `[Scheduler] Failed to extract viewport meta from ${item.url}: ${viewportError.message}`);
+      }
+      
+      // Detect mixed content issues
+      let mixedContentIssues;
+      try {
+        const issues = detectMixedContent({
+          pageUrl: fetchResult.finalUrl,
+          html: renderResult.dom
+        });
+        if (issues.length > 0) {
+          mixedContentIssues = issues;
+          log('warn', `[Scheduler] Found ${issues.length} mixed content issues on ${item.url}`);
+        }
+      } catch (mixedError: any) {
+        log('warn', `[Scheduler] Failed to detect mixed content on ${item.url}: ${mixedError.message}`);
+      }
+      
+      // Check Subresource Integrity
+      let subresourceIntegrity;
+      try {
+        subresourceIntegrity = checkSubresourceIntegrity(renderResult.dom);
+        if (subresourceIntegrity.totalScripts > 0 || subresourceIntegrity.totalStyles > 0) {
+          log('debug', `[Scheduler] SRI check on ${item.url}: scripts=${subresourceIntegrity.scriptsWithSRI}/${subresourceIntegrity.totalScripts}, styles=${subresourceIntegrity.stylesWithSRI}/${subresourceIntegrity.totalStyles}`);
+        }
+      } catch (sriError: any) {
+        log('warn', `[Scheduler] Failed to check SRI on ${item.url}: ${sriError.message}`);
+      }
+      
+      // Extract encoding
+      let encoding;
+      try {
+        const contentTypeHeader = Array.isArray(fetchResult.headers['content-type']) 
+          ? fetchResult.headers['content-type'][0] 
+          : fetchResult.headers['content-type'];
+        encoding = extractEncoding({
+          html: renderResult.dom,
+          contentTypeHeader
+        });
+        if (encoding) {
+          log('debug', `[Scheduler] Encoding detected on ${item.url}: ${encoding.encoding} (${encoding.source})`);
+        }
+      } catch (encodingError: any) {
+        log('warn', `[Scheduler] Failed to extract encoding from ${item.url}: ${encodingError.message}`);
+      }
+      
+      // Count resources
+      let resourceCounts;
+      try {
+        resourceCounts = countResources(renderResult.dom);
+        log('debug', `[Scheduler] Resource counts on ${item.url}: CSS=${resourceCounts.cssCount}, JS=${resourceCounts.jsCount}, fonts=${resourceCounts.fontCount}`);
+      } catch (resourceError: any) {
+        log('warn', `[Scheduler] Failed to count resources on ${item.url}: ${resourceError.message}`);
+      }
+      
+      // Extract compression
+      let compression;
+      try {
+        compression = extractCompression(fetchResult.headers);
+        if (compression.compression && compression.compression !== 'none') {
+          log('debug', `[Scheduler] Compression detected on ${item.url}: ${compression.compression}`);
+        }
+      } catch (compressionError: any) {
+        log('warn', `[Scheduler] Failed to extract compression from ${item.url}: ${compressionError.message}`);
+      }
+      
+      // SEO Quick Wins: Sitemap detection, broken links, outbound domains
+      let sitemapData;
+      let brokenLinksCount;
+      let outboundDomains;
+      try {
+        const parsedUrl = new URL(fetchResult.finalUrl);
+        const origin = parsedUrl.origin;
+        
+        // Get robots.txt from cache (if available)
+        const robotsTxt = robotsCache.getCachedRobotsTxt(origin);
+        
+        // Detect sitemaps
+        sitemapData = await detectSitemaps({
+          origin,
+          robotsTxt: robotsTxt || undefined
+        });
+        
+        // Count broken links
+        brokenLinksCount = countBrokenLinks(allEdges);
+        
+        // Extract outbound domains
+        outboundDomains = extractOutboundDomains(allEdges);
+        
+        log('debug', `[Scheduler] SEO data for ${item.url}: sitemaps=${sitemapData?.sitemapUrls.length || 0}, brokenLinks=${brokenLinksCount}, outboundDomains=${outboundDomains.length}`);
+      } catch (seoError: any) {
+        log('warn', `[Scheduler] Failed to extract SEO data from ${item.url}: ${seoError.message}`);
       }
       
       const extractMs = Math.round(performance.now() - extractStart);
@@ -657,6 +838,7 @@ export class Scheduler {
         renderMs: renderResult.renderMs,
         fetchMs,
         navEndReason: renderResult.navEndReason,
+        challengePageCaptured: renderResult.challengePageCaptured, // Flag if this is challenge page content
         
         // Counts
         internalLinksCount: internalEdges.length,
@@ -675,6 +857,47 @@ export class Scheduler {
         discoveredFrom: item.discoveredFrom,
         discoveredInMode: renderResult.modeUsed,
         
+        // Structured data
+        structuredData,
+        
+        // Tech stack
+        techStack,
+        
+        // Mobile & Viewport
+        viewportMeta,
+        
+        // Security & Best Practices
+        mixedContentIssues,
+        subresourceIntegrity,
+        
+        // Content & Encoding
+        encoding,
+        compression,
+        resourceCounts,
+        
+        // Performance (full mode only - extract from renderResult.performance)
+        performance: renderResult.modeUsed === "full" && renderResult.performance ? {
+          lcp: renderResult.performance.lcp,
+          cls: renderResult.performance.cls,
+          tbt: renderResult.performance.tbt,
+          fcp: renderResult.performance.fcp,
+          ttfb: renderResult.performance.ttfb,
+          fid: renderResult.performance.fid,
+          inp: renderResult.performance.inp,
+          speedIndex: renderResult.performance.speedIndex,
+          tti: renderResult.performance.tti,
+          jsExecutionTime: renderResult.performance.jsExecutionTime,
+          renderBlockingResources: renderResult.performance.renderBlockingResources as any,
+          thirdPartyRequestCount: renderResult.performance.thirdPartyRequestCount,
+        } : undefined,
+        
+        // SEO Quick Wins
+        seo: (sitemapData || brokenLinksCount !== undefined || outboundDomains) ? {
+          sitemap: sitemapData,
+          brokenLinksCount,
+          outboundDomains
+        } : undefined,
+        
         // Basic flags
         basicFlags: {
           hasTitle: !!pageFacts.title,
@@ -683,6 +906,47 @@ export class Scheduler {
           hasCanonical: !!pageFacts.canonicalResolved
         }
       };
+      
+      // Handle screenshots if present
+      if (renderResult.screenshots) {
+        const urlKey = sha256Hex(item.url).substring(0, 16); // Use URL hash as key
+        const screenshotPaths: { desktop?: string; mobile?: string } = {};
+        
+        if (renderResult.screenshots.desktop) {
+          screenshotPaths.desktop = await this.writer.writeScreenshot('desktop', urlKey, renderResult.screenshots.desktop);
+          log('info', `[Scheduler] Wrote desktop screenshot (${renderResult.screenshots.desktop.length} bytes): ${screenshotPaths.desktop}`);
+        }
+        
+        if (renderResult.screenshots.mobile) {
+          screenshotPaths.mobile = await this.writer.writeScreenshot('mobile', urlKey, renderResult.screenshots.mobile);
+          log('info', `[Scheduler] Wrote mobile screenshot (${renderResult.screenshots.mobile.length} bytes): ${screenshotPaths.mobile}`);
+        }
+        
+        // Add media paths to page record
+        pageRecord.media = {
+          screenshots: screenshotPaths
+        };
+      }
+      
+      // Handle favicon if present (deduplicated by origin)
+      if (renderResult.favicon) {
+        const urlObj = new URL(item.url);
+        const origin = urlObj.origin;
+        
+        // Check if we've already stored a favicon for this origin
+        if (!this.faviconCache.has(origin)) {
+          const originKey = sha256Hex(origin).substring(0, 16);
+          const faviconPath = await this.writer.writeFavicon(originKey, renderResult.favicon.data, renderResult.favicon.mimeType);
+          this.faviconCache.set(origin, faviconPath);
+          log('info', `[Scheduler] Wrote favicon for ${origin} (${renderResult.favicon.data.length} bytes): ${faviconPath}`);
+        }
+        
+        // Add favicon path to page record (all pages from same origin share the favicon)
+        if (!pageRecord.media) {
+          pageRecord.media = {};
+        }
+        pageRecord.media.favicon = this.faviconCache.get(origin);
+      }
       
       // Write page, edges, and assets
       const writeStart = performance.now();
@@ -806,17 +1070,25 @@ export class Scheduler {
     }
 
     // Check maxPages before enqueuing
-    if (this.config.maxPages > 0 && this.visited.size + this.enqueued.size >= this.config.maxPages) {
+    // Use > instead of >= so we can enqueue up to maxPages (not maxPages-1)
+    if (this.config.maxPages > 0 && this.visited.size + this.enqueued.size > this.config.maxPages) {
       log('debug', `[Enqueue] Skipping: Max pages (${this.config.maxPages}) limit reached.`);
       return;
     }
 
     // --- Check if the link is internal ---
     try {
-       const originSeed = new URL(this.config.seeds[0]).origin;
-       const originLink = new URL(normalized).origin;
-       if (originLink !== originSeed) {
-         log('debug', `[Enqueue] Skipping: Link is external (${normalized}) compared to seed origin (${originSeed}).`);
+       const seedUrl = new URL(this.config.seeds[0]);
+       const linkUrl = new URL(normalized);
+       
+       // Normalize hostnames by removing www. prefix for comparison
+       const normalizeDomain = (hostname: string) => hostname.replace(/^www\./i, '');
+       const seedDomain = normalizeDomain(seedUrl.hostname);
+       const linkDomain = normalizeDomain(linkUrl.hostname);
+       
+       // Compare normalized domains and protocols
+       if (linkDomain !== seedDomain || linkUrl.protocol !== seedUrl.protocol) {
+         log('debug', `[Enqueue] Skipping: Link is external (${normalized}) compared to seed origin (${seedUrl.origin}).`);
          return;
        }
     } catch (e: any) {

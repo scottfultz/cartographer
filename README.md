@@ -30,6 +30,7 @@ A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** arc
 - **💾 Memory Management** - Automatic backpressure and context recycling
 - **📊 CSV Export** - Extract pages, edges, assets, errors, accessibility data
 - **🔍 Structured Logging** - NDJSON event stream for monitoring
+- **✅ Archive Validation** - Automatic post-creation QA checks for data integrity
 - **🧪 Comprehensive Testing** - 130+ edge case tests
 
 ---
@@ -95,11 +96,16 @@ node dist/src/cli/index.js crawl [options]
 - `--json` - Emit JSON summary to stdout
 - `--logFile <path>` - NDJSON log file (default: logs/crawl-<crawlId>.jsonl)
 - `--logLevel <info|warn|error|debug>` - Minimum log level (default: info)
+- `--validateArchive` - Run post-creation QA check (default: true)
+- `--noScreenshots` - Disable screenshot capture in full mode (screenshots enabled by default)
+- `--screenshotQuality <1-100>` - JPEG quality for screenshots (default: 80)
+- `--screenshotFormat <jpeg|png>` - Screenshot format (default: jpeg)
+- `--noFavicons` - Disable favicon collection in full mode (favicons enabled by default)
 
 **Render Modes:**
 - `raw` - Static HTML only (no JavaScript execution)
 - `prerender` - Execute JavaScript, wait for network idle (SEO-focused)
-- `full` - Full WCAG accessibility audit + console logs
+- `full` - Full WCAG accessibility audit + console logs + **screenshots + favicons** (captured by default)
 
 ### Export Command
 
@@ -403,11 +409,20 @@ example.atls (Zip Archive)
 
 ## 📚 Documentation
 
-- **[README.md](README.md)** - This file (usage, CLI reference, examples)
-- **[CODEBASE_DOCUMENTATION.md](CODEBASE_DOCUMENTATION.md)** - Architecture deep dive
-- **[TEST_SUITE_DOCUMENTATION.md](docs/TEST_SUITE_DOCUMENTATION.md)** - Comprehensive test guide
+**Core Documentation:**
+- **[README.md](README.md)** - This file (CLI reference, usage examples, troubleshooting)
+- **[GETTING_STARTED.md](GETTING_STARTED.md)** - Quick start guide for new users
+- **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** - Codebase architecture for contributors
+- **[FEATURES.md](FEATURES.md)** - Complete feature list with implementation status
+- **[MISSION.md](MISSION.md)** - Project vision, principles, and roadmap
+
+**Technical References:**
+- **[Atlas SDK Quick Reference](packages/atlas-sdk/QUICK_REFERENCE.md)** - Reading .atls files programmatically
+- **[Copilot Instructions](.github/copilot-instructions.md)** - AI agent development guidelines
 - **[KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)** - Current limitations and workarounds
-- **[Atlas SDK Quick Reference](packages/atlas-sdk/QUICK_REFERENCE.md)** - Reading .atls files
+
+**Historical Documentation:**
+- See `docs/` for detailed implementation notes, audits, and feature summaries
 
 ---
 

@@ -6,16 +6,24 @@
 
 import type { Browser, BrowserContext } from "playwright";
 import { chromium } from "playwright";
+import { join } from "path";
 import type { EngineConfig, NavEndReason, RenderMode } from "./types.js";
 import { sha256Hex } from "../utils/hashing.js";
 import { log } from "../utils/logging.js";
 import type { FetchResult } from "./fetcher.js";
+import { BrowserContextPool } from "./browserContextPool.js";
+import { collectRuntimeWCAGData } from "./extractors/wcagData.js";
+import { collectAdvancedPerformanceMetrics, detectFlashingContent } from "./extractors/enhancedMetrics.js";
+import { detectKeyboardTraps, detectSkipLinks, analyzeMediaElements } from "./extractors/runtimeAccessibility.js";
 
 // Browser lifecycle state
 let browser: Browser | null = null;
-let context: BrowserContext | null = null;
+let context: BrowserContext | null = null; // Legacy single context (used when persistSession is disabled)
+let contextPool: BrowserContextPool | null = null; // Pool for persistent sessions
 let pagesRendered = 0;
 const CONTEXT_RECYCLE_THRESHOLD = 50;
+let persistSessionEnabled = false;
+let stealthModeEnabled = false;
 
 export interface RenderResult {
   modeUsed: RenderMode;
@@ -25,36 +33,92 @@ export interface RenderResult {
   renderMs: number;
   performance: Record<string, number>;
   challengeDetected?: boolean;
+  challengePageCaptured?: boolean; // True if we captured challenge page content (not real page data)
+  screenshots?: {
+    desktop?: Buffer;
+    mobile?: Buffer;
+  };
+  favicon?: {
+    url: string;
+    data: Buffer;
+    mimeType: string;
+  };
+  runtimeWCAGData?: any; // Runtime-only WCAG data collected in Playwright mode
 }
 
 /**
  * Initialize Playwright browser (Chromium only)
  */
-export async function initBrowser(cfg: EngineConfig): Promise<void> {
+export async function initBrowser(cfg: EngineConfig, enablePersistSession = false, enableStealth = false): Promise<void> {
   if (browser) {
     log("warn", "Browser already initialized");
     return;
   }
 
-  log("info", `Initializing Chromium browser (concurrency: ${cfg.render.concurrency})`);
+  log("info", `Initializing Chromium browser (concurrency: ${cfg.render.concurrency}${enableStealth ? ', stealth mode' : ''})`);
   
-  browser = await chromium.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  stealthModeEnabled = enableStealth;
 
-  context = await browser.newContext({
-    userAgent: cfg.http.userAgent,
-    viewport: { width: 1280, height: 720 }
-  });
+  if (enableStealth) {
+    // Use playwright-extra with stealth plugin
+    try {
+      const { chromium: chromiumExtra } = await import('playwright-extra');
+      const StealthPlugin = (await import('puppeteer-extra-plugin-stealth')).default;
+      
+      chromiumExtra.use(StealthPlugin());
+      
+      browser = await chromiumExtra.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-blink-features=AutomationControlled',
+          '--disable-dev-shm-usage'
+        ]
+      }) as Browser;
+      
+      log("info", "✓ Stealth mode enabled - automation signals hidden");
+    } catch (error: any) {
+      log("warn", `Failed to initialize stealth mode: ${error.message}. Falling back to standard browser.`);
+      browser = await chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+    }
+  } else {
+    // Standard Playwright browser
+    browser = await chromium.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+  }
 
-  log("info", "✓ Renderer setup verified – default mode: prerender ✓ Playwright installed ✓");
+  persistSessionEnabled = enablePersistSession;
+
+  if (enablePersistSession) {
+    // Use persistent context pool
+    const sessionDir = join(process.cwd(), '.cartographer', 'sessions');
+    contextPool = new BrowserContextPool(browser, cfg, sessionDir);
+    log("info", `✓ Renderer setup verified – persistent sessions enabled (${sessionDir}) ✓ Playwright installed ✓`);
+  } else {
+    // Use single shared context (legacy mode)
+    context = await browser.newContext({
+      userAgent: cfg.http.userAgent,
+      viewport: { width: 1280, height: 720 }
+    });
+    log("info", "✓ Renderer setup verified – default mode: prerender ✓ Playwright installed ✓");
+  }
 }
 
 /**
  * Close browser and cleanup
  */
 export async function closeBrowser(): Promise<void> {
+  if (contextPool) {
+    await contextPool.closeAllContexts();
+    contextPool = null;
+  }
+  
   if (context) {
     await context.close();
     context = null;
@@ -66,6 +130,8 @@ export async function closeBrowser(): Promise<void> {
   }
   
   pagesRendered = 0;
+  persistSessionEnabled = false;
+  stealthModeEnabled = false;
   log("info", "Browser closed");
 }
 
@@ -140,8 +206,12 @@ export async function renderPage(
   }
 
   // PRERENDER or FULL MODE: Use Playwright
-  if (!browser || !context) {
+  if (!browser) {
     throw new Error("Browser not initialized. Call initBrowser() first.");
+  }
+  
+  if (!persistSessionEnabled && !context) {
+    throw new Error("Browser context not initialized.");
   }
 
   await recycleContextIfNeeded(cfg);
@@ -217,12 +287,24 @@ async function renderWithPlaywright(
   cfg: EngineConfig,
   url: string
 ): Promise<Omit<RenderResult, 'renderMs'>> {
-  if (!context) {
-    throw new Error("Browser context not available");
+  // Get appropriate context (persistent pool or legacy single context)
+  let pageContext: BrowserContext;
+  
+  if (persistSessionEnabled && contextPool) {
+    // Extract origin from URL for context selection
+    const urlObj = new URL(url);
+    const origin = urlObj.origin; // e.g., "https://example.com"
+    pageContext = await contextPool.getContext(origin);
+    log('debug', `[Renderer] Using persistent context for origin: ${origin}`);
+  } else {
+    if (!context) {
+      throw new Error("Browser context not available");
+    }
+    pageContext = context;
   }
 
   log('debug', `[Renderer] Creating new page for ${url}`);
-  const page = await context.newPage();
+  const page = await pageContext.newPage();
   const perfMetrics: Record<string, number> = {};
   let requestCount = 0;
   let bytesLoaded = 0;
@@ -314,71 +396,252 @@ async function renderWithPlaywright(
     const isChallengeDetected = detectChallengePage(page, outerHTML, statusCode);
     
     if (isChallengeDetected) {
-      log('warn', `[Renderer] Challenge page detected for ${url}. Attempting smart wait (15s)...`);
+      // Only wait for challenge resolution if we didn't already timeout
+      // If page.goto() timed out, we already waited 30 seconds - don't wait another 15s!
+      const shouldWaitForResolution = navEndReason !== 'timeout';
       
-      try {
-        // Smart wait: Wait for challenge to resolve (Cloudflare typically shows then hides challenge)
-        await page.waitForFunction(
-          () => {
+      if (shouldWaitForResolution) {
+        log('warn', `[Renderer] Challenge page detected for ${url}. Attempting smart wait (15s)...`);
+        
+        try {
+          // Smart wait: Wait for challenge to resolve (Cloudflare typically shows then hides challenge)
+          await page.waitForFunction(
+            () => {
+              // @ts-expect-error - Running in browser context
+              const title = document.title.toLowerCase();
+              // @ts-expect-error - Running in browser context
+              const body = document.body.innerHTML.toLowerCase();
+              
+              // If title/content no longer contains challenge patterns, consider it resolved
+              const challengePatterns = [
+                'just a moment',
+                'attention required',
+                'checking your browser',
+                'verifying you are',
+                'security check'
+              ];
+              
+              return !challengePatterns.some(pattern => 
+                title.includes(pattern) || body.includes(pattern)
+              );
+            },
+            { timeout: 15000 }
+          );
+          
+          log('info', `[Renderer] Challenge resolved for ${url}. Re-capturing DOM...`);
+          
+          // Re-capture DOM after challenge resolution
+          const resolvedHTML = await page.evaluate(() => {
             // @ts-expect-error - Running in browser context
-            const title = document.title.toLowerCase();
-            // @ts-expect-error - Running in browser context
-            const body = document.body.innerHTML.toLowerCase();
-            
-            // If title/content no longer contains challenge patterns, consider it resolved
-            const challengePatterns = [
-              'just a moment',
-              'attention required',
-              'checking your browser',
-              'verifying you are',
-              'security check'
-            ];
-            
-            return !challengePatterns.some(pattern => 
-              title.includes(pattern) || body.includes(pattern)
-            );
-          },
-          { timeout: 15000 }
-        );
+            return document.documentElement.outerHTML as string;
+          });
+          
+          const domHash = sha256Hex(resolvedHTML);
+          await page.close();
+          
+          return {
+            modeUsed: cfg.render.mode,
+            navEndReason,
+            dom: resolvedHTML,
+            domHash,
+            performance: perfMetrics,
+            challengeDetected: false // Resolved successfully
+          };
+          
+        } catch (waitError: any) {
+          log('warn', `[Renderer] Challenge did not resolve within 15s for ${url}. Capturing challenge page content for review.`);
+          
+          // Instead of erroring, capture the challenge page content
+          // Mark it as untrusted so consumers know it's not real page data
+          const domHash = sha256Hex(outerHTML);
+          await page.close();
+          
+          return {
+            modeUsed: cfg.render.mode,
+            navEndReason: 'timeout',
+            dom: outerHTML,
+            domHash,
+            performance: perfMetrics,
+            challengeDetected: true,
+            challengePageCaptured: true // Flag for consumers: this is challenge page, not real content
+          };
+        }
+      } else {
+        // Already timed out waiting for networkidle - don't wait another 15s
+        // This is likely a false positive (page loaded slowly, not a challenge)
+        log('warn', `[Renderer] Challenge patterns detected but page already timed out (${perfMetrics.navMs}ms). Likely false positive - capturing page as-is.`);
         
-        log('info', `[Renderer] Challenge resolved for ${url}. Re-capturing DOM...`);
-        
-        // Re-capture DOM after challenge resolution
-        const resolvedHTML = await page.evaluate(() => {
-          // @ts-expect-error - Running in browser context
-          return document.documentElement.outerHTML as string;
-        });
-        
-        const domHash = sha256Hex(resolvedHTML);
+        const domHash = sha256Hex(outerHTML);
         await page.close();
         
         return {
           modeUsed: cfg.render.mode,
           navEndReason,
-          dom: resolvedHTML,
+          dom: outerHTML,
           domHash,
           performance: perfMetrics,
-          challengeDetected: false // Resolved successfully
-        };
-        
-      } catch (waitError: any) {
-        log('error', `[Renderer] Challenge did not resolve within 15s for ${url}: ${waitError.message}`);
-        await page.close();
-        
-        // Return result with challengeDetected flag set
-        return {
-          modeUsed: cfg.render.mode,
-          navEndReason: 'error',
-          dom: outerHTML,
-          domHash: sha256Hex(outerHTML),
-          performance: perfMetrics,
-          challengeDetected: true
+          challengeDetected: false, // Don't set flag - likely false positive
+          challengePageCaptured: undefined // Not a challenge, just slow
         };
       }
     }
     
     const domHash = sha256Hex(outerHTML);
     log('debug', `[Renderer] DOM evaluation successful for ${url}`);
+
+    // Capture screenshots if enabled (full mode only, above-the-fold)
+    const screenshots: { desktop?: Buffer; mobile?: Buffer } = {};
+    
+    if (cfg.render.mode === "full" && cfg.media?.screenshots?.enabled) {
+      const screenshotFormat = cfg.media.screenshots.format || 'jpeg';
+      const screenshotQuality = cfg.media.screenshots.quality || 80;
+      
+      try {
+        // Desktop screenshot (current viewport is already 1280×720)
+        if (cfg.media.screenshots.desktop) {
+          log('debug', `[Renderer] Capturing desktop screenshot for ${url}`);
+          screenshots.desktop = await page.screenshot({
+            type: screenshotFormat,
+            quality: screenshotFormat === 'jpeg' ? screenshotQuality : undefined,
+            fullPage: false // Above-the-fold only
+          });
+        }
+        
+        // Mobile screenshot (switch viewport)
+        if (cfg.media.screenshots.mobile) {
+          log('debug', `[Renderer] Capturing mobile screenshot for ${url}`);
+          await page.setViewportSize({ width: 375, height: 667 });
+          await page.waitForTimeout(500); // Allow reflow
+          
+          screenshots.mobile = await page.screenshot({
+            type: screenshotFormat,
+            quality: screenshotFormat === 'jpeg' ? screenshotQuality : undefined,
+            fullPage: false // Above-the-fold only
+          });
+        }
+        
+        log('debug', `[Renderer] Screenshot capture complete for ${url} (desktop: ${!!screenshots.desktop}, mobile: ${!!screenshots.mobile})`);
+      } catch (screenshotError: any) {
+        log('warn', `[Renderer] Failed to capture screenshots for ${url}: ${screenshotError.message}`);
+        // Don't fail the crawl if screenshots fail - just log and continue
+      }
+    } else if (cfg.media?.screenshots?.enabled && cfg.render.mode !== "full") {
+      log('debug', `[Renderer] Screenshot capture skipped (mode=${cfg.render.mode}, requires full mode)`);
+    }
+    
+    // Collect runtime-only WCAG data if in full mode and accessibility enabled
+    let runtimeWCAGData: any = undefined;
+    
+    if (cfg.render.mode === "full" && cfg.accessibility?.enabled !== false) {
+      try {
+        log('debug', `[Renderer] Collecting runtime WCAG data for ${url}`);
+        runtimeWCAGData = await collectRuntimeWCAGData(page);
+        
+        // Add flashing content detection (WCAG 2.3.1)
+        const flashingContent = await detectFlashingContent(page);
+        if (flashingContent) {
+          runtimeWCAGData.flashingContent = flashingContent;
+        }
+        
+        // Phase 1 Enhancements: Runtime accessibility analysis
+        log('debug', `[Renderer] Collecting Phase 1 runtime accessibility data for ${url}`);
+        
+        // Keyboard trap detection (WCAG 2.1.2)
+        const keyboardTraps = await detectKeyboardTraps(page);
+        if (keyboardTraps) {
+          runtimeWCAGData.keyboardTraps = keyboardTraps;
+        }
+        
+        // Skip links detection (WCAG 2.4.1)
+        const skipLinks = await detectSkipLinks(page);
+        if (skipLinks) {
+          runtimeWCAGData.skipLinksEnhanced = skipLinks;
+        }
+        
+        // Video/audio analysis (WCAG 1.2.x)
+        const mediaElements = await analyzeMediaElements(page);
+        if (mediaElements) {
+          runtimeWCAGData.mediaElementsEnhanced = mediaElements;
+        }
+        
+        log('debug', `[Renderer] Runtime WCAG data collected (targetSize: ${runtimeWCAGData?.targetSize?.length || 0}, focusAppearance: ${runtimeWCAGData?.focusAppearance?.length || 0}, keyboardTraps: ${keyboardTraps?.suspiciousElements?.length || 0}, skipLinks: ${skipLinks?.links?.length || 0}, videos: ${mediaElements?.videos?.length || 0}, audios: ${mediaElements?.audios?.length || 0})`);
+      } catch (wcagError: any) {
+        log('warn', `[Renderer] Failed to collect runtime WCAG data for ${url}: ${wcagError.message}`);
+        // Don't fail the crawl if WCAG data collection fails
+      }
+    }
+    
+    // Collect advanced performance metrics if in full mode
+    if (cfg.render.mode === "full") {
+      try {
+        log('debug', `[Renderer] Collecting advanced performance metrics for ${url}`);
+        const advancedPerf = await collectAdvancedPerformanceMetrics(page);
+        // Merge into perfMetrics
+        Object.assign(perfMetrics, advancedPerf);
+        log('debug', `[Renderer] Advanced performance metrics collected (tti: ${advancedPerf.tti}, jsExecution: ${advancedPerf.jsExecutionTime}, thirdParty: ${advancedPerf.thirdPartyRequestCount})`);
+      } catch (perfError: any) {
+        log('warn', `[Renderer] Failed to collect advanced performance metrics for ${url}: ${perfError.message}`);
+        // Don't fail the crawl if performance metrics fail
+      }
+    }
+    
+    // Collect favicon if enabled (full mode only)
+    let favicon: { url: string; data: Buffer; mimeType: string } | undefined;
+    
+    if (cfg.render.mode === "full" && cfg.media?.favicons?.enabled) {
+      try {
+        log('debug', `[Renderer] Collecting favicon for ${url}`);
+        
+        // Extract favicon URL from page (DOM APIs available in browser context)
+        const faviconUrl = await page.evaluate(() => {
+          // Look for various favicon link tags
+          const selectors = [
+            'link[rel="icon"]',
+            'link[rel="shortcut icon"]',
+            'link[rel="apple-touch-icon"]',
+            'link[rel="apple-touch-icon-precomposed"]'
+          ];
+          
+          for (const selector of selectors) {
+            // @ts-ignore - DOM APIs available in browser context
+            const link = document.querySelector(selector);
+            if (link?.href) {
+              return link.href;
+            }
+          }
+          
+          // Fallback to /favicon.ico
+          // @ts-ignore - window available in browser context
+          return new URL('/favicon.ico', window.location.origin).href;
+        });
+        
+        if (faviconUrl) {
+          // Download favicon
+          const response = await page.context().request.get(faviconUrl, {
+            timeout: 5000,
+            failOnStatusCode: false
+          });
+          
+          if (response.ok()) {
+            const data = await response.body();
+            const contentType = response.headers()['content-type'] || 'image/x-icon';
+            
+            favicon = {
+              url: faviconUrl,
+              data,
+              mimeType: contentType
+            };
+            
+            log('debug', `[Renderer] Favicon collected: ${faviconUrl} (${data.length} bytes, ${contentType})`);
+          } else {
+            log('debug', `[Renderer] Favicon not found or failed to download: ${faviconUrl} (status ${response.status()})`);
+          }
+        }
+      } catch (faviconError: any) {
+        log('debug', `[Renderer] Failed to collect favicon for ${url}: ${faviconError.message}`);
+        // Don't fail the crawl if favicon collection fails
+      }
+    }
 
     await page.close();
 
@@ -388,7 +651,10 @@ async function renderWithPlaywright(
       dom: outerHTML,
       domHash,
       performance: perfMetrics,
-      challengeDetected: false
+      challengeDetected: false,
+      screenshots: Object.keys(screenshots).length > 0 ? screenshots : undefined,
+      favicon,
+      runtimeWCAGData
     };
 
   } catch (error: any) {

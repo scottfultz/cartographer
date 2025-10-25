@@ -64,6 +64,17 @@ export class RobotsCache {
   }
 
   /**
+   * Get cached robots.txt content for an origin (data collection only)
+   */
+  getCachedRobotsTxt(origin: string): string | null {
+    const cached = this.cache.get(origin);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.rules;
+    }
+    return null;
+  }
+
+  /**
    * Get robots.txt for origin (from cache or fetch)
    */
   private async getRobotsTxt(origin: string, userAgent: string): Promise<string | null> {

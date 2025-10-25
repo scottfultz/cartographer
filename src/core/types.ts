@@ -56,6 +56,7 @@ export interface PageRecord {
   renderMs?: number;
   fetchMs?: number;
   navEndReason: NavEndReason;
+  challengePageCaptured?: boolean; // True if this is a challenge page (content not reliable)
   
   // Links and assets (counts only in PageRecord, full data in EdgeRecord/AssetRecord)
   internalLinksCount: number;
@@ -90,13 +91,63 @@ export interface PageRecord {
   };
   faviconUrl?: string;
   
+  // Content & Encoding
+  encoding?: {
+    encoding: string;
+    source: "meta" | "header" | "detected";
+  };
+  compression?: {
+    compression?: "gzip" | "brotli" | "deflate" | "none" | string;
+    contentEncoding?: string;
+  };
+  
+  // Resource Counts
+  resourceCounts?: {
+    cssCount: number;
+    jsCount: number;
+    fontCount: number;
+    inlineStyles: number;
+    inlineScripts: number;
+  };
+  
+  // Mobile & Viewport
+  viewportMeta?: {
+    content: string;
+    width?: string;
+    initialScale?: number;
+    hasViewport: boolean;
+  };
+  
+  // Security & Best Practices
+  mixedContentIssues?: Array<{
+    assetUrl: string;
+    type: "script" | "stylesheet" | "image" | "video" | "audio" | "iframe" | "other";
+  }>;
+  subresourceIntegrity?: {
+    totalScripts: number;
+    totalStyles: number;
+    scriptsWithSRI: number;
+    stylesWithSRI: number;
+    missingResources?: Array<{url: string; type: "script" | "stylesheet"}>;
+  };
+  
   // SEO & Tech (prerender/full modes only)
   structuredData?: Array<{
-    type: "json-ld" | "microdata" | "microformat";
+    type: "json-ld" | "microdata" | "microformat" | "opengraph" | "twittercard";
     schemaType?: string;
     data: any;
   }>;
   techStack?: string[]; // Detected technologies: ["React", "WordPress", etc.]
+  
+  // SEO Quick Wins (data collection)
+  seo?: {
+    sitemap?: {
+      hasSitemap: boolean;
+      sitemapUrls: string[]; // Found via robots.txt or common locations
+    };
+    brokenLinksCount?: number; // Count of outbound links with HTTP >= 400
+    outboundDomains?: string[]; // Unique external domains linked from this page
+  };
   
   // Performance (full mode only)
   performance?: {
@@ -105,11 +156,31 @@ export interface PageRecord {
     tbt?: number; // Total Blocking Time (ms)
     fcp?: number; // First Contentful Paint (ms)
     ttfb?: number; // Time to First Byte (ms)
+    fid?: number; // First Input Delay (ms) - Core Web Vital
+    inp?: number; // Interaction to Next Paint (ms) - Core Web Vital
+    speedIndex?: number; // Speed Index
+    tti?: number; // Time to Interactive (ms)
+    jsExecutionTime?: number; // JavaScript execution time (ms)
+    renderBlockingResources?: Array<{
+      url: string;
+      type: "script" | "stylesheet";
+      size?: number;
+    }>;
+    thirdPartyRequestCount?: number;
   };
   
-  // Media (full mode only)
-  screenshotFile?: string; // "media/screenshots/{urlKey}.png"
-  viewportFile?: string; // "media/viewports/{urlKey}.png"
+  // Media
+  media?: {
+    screenshots?: {
+      desktop?: string; // "media/screenshots/desktop/{urlHash}.jpg"
+      mobile?: string;  // "media/screenshots/mobile/{urlHash}.jpg"
+    };
+    favicon?: string;   // "media/favicons/{originHash}.{ext}"
+  };
+  
+  // Deprecated fields (kept for backward compatibility)
+  screenshotFile?: string; // Legacy: "media/screenshots/{urlKey}.png"
+  viewportFile?: string; // Legacy: "media/viewports/{urlKey}.png"
   
   // Errors
   error?: string;
@@ -214,6 +285,19 @@ export interface EngineConfig {
     maxRequestsPerPage: number;
     maxBytesPerPage: number;
   };
+  
+  media?: {
+    screenshots?: {
+      enabled: boolean;           // Enable screenshot capture
+      desktop: boolean;           // Desktop viewport (1280×720)
+      mobile: boolean;            // Mobile viewport (375×667)
+      quality: number;            // JPEG quality 1-100 (default: 80)
+      format: 'png' | 'jpeg';     // Image format (default: jpeg)
+    };
+    favicons?: {
+      enabled: boolean;           // Enable favicon collection
+    };
+  };
 
   http: {
     rps: number; // requests per second
@@ -262,6 +346,9 @@ export interface EngineConfig {
     errorBudget?: number; // Max errors before aborting (0 = unlimited)
     logFile?: string; // Path to NDJSON log file
     logLevel?: "info" | "warn" | "error" | "debug"; // Minimum log level
+    persistSession?: boolean; // Persist browser sessions per origin to bypass bot detection
+    stealth?: boolean; // Enable stealth mode to hide automation signals
+    validateArchive?: boolean; // Validate .atls archive after creation (QA check, default true)
   };
 }
 

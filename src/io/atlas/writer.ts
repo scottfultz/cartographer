@@ -18,6 +18,7 @@ import { sha256 } from "../../utils/hashing.js";
 import { compressFile } from "./compressor.js";
 import { buildManifest } from "./manifest.js";
 import { log } from "../../utils/logging.js";
+import { validateAtlas } from "../validate/validator.js";
 
 /**
  * Streaming Atlas writer
@@ -151,6 +152,10 @@ export class AtlasWriter {
       await mkdir(join(this.stagingDir, "styles"), { recursive: true });
       await mkdir(join(this.stagingDir, "media"), { recursive: true });
       await mkdir(join(this.stagingDir, "media", "screenshots"), { recursive: true });
+      await mkdir(join(this.stagingDir, "media", "screenshots", "desktop"), { recursive: true });
+      await mkdir(join(this.stagingDir, "media", "screenshots", "mobile"), { recursive: true });
+      await mkdir(join(this.stagingDir, "media", "favicons"), { recursive: true });
+      // Legacy directories (for backward compatibility)
       await mkdir(join(this.stagingDir, "media", "viewports"), { recursive: true });
     }
     
@@ -277,22 +282,44 @@ export class AtlasWriter {
     this.stats.stats.totalStyleRecords = (this.stats.stats.totalStyleRecords || 0) + 1;
   }
   
-  async writeScreenshot(urlKey: string, buffer: Buffer): Promise<void> {
-    // Only write in full mode
-    if (this.config.render.mode !== "full") {
-      return;
-    }
+  async writeScreenshot(viewport: 'desktop' | 'mobile', urlKey: string, buffer: Buffer): Promise<string> {
+    // Determine file extension based on buffer content
+    const ext = buffer[0] === 0xFF && buffer[1] === 0xD8 ? 'jpg' : 'png';
+    const path = join(this.stagingDir, "media", "screenshots", viewport, `${urlKey}.${ext}`);
+    await writeFile(path, buffer);
     
+    // Return relative path for PageRecord
+    return `media/screenshots/${viewport}/${urlKey}.${ext}`;
+  }
+  
+  async writeFavicon(originKey: string, buffer: Buffer, mimeType: string): Promise<string> {
+    // Determine file extension from MIME type
+    const extMap: Record<string, string> = {
+      'image/x-icon': 'ico',
+      'image/vnd.microsoft.icon': 'ico',
+      'image/png': 'png',
+      'image/jpeg': 'jpg',
+      'image/jpg': 'jpg',
+      'image/svg+xml': 'svg',
+      'image/gif': 'gif',
+      'image/webp': 'webp'
+    };
+    
+    const ext = extMap[mimeType] || 'ico';
+    const path = join(this.stagingDir, "media", "favicons", `${originKey}.${ext}`);
+    await writeFile(path, buffer);
+    
+    // Return relative path for PageRecord
+    return `media/favicons/${originKey}.${ext}`;
+  }
+  
+  // Legacy method (backward compatibility)
+  async writeLegacyScreenshot(urlKey: string, buffer: Buffer): Promise<void> {
     const path = join(this.stagingDir, "media", "screenshots", `${urlKey}.png`);
     await writeFile(path, buffer);
   }
   
   async writeViewport(urlKey: string, buffer: Buffer): Promise<void> {
-    // Only write in full mode
-    if (this.config.render.mode !== "full") {
-      return;
-    }
-    
     const path = join(this.stagingDir, "media", "viewports", `${urlKey}.png`);
     await writeFile(path, buffer);
   }
@@ -596,6 +623,64 @@ export class AtlasWriter {
       } catch (zipError: any) {
         log('error', `[DIAGNOSTIC] AtlasWriter: Error during createZipArchive: ${zipError?.message || zipError}`);
         throw zipError;
+      }
+
+      // Validate archive if enabled (default true)
+      const shouldValidate = this.config.cli?.validateArchive !== false;
+      if (shouldValidate) {
+        log("info", "[AtlasWriter] Running post-creation validation (QA check)...");
+        try {
+          const validationResult = await validateAtlas(this.outPath);
+          
+          // Only fail on truly corrupt archives (file not found, can't read, etc.)
+          // Schema errors are warnings - the archive may still be usable
+          if (validationResult.status === "corrupt" && validationResult.message?.includes("not found")) {
+            log("error", `[AtlasWriter] Validation FAILED: ${validationResult.message}`);
+            throw new Error(`Archive validation failed: ${validationResult.message}`);
+          }
+          
+          // Log validation results
+          const totalErrors = validationResult.pages.errors + 
+                             validationResult.edges.errors + 
+                             validationResult.assets.errors + 
+                             validationResult.errors.errors +
+                             (validationResult.accessibility?.errors || 0);
+          
+          const totalRecords = validationResult.pages.count + 
+                              validationResult.edges.count + 
+                              validationResult.assets.count + 
+                              validationResult.errors.count +
+                              (validationResult.accessibility?.count || 0);
+          
+          if (totalErrors > 0) {
+            log("warn", `[AtlasWriter] Validation completed with ${totalErrors} schema warnings (may indicate data quality issues)`);
+            log("warn", `  Pages: ${validationResult.pages.count} records, ${validationResult.pages.errors} errors`);
+            log("warn", `  Edges: ${validationResult.edges.count} records, ${validationResult.edges.errors} errors`);
+            log("warn", `  Assets: ${validationResult.assets.count} records, ${validationResult.assets.errors} errors`);
+            log("warn", `  Errors: ${validationResult.errors.count} records, ${validationResult.errors.errors} errors`);
+            if (validationResult.accessibility) {
+              log("warn", `  Accessibility: ${validationResult.accessibility.count} records, ${validationResult.accessibility.errors} errors`);
+            }
+            
+            // Log sample errors for debugging (limit to first 3)
+            if (validationResult.pages.sampleErrors && validationResult.pages.sampleErrors.length > 0) {
+              log("warn", "  Sample page errors:");
+              validationResult.pages.sampleErrors.slice(0, 3).forEach(err => log("warn", `    ${err}`));
+            }
+            if (validationResult.edges.sampleErrors && validationResult.edges.sampleErrors.length > 0) {
+              log("warn", "  Sample edge errors:");
+              validationResult.edges.sampleErrors.slice(0, 3).forEach(err => log("warn", `    ${err}`));
+            }
+            
+            log("warn", "[AtlasWriter] Archive created despite schema warnings - use 'cartographer validate' for full report");
+          } else {
+            log("info", `[AtlasWriter] Validation PASSED ✓ All ${totalRecords} records are valid`);
+          }
+        } catch (validationError: any) {
+          // Log validation errors but don't fail the build
+          log("warn", `[AtlasWriter] Validation check failed: ${validationError?.message || validationError}`);
+          log("warn", "[AtlasWriter] Archive created but validation could not complete - manual inspection recommended");
+        }
       }
 
       log("info", `[DIAGNOSTIC] AtlasWriter: Finalize() completed. Atlas archive should be complete: ${this.outPath}`);

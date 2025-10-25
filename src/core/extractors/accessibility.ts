@@ -6,6 +6,7 @@
 
 import * as cheerio from "cheerio";
 import type { Page } from "playwright";
+import { collectWCAGData, collectRuntimeWCAGData, type WCAGDataCollection } from "./wcagData.js";
 
 export interface AccessibilityRecord {
   pageUrl: string;
@@ -44,6 +45,9 @@ export interface AccessibilityRecord {
     level: "AA" | "AAA";
   }>;
   ariaIssues?: string[];
+  
+  // WCAG 2.1 & 2.2 comprehensive data (full mode only)
+  wcagData?: WCAGDataCollection;
 }
 
 /**
@@ -53,8 +57,9 @@ export function extractAccessibility(opts: {
   domSource: "raw" | "playwright";
   html: string;
   baseUrl: string;
-  page?: Page;
-  renderMode: "raw" | "prerender" | "full";
+  renderMode?: "raw" | "prerender" | "full";
+  page?: Page; // Not used anymore (kept for backwards compat)
+  runtimeWCAGData?: any; // Runtime data collected during rendering
 }): AccessibilityRecord {
   const $ = cheerio.load(opts.html);
   
@@ -168,6 +173,23 @@ export function extractAccessibility(opts: {
     }
   }
   
+  // Full mode: Collect comprehensive WCAG 2.1 & 2.2 data
+  if (opts.renderMode === "full") {
+    try {
+      record.wcagData = collectWCAGData($, opts.baseUrl);
+      
+      // Merge runtime WCAG data if provided
+      if (opts.runtimeWCAGData) {
+        record.wcagData = {
+          ...record.wcagData,
+          ...opts.runtimeWCAGData
+        };
+      }
+    } catch (wcagError) {
+      // WCAG data collection failed, skip it
+    }
+  }
+  
   return record;
 }
 
@@ -251,6 +273,19 @@ export async function extractAccessibilityWithContrast(opts: {
     }
   } catch (error) {
     // Contrast check failed, skip it
+  }
+  
+  // Collect runtime-only WCAG data (target size, focus appearance, etc.)
+  if (record.wcagData) {
+    try {
+      const runtimeData = await collectRuntimeWCAGData(opts.page);
+      record.wcagData = {
+        ...record.wcagData,
+        ...runtimeData
+      };
+    } catch (error) {
+      // Runtime WCAG data collection failed, skip it
+    }
   }
   
   return record;
