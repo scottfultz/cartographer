@@ -159,6 +159,9 @@ importers:
 
   packages/cartographer:
     dependencies:
+      '@atlas/sdk':
+        specifier: workspace:*
+        version: link:../atlas-sdk
       '@atlas/spec':
         specifier: workspace:*
         version: link:../atlas-spec
