@@ -13,7 +13,6 @@
 import { test, expect } from "vitest";
 // Migrated to vitest expect()
 import { extractLinks } from "../src/core/extractors/links.js";
-import { baseTestConfig } from './helpers/testConfig.js';
 
 test("extractLinks - detects sponsored links", () => {
   const html = `
@@ -27,7 +26,6 @@ test("extractLinks - detects sponsored links", () => {
   `;
 
   const edges = extractLinks({
-    ...baseTestConfig,
     domSource: "playwright",
     html,
     baseUrl: "https://example.com",
@@ -55,7 +53,6 @@ test("extractLinks - detects UGC (user-generated content) links", () => {
   `;
 
   const edges = extractLinks({
-    ...baseTestConfig,
     domSource: "playwright",
     html,
     baseUrl: "https://example.com",
@@ -81,7 +78,6 @@ test("extractLinks - handles combined rel attributes", () => {
   `;
 
   const edges = extractLinks({
-    ...baseTestConfig,
     domSource: "playwright",
     html,
     baseUrl: "https://test.com",
@@ -105,7 +101,6 @@ test("extractLinks - sponsored/ugc default to false when not present", () => {
   `;
 
   const edges = extractLinks({
-    ...baseTestConfig,
     domSource: "playwright",
     html,
     baseUrl: "https://example.com",
@@ -118,7 +113,7 @@ test("extractLinks - sponsored/ugc default to false when not present", () => {
   });
 });
 
-test("extractLinks - raw mode sets sponsored/ugc to false", () => {
+test("extractLinks - works in raw mode (no Playwright)", () => {
   const html = `
     <html>
       <body>
@@ -129,7 +124,6 @@ test("extractLinks - raw mode sets sponsored/ugc to false", () => {
   `;
 
   const edges = extractLinks({
-    ...baseTestConfig,
     domSource: "raw",
     html,
     baseUrl: "https://example.com",
