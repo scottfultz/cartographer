@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spec.continuum.local/atlas/pages.schema.json#1",
+  "title": "PageRecord",
+  "description": "Page crawl record for Atlas v1.0 - Owner: Cai Frazier",
+  "type": "object",
+  "required": [
+    "url",
+    "finalUrl",
+    "normalizedUrl",
+    "urlKey",
+    "origin",
+    "pathname",
+    "statusCode",
+    "fetchedAt",
+    "rawHtmlHash",
+    "title",
+    "renderMode",
+    "depth",
+    "discoveredInMode"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "url": { "type": "string" },
+    "finalUrl": { "type": "string" },
+    "normalizedUrl": { "type": "string" },
+    "urlKey": { "type": "string" },
+    "origin": { "type": "string" },
+    "pathname": { "type": "string" },
+    "statusCode": { "type": "integer" },
+    "fetchedAt": { "type": "string", "format": "date-time" },
+    "rawHtmlHash": { "type": "string" },
+    "domHash": { "type": "string" },
+  "title": { "type": "string" },
+  "metaDescription": { "type": ["string", "null"] },
+      "section": { "type": "string" },
+      "contentType": { "type": ["string", "null"] },
+      "redirectChain": {
+        "type": ["array", "null"],
+        "items": { "type": "string" }
+      },
+      "canonicalHref": { "type": ["string", "null"] },
+      "canonicalResolved": { "type": ["string", "null"] },
+      "noindexSurface": {
+        "type": ["string", "null"],
+        "enum": ["meta", "header", "both", null]
+      },
+      "fetchMs": { "type": "integer" },
+      "internalLinksCount": { "type": "integer" },
+      "externalLinksCount": { "type": "integer" },
+      "mediaAssetsCount": { "type": "integer" },
+      "mediaAssetsTruncated": { "type": "boolean" },
+      "hreflangLinks": {
+        "type": ["array", "null"],
+        "items": {
+          "type": "object",
+          "properties": {
+            "href": { "type": "string" },
+            "lang": { "type": "string" }
+          },
+          "required": ["href", "lang"],
+          "additionalProperties": false
+        }
+      },
+      "discoveredFrom": { "type": ["string", "null"] },
+      "basicFlags": {
+        "type": "object",
+        "properties": {
+          "hasTitle": { "type": "boolean" },
+          "hasMetaDescription": { "type": "boolean" },
+          "hasH1": { "type": "boolean" },
+          "hasCanonical": { "type": "boolean" }
+        },
+        "required": ["hasTitle", "hasMetaDescription", "hasH1", "hasCanonical"],
+        "additionalProperties": false
+      },
+    "h1": { "type": "string" },
+    "headings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["level", "text"],
+        "properties": {
+          "level": { "type": "integer", "minimum": 1, "maximum": 6 },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    "canonical": { "type": "string" },
+    "robotsMeta": { "type": "string" },
+    "robotsHeader": { "type": "string" },
+    "textSample": { "type": "string" },
+    "renderMode": {
+      "type": "string",
+      "enum": ["raw", "prerender", "full"]
+    },
+    "renderMs": { "type": "integer" },
+    "navEndReason": {
+  "type": "string",
+  "enum": ["load", "domcontentloaded", "networkidle", "timeout", "error", "fetch"]
+    },
+    "depth": { "type": "integer", "minimum": 0 },
+    "discoveredInMode": {
+      "type": "string",
+      "enum": ["raw", "prerender", "full"]
+    },
+    "error": { "type": "string" }
+  }
+}

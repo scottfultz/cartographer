@@ -1,0 +1,114 @@
+/*
+ * Copyright © 2025 Cai Frazier.
+ * All rights reserved. Unauthorized copying, modification, or distribution is prohibited.
+ * Proprietary and confidential.
+ */
+import pc from "picocolors";
+import * as fs from "fs";
+import * as path from "path";
+let currentLevel = "info";
+let quietMode = false;
+let jsonMode = false;
+let logFileStream = null;
+let logFilePath = null;
+const levels = {
+    debug: 0,
+    info: 1,
+    warn: 2,
+    error: 3
+};
+/**
+ * Initialize logging system with configuration
+ */
+export function initLogging(config) {
+    if (config.level) {
+        currentLevel = config.level;
+    }
+    if (config.quiet !== undefined) {
+        quietMode = config.quiet;
+    }
+    if (config.json !== undefined) {
+        jsonMode = config.json;
+    }
+    // Setup file logging
+    if (config.logFile) {
+        const resolvedPath = config.logFile.replace('<crawlId>', config.crawlId || 'unknown');
+        logFilePath = resolvedPath;
+        // Ensure directory exists
+        const dir = path.dirname(resolvedPath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        // Create write stream with autoClose
+        logFileStream = fs.createWriteStream(resolvedPath, { flags: 'a' });
+    }
+}
+/**
+ * Close the log file stream
+ */
+export function closeLogFile() {
+    if (logFileStream) {
+        logFileStream.end();
+        logFileStream = null;
+    }
+}
+/**
+ * Get the current log file path
+ */
+export function getLogFilePath() {
+    return logFilePath;
+}
+export function setLogLevel(level) {
+    currentLevel = level;
+}
+export function setQuietMode(quiet) {
+    quietMode = quiet;
+}
+export function setJsonMode(json) {
+    jsonMode = json;
+}
+export function log(level, message) {
+    if (levels[level] >= levels[currentLevel]) {
+        // In quiet mode, only show errors on console
+        if (!quietMode || level === "error") {
+            // Format timestamp as HH:MM:SS (24-hour)
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timestamp = `${hours}:${minutes}:${seconds}`;
+            const prefix = {
+                debug: pc.gray("[DEBUG]"),
+                info: pc.blue("[INFO]"),
+                warn: pc.yellow("[WARN]"),
+                error: pc.red("[ERROR]")
+            }[level];
+            // Always write to stderr (except in json mode for non-errors)
+            const output = `[${timestamp}] ${prefix} ${message}`;
+            if (jsonMode && level !== "error") {
+                process.stderr.write(output + '\n');
+            }
+            else {
+                console.error(output);
+            }
+        }
+    }
+}
+/**
+ * Write a structured event to the log file
+ */
+export function logEvent(event) {
+    if (!logFileStream) {
+        return;
+    }
+    // Ensure timestamp
+    if (!event.ts) {
+        event.ts = new Date().toISOString();
+    }
+    // Filter by log level
+    if (levels[event.level] >= levels[currentLevel]) {
+        const line = JSON.stringify(event) + '\n';
+        logFileStream.write(line);
+    }
+}
+//# sourceMappingURL=logging.js.map

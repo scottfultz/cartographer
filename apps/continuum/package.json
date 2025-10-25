@@ -1,0 +1,19 @@
+{
+  "name": "@cf/continuum",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "echo 'Dev mode for continuum'",
+    "build": "echo 'Building continuum'",
+    "start": "echo 'Starting continuum'"
+  },
+  "dependencies": {
+    "@atlas/sdk": "workspace:*",
+    "@atlas/spec": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@cf/dispatcher",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "echo 'Dev mode for dispatcher'",
+    "build": "echo 'Building dispatcher'",
+    "start": "echo 'Starting dispatcher'"
+  },
+  "dependencies": {
+    "@atlas/sdk": "workspace:*",
+    "@atlas/spec": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

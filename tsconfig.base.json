@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "incremental": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@atlas/sdk": ["packages/atlas-sdk/src/index.ts"],
+      "@atlas/spec": ["packages/atlas-spec/src/index.ts"],
+      "@cf/cartographer": ["packages/cartographer/src/index.ts"],
+      "@cf/url-tools": ["packages/url-tools/src/index.ts"],
+      "@cf/waypoint": ["packages/waypoint/src/index.ts"],
+      "@cf/design": ["packages/design-system/src/index.ts"],
+      "@cf/devkit": ["packages/devkit/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "dist-tests", "build"]
+}

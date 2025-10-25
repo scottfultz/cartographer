@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cartographer/atlas/schemas/accessibility.schema.json#1",
+  "title": "Accessibility Record",
+  "description": "Accessibility audit data for a single page. Owner: Cai Frazier.",
+  "type": "object",
+  "required": ["pageUrl", "missingAltCount", "headingOrder", "landmarks", "roles"],
+  "properties": {
+    "pageUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "The URL of the audited page"
+    },
+    "missingAltCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of images with missing or empty alt attributes"
+    },
+    "missingAltSources": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 50,
+      "description": "Sample of image src values with missing alt (first 50)"
+    },
+    "headingOrder": {
+      "type": "array",
+      "items": { "enum": ["H1", "H2", "H3", "H4", "H5", "H6"] },
+      "description": "Sequence of heading levels as they appear in DOM order"
+    },
+    "landmarks": {
+      "type": "object",
+      "properties": {
+        "header": { "type": "boolean" },
+        "nav": { "type": "boolean" },
+        "main": { "type": "boolean" },
+        "aside": { "type": "boolean" },
+        "footer": { "type": "boolean" }
+      },
+      "additionalProperties": false,
+      "description": "Presence of HTML5 landmark elements"
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 },
+      "description": "Count of elements by ARIA role attribute value"
+    },
+    "contrastViolations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["selector", "ratio", "level"],
+        "properties": {
+          "selector": { "type": "string" },
+          "fg": { "type": "string" },
+          "bg": { "type": "string" },
+          "ratio": { "type": "number", "minimum": 0 },
+          "level": { "enum": ["AA", "AAA"] }
+        },
+        "additionalProperties": false
+      },
+      "description": "Sample of contrast violations (first 20 from first 200 visible elements)"
+    },
+    "ariaIssues": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 50,
+      "description": "Sample of ARIA-related issues detected"
+    }
+  },
+  "additionalProperties": false
+}

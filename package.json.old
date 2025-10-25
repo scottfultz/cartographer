@@ -1,0 +1,96 @@
+{
+  "name": "@caifrazier/cartographer-engine",
+  "version": "1.0.0",
+  "description": "Production-grade headless web crawler producing Atlas v1.0 (.atls) archives. Features unlimited depth crawling, challenge detection, three render modes (raw/prerender/full), and comprehensive WCAG accessibility auditing. Built with TypeScript + Playwright for the Continuum SEO platform.",
+  "keywords": [
+    "web-crawler",
+    "web-scraping",
+    "headless-browser",
+    "playwright",
+    "typescript",
+    "atlas",
+    "seo",
+    "accessibility",
+    "wcag",
+    "atls",
+    "archive",
+    "compression",
+    "zstandard",
+    "crawling",
+    "site-mapping",
+    "challenge-detection",
+    "cloudflare",
+    "link-extraction",
+    "structured-data"
+  ],
+  "author": "Cai Frazier",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scottfultz/cartographer.git"
+  },
+  "homepage": "https://github.com/scottfultz/cartographer#readme",
+  "bugs": {
+    "url": "https://github.com/scottfultz/cartographer/issues"
+  },
+  "bin": {
+    "cartographer": "dist/cli/index.js"
+  },
+  "scripts": {
+    "clean": "rimraf dist dist-tests tmp packages/*/dist",
+    "prebuild": "npm run clean",
+    "build": "tsc -p tsconfig.json && tsc -p packages/atlas-sdk/tsconfig.json",
+    "dev": "tsx src/cli/index.ts",
+    "build:test": "tsc -p tsconfig.tests.json",
+    "pretest": "node scripts/make-example-atls.js",
+    "test": "npm run build && npm run build:test && npm run test:unit",
+    "test:unit": "node --test --test-timeout=10000 $(find dist-tests/test -maxdepth 1 -name '*.test.js' | tr '\\n' ' ')",
+    "test:integration": "node --test --test-timeout=60000 $(find dist-tests/test/integration -name '*.test.js' 2>/dev/null | tr '\\n' ' ' || echo '')",
+    "test:all": "npm run build && npm run build:test && npm run pretest && npm run test:unit && npm run test:integration",
+    "test:count": "node scripts/count-tests.js $(find dist-tests/test -maxdepth 1 -name '*.test.js' | tr '\\n' ' ')",
+    "benchmark": "npm run build && node scripts/benchmark.js",
+    "benchmark:small": "npm run build && node scripts/benchmark.js --pages=50",
+    "benchmark:large": "npm run build && node scripts/benchmark.js --pages=500",
+    "crawl": "node dist/cli/index.js crawl",
+    "export": "node dist/cli/index.js export",
+    "stress": "node dist/cli/index.js stress",
+    "validate": "node dist/cli/index.js validate"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@fast-csv/format": "^5.0.0",
+    "@mongodb-js/zstd": "^1.2.0",
+    "@types/archiver": "^6.0.3",
+    "@types/yauzl": "^2.10.3",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "archiver": "^7.0.1",
+    "cheerio": "^1.1.2",
+    "fast-glob": "^3.3.2",
+    "minimatch": "^10.0.3",
+    "p-limit": "^5.0.0",
+    "picocolors": "^1.0.0",
+    "playwright": "^1.48.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "simple-wappalyzer": "^1.1.83",
+    "undici": "^6.19.8",
+    "yargs": "^17.7.2",
+    "yauzl": "^3.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/yargs": "^17.0.33",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "eslint": "^9.11.1",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.3"
+  }
+}

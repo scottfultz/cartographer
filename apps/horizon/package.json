@@ -1,0 +1,19 @@
+{
+  "name": "@cf/horizon",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "echo 'Dev mode for horizon'",
+    "build": "echo 'Building horizon'",
+    "start": "echo 'Starting horizon'"
+  },
+  "dependencies": {
+    "@atlas/sdk": "workspace:*",
+    "@atlas/spec": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

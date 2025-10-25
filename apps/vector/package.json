@@ -1,0 +1,19 @@
+{
+  "name": "@cf/vector",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "echo 'Dev mode for vector'",
+    "build": "echo 'Building vector'",
+    "start": "echo 'Starting vector'"
+  },
+  "dependencies": {
+    "@atlas/sdk": "workspace:*",
+    "@atlas/spec": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

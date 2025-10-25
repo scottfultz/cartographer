@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cartographer/atlas/schemas/styles.schema.json#1",
+  "title": "ComputedTextNodeRecord",
+  "description": "Computed styles for text nodes - for WCAG contrast audits. Owner: Cai Frazier. Full mode only.",
+  "type": "object",
+  "required": ["pageUrl", "selector", "textSample", "fontSize", "fontWeight", "color", "backgroundColor", "nodeType"],
+  "additionalProperties": false,
+  "properties": {
+    "pageUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "The page containing the text node"
+    },
+    "selector": {
+      "type": "string",
+      "description": "CSS selector for the element"
+    },
+    "textSample": {
+      "type": "string",
+      "maxLength": 50,
+      "description": "First 50 characters of the text node"
+    },
+    "fontSize": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d+)?(px|pt|em|rem)$",
+      "description": "Computed font size (e.g., '16px')"
+    },
+    "fontWeight": {
+      "type": "string",
+      "pattern": "^(\\d{3}|normal|bold|lighter|bolder)$",
+      "description": "Computed font weight (e.g., '400', '700', 'bold')"
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^rgb\\(\\d+,\\s*\\d+,\\s*\\d+\\)$|^rgba\\(\\d+,\\s*\\d+,\\s*\\d+,\\s*[\\d.]+\\)$",
+      "description": "Computed text color (e.g., 'rgb(51, 51, 51)')"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "pattern": "^rgb\\(\\d+,\\s*\\d+,\\s*\\d+\\)$|^rgba\\(\\d+,\\s*\\d+,\\s*\\d+,\\s*[\\d.]+\\)$",
+      "description": "Computed background color (e.g., 'rgb(255, 255, 255)')"
+    },
+    "lineHeight": {
+      "type": "string",
+      "description": "Computed line height"
+    },
+    "nodeType": {
+      "type": "string",
+      "enum": ["TEXT_NODE"],
+      "description": "Node type identifier"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cartographer/atlas/schemas/perf.schema.json#1",
+  "title": "Performance Summary",
+  "description": "Performance metrics for crawl session. Owner: Cai Frazier.",
+  "type": "object",
+  "properties": {
+    "duration": {
+      "type": "object",
+      "properties": {
+        "totalSeconds": { "type": "number" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "totalPages": { "type": "integer", "minimum": 0 },
+        "totalEdges": { "type": "integer", "minimum": 0 },
+        "totalAssets": { "type": "integer", "minimum": 0 },
+        "totalErrors": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "throughput": {
+      "type": "object",
+      "properties": {
+        "avgPagesPerSec": { "type": "number", "minimum": 0 },
+        "bytesWritten": { "type": "integer", "minimum": 0 },
+        "bytesWrittenMB": { "type": "number", "minimum": 0 }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "properties": {
+        "currentRssMB": { "type": "number", "minimum": 0 },
+        "peakRssMB": { "type": "number", "minimum": 0 }
+      }
+    },
+    "timings": {
+      "type": "object",
+      "properties": {
+        "fetch": {
+          "type": "object",
+          "properties": {
+            "p50": { "type": "number" },
+            "p95": { "type": "number" },
+            "p99": { "type": "number" },
+            "count": { "type": "integer" }
+          }
+        },
+        "render": { "type": "object" },
+        "extract": { "type": "object" },
+        "write": { "type": "object" }
+      }
+    }
+  },
+  "additionalProperties": true
+}
