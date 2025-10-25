@@ -1230,15 +1230,16 @@ export function analyzeFormAutocomplete($: CheerioAPI): {
     selector: string;
   }>;
 } {
-  const personalDataInputs: Array<{
+  const totalForms = $('form').length;
+  const formsWithAutocomplete = $('form[autocomplete]').length;
+  
+  // Collect all personal data inputs first, then deduplicate
+  const inputMap = new Map<string, {
     type: string;
     hasAutocomplete: boolean;
     autocompleteValue?: string;
     selector: string;
-  }> = [];
-  
-  const totalForms = $('form').length;
-  const formsWithAutocomplete = $('form[autocomplete]').length;
+  }>();
   
   // Personal data input types and patterns
   const personalDataPatterns = [
@@ -1248,27 +1249,45 @@ export function analyzeFormAutocomplete($: CheerioAPI): {
     { selector: 'input[name*="phone"]', type: 'tel' },
     { selector: 'input[name*="address"]', type: 'address' },
     { selector: 'input[name*="name"]', type: 'name' },
-    { selector: 'input[name*="postal"]', type: 'postal-code' },
-    { selector: 'input[name*="zip"]', type: 'postal-code' },
-    { selector: 'input[name*="city"]', type: 'address-level2' },
+    { selector: 'input[name*="postal"]', type: 'postal' },
+    { selector: 'input[name*="zip"]', type: 'postal' },
+    { selector: 'input[name*="city"]', type: 'city' },
     { selector: 'input[name*="country"]', type: 'country' },
   ];
   
   personalDataPatterns.forEach(pattern => {
     $(pattern.selector).each((i, el) => {
-      if (personalDataInputs.length >= 50) return false; // Limit to 50
-      
       const $el = $(el);
+      const attribs = (el as any).attribs || {};
+      const name = attribs.name || '';
+      const id = attribs.id || '';
+      const type = attribs.type || '';
+      
+      // Create unique key for deduplication (use all identifying attributes)
+      const uniqueKey = `${id}::${name}::${type}`;
+      
+      // Skip if already added
+      if (inputMap.has(uniqueKey)) return;
+      
+      // Exclude non-personal data fields
+      const nameLower = name.toLowerCase();
+      const excludePatterns = ['username', 'password', 'search', 'quantity', 'query'];
+      const isExcluded = excludePatterns.some(exclude => 
+        nameLower === exclude || 
+        nameLower.startsWith(`${exclude}_`) ||
+        nameLower.endsWith(`_${exclude}`)
+      );
+      if (isExcluded) return;
+      
       const autocomplete = $el.attr('autocomplete');
       const hasAutocomplete = !!autocomplete;
       
       const tagName = (el as any).tagName || 'input';
-      const attribs = (el as any).attribs || {};
       const selector = tagName.toLowerCase() +
-        (attribs.id ? `#${attribs.id}` : '') +
-        (attribs.name ? `[name="${attribs.name}"]` : '');
+        (id ? `#${id}` : '') +
+        (name ? `[name="${name}"]` : '');
       
-      personalDataInputs.push({
+      inputMap.set(uniqueKey, {
         type: pattern.type,
         hasAutocomplete,
         autocompleteValue: autocomplete,
@@ -1276,6 +1295,9 @@ export function analyzeFormAutocomplete($: CheerioAPI): {
       });
     });
   });
+  
+  // Convert map to array, limit to 100
+  const personalDataInputs = Array.from(inputMap.values()).slice(0, 100);
   
   return {
     totalForms,
