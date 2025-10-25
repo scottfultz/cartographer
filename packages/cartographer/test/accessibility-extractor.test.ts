@@ -49,7 +49,7 @@ test("should build heading order", () => {
     renderMode: "raw"
   });
   
-  expect(result.headingOrder).toBe(["H1").toBe("H2", "H3", "H2"]);
+  expect(result.headingOrder).toEqual(["H1", "H2", "H3", "H2"]);
 });
 
 test("should detect landmarks", () => {

@@ -4,12 +4,11 @@
  * Proprietary and confidential.
  */
 
-import { describe, it } from "node:test";
-// Migrated to vitest expect()
+import { describe, it, expect } from "vitest";
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs";
-import { openAtlas } from "../../packages/atlas-sdk/src/index.js";
+import { openAtlas } from "@atlas/sdk";
 
 const execAsync = promisify(exec);
 
@@ -46,7 +45,7 @@ describe("Error Budget Enforcement", () => {
     expect(exitCode).toBe(2);
     
     // Verify JSON summary was written
-    expect(stdout.trim().toBeTruthy().length > 0).toBe("stdout should contain JSON summary");
+    expect(stdout.trim().length > 0).toBeTruthy();
     
     const json = JSON.parse(stdout.trim());
     
@@ -54,20 +53,20 @@ describe("Error Budget Enforcement", () => {
     const hasErrorBudgetNote = json.notes.some((note: string) => 
       note.includes("error budget exceeded") || note.includes("Terminated")
     );
-    expect(hasErrorBudgetNote, "Summary notes should mention error budget exceeded").toBeTruthy();
+    expect(hasErrorBudgetNote).toBeTruthy();
     
     // Verify .atls file exists (partial data)
-    expect(fs.existsSync(atlsPath).toBeTruthy()).toBe(".atls file should exist even with partial data");
+    expect(fs.existsSync(atlsPath)).toBeTruthy();
     
     // Verify the archive can be opened
     const atlas = await openAtlas(atlsPath);
-    expect(atlas.manifest, "Manifest should be readable").toBeTruthy();
-    expect(atlas.summary, "Summary should be readable").toBeTruthy();
+    expect(atlas.manifest).toBeTruthy();
+    expect(atlas.summary).toBeTruthy();
     
     // Verify error count is > 0
-    expect(atlas.summary.totalErrors > 0, "Should have recorded errors").toBeTruthy();
+    expect(atlas.summary.stats.totalErrors > 0).toBeTruthy();
     
-    console.log(`✓ Error budget test passed: ${atlas.summary.totalErrors} errors recorded, exit code ${exitCode}`);
+    console.log(`✓ Error budget test passed: ${atlas.summary.stats.totalErrors} errors recorded, exit code ${exitCode}`);
   });
   
   it("should complete successfully when errors are within budget", async () => {
@@ -101,13 +100,13 @@ describe("Error Budget Enforcement", () => {
     
     // Verify JSON summary
     const json = JSON.parse(stdout.trim());
-    expect(json.summary.pages > 0, "Should have crawled some pages").toBeTruthy();
+    expect(json.summary.pages > 0).toBeTruthy();
     
     // Verify notes do NOT contain error budget exceeded
     const hasErrorBudgetNote = json.notes.some((note: string) => 
       note.includes("error budget exceeded")
     );
-    expect(!hasErrorBudgetNote, "Summary notes should not mention error budget exceeded").toBeTruthy();
+    expect(!hasErrorBudgetNote).toBeTruthy();
     
     console.log(`✓ Success test passed: ${json.summary.pages} pages crawled, exit code ${exitCode}`);
   });

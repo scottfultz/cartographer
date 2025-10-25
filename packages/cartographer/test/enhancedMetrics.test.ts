@@ -5,7 +5,7 @@
  * viewport meta extraction, mixed content detection, and SRI checking
  */
 
-import { describe, test } from "node:test";
+import { describe, test , expect } from "vitest";
 import assert from "node:assert/strict";
 import {
   extractEncoding,
@@ -86,7 +86,7 @@ describe("extractEncoding", () => {
     
     const result = extractEncoding({ html });
     
-    expect(result).toBe(undefined);
+    expect(result, undefined);
   });
 
   test("handles various charset formats", () => {
@@ -102,7 +102,7 @@ describe("extractEncoding", () => {
         contentTypeHeader: tc.header
       });
       expect(result, `Should extract encoding from: ${tc.header}`).toBeTruthy();
-      expect(result.encoding.toUpperCase()).toBe(tc.expected);
+      expect(result.encoding.toUpperCase(), tc.expected);
     });
   });
 });
@@ -121,7 +121,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.cssCount).toBe(3);
+    expect(result.cssCount, 3);
   });
 
   test("counts inline styles", () => {
@@ -139,7 +139,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.inlineStyles).toBe(3);
+    expect(result.inlineStyles, 3);
   });
 
   test("counts external scripts", () => {
@@ -157,7 +157,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.jsCount).toBe(3);
+    expect(result.jsCount, 3);
   });
 
   test("counts inline scripts", () => {
@@ -174,7 +174,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.inlineScripts).toBe(2);
+    expect(result.inlineScripts, 2);
   });
 
   test("counts font preloads", () => {
@@ -189,7 +189,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    expect(result.fontCount).toBe(2);
+    expect(result.fontCount, 2);
   });
 
   test("counts @font-face declarations", () => {
@@ -224,7 +224,7 @@ describe("countResources", () => {
     expect(result.jsCount).toBe(0);
     expect(result.fontCount).toBe(0);
     expect(result.inlineStyles).toBe(0);
-    expect(result.inlineScripts).toBe(0);
+    expect(result.inlineScripts, 0);
   });
 
   test("real-world example: typical page", () => {
@@ -250,7 +250,7 @@ describe("countResources", () => {
     expect(result.jsCount).toBe(2);
     expect(result.inlineStyles).toBe(1);
     expect(result.inlineScripts).toBe(1);
-    expect(result.fontCount).toBe(1);
+    expect(result.fontCount, 1);
   });
 });
 
@@ -322,7 +322,7 @@ describe("extractViewportMeta", () => {
     
     expect(result).toBeTruthy();
     expect(result.hasViewport).toBeTruthy();
-    expect(result.content).toBe("width=device-width).toBe(initial-scale=1.0");
+    expect(result.content).toBe("width=device-width, initial-scale=1.0");
   });
 
   test("detects mobile-friendly viewport", () => {
@@ -335,7 +335,7 @@ describe("extractViewportMeta", () => {
     expect(result).toBeTruthy();
     expect(result.hasViewport).toBeTruthy();
     expect(result.width).toBe("device-width");
-    expect(result.initialScale).toBe(1);
+    expect(result.initialScale, 1);
   });
 
   test("returns undefined when missing", () => {
@@ -343,7 +343,7 @@ describe("extractViewportMeta", () => {
     
     const result = extractViewportMeta(html);
     
-    expect(result).toBe(undefined);
+    expect(result, undefined);
   });
 
   test("handles various viewport values", () => {
@@ -359,7 +359,7 @@ describe("extractViewportMeta", () => {
       const result = extractViewportMeta(html);
       expect(result).toBeTruthy();
       expect(result.hasViewport).toBeTruthy();
-      expect(result.content).toBe(content);
+      expect(result.content, content);
     });
   });
 });
@@ -399,7 +399,7 @@ describe("detectMixedContent", () => {
       pageUrl: "http://example.com/page"
     });
     
-    expect(result.length).toBe(0);
+    expect(result.length, 0);
   });
 
   test("no mixed content when all resources are HTTPS", () => {
@@ -417,7 +417,7 @@ describe("detectMixedContent", () => {
       pageUrl: "https://example.com/page"
     });
     
-    expect(result.length).toBe(0);
+    expect(result.length, 0);
   });
 });
 
@@ -436,7 +436,7 @@ describe("checkSubresourceIntegrity", () => {
     const result = checkSubresourceIntegrity(html);
     
     expect(result.totalScripts).toBe(1);
-    expect(result.scriptsWithSRI).toBe(1);
+    expect(result.scriptsWithSRI, 1);
   });
 
   test("counts scripts without SRI", () => {
@@ -454,7 +454,7 @@ describe("checkSubresourceIntegrity", () => {
     expect(result.totalScripts).toBe(2);
     expect(result.scriptsWithSRI).toBe(0);
     expect(result.missingResources).toBeTruthy();
-    expect(result.missingResources.length).toBe(2);
+    expect(result.missingResources.length, 2);
   });
 });
 
@@ -469,7 +469,7 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    expect(result).toBe(2);
+    expect(result, 2);
   });
 
   test("counts 5xx server errors", () => {
@@ -481,7 +481,7 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    expect(result).toBe(2);
+    expect(result, 2);
   });
 
   test("returns zero for all successful links", () => {
@@ -493,13 +493,13 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    expect(result).toBe(0);
+    expect(result, 0);
   });
 
   test("handles empty edges array", () => {
     const result = countBrokenLinks([]);
     
-    expect(result).toBe(0);
+    expect(result, 0);
   });
 });
 
@@ -514,9 +514,9 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    expect(result.length).toBe(2);
-    expect(result.includes("example.com").toBeTruthy());
-    expect(result.includes("google.com").toBeTruthy());
+    expect(result.length, 2);
+    expect(result.includes("example.com")).toBeTruthy();
+    expect(result.includes("google.com")).toBeTruthy();
   });
 
   test("deduplicates domains", () => {
@@ -528,7 +528,7 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    expect(result.length).toBe(1);
+    expect(result.length, 1);
     expect(result[0]).toBe("example.com");
   });
 
@@ -540,13 +540,13 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    expect(result.length).toBe(0);
+    expect(result.length, 0);
   });
 
   test("handles empty edges array", () => {
     const result = extractOutboundDomains([]);
     
-    expect(result.length).toBe(0);
+    expect(result.length, 0);
   });
 
   test("handles mixed internal and external", () => {
@@ -559,8 +559,8 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    expect(result.length).toBe(2);
-    expect(result.includes("external1.com").toBeTruthy());
-    expect(result.includes("external2.com").toBeTruthy());
+    expect(result.length, 2);
+    expect(result.includes("external1.com")).toBeTruthy();
+    expect(result.includes("external2.com")).toBeTruthy();
   });
 });

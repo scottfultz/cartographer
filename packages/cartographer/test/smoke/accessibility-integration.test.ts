@@ -40,7 +40,7 @@ test("crawl with accessibility should write accessibility stream and enrich mani
   // Verify datasets map exists and includes accessibility
   assert(manifest.datasets).toBe("Manifest should have datasets map");
   assert(manifest.datasets.accessibility, "datasets should include accessibility");
-  expect(manifest.datasets.accessibility.present).toBe(true);
+  expect(manifest.datasets.accessibility.present, true);
   assert(manifest.datasets.accessibility.parts >= 1).toBe("accessibility should have at least 1 part");
   expect(manifest.datasets.accessibility.schema).toBe("schemas/accessibility.schema.json#1");
   
@@ -63,7 +63,7 @@ test("crawl with accessibility should write accessibility stream and enrich mani
     assert(record.roles, "should have roles object");
     
     // Raw mode shouldn't have contrastViolations
-    expect(record.contrastViolations).toBe(undefined).toBe("raw mode shouldn't have contrastViolations");
+    expect(record.contrastViolations, undefined).toBe("raw mode shouldn't have contrastViolations");
   }
   
   assert(accessibilityCount > 0, "Should have at least one accessibility record");

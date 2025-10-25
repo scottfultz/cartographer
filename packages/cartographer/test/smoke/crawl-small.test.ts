@@ -10,10 +10,10 @@ import { existsSync } from "fs";
 
 test("crawl small site", async () => {
   // TODO: Implement actual crawl test
-  expect(true, "Test placeholder").toBeTruthy();
+  expect(true).toBeTruthy();
 });
 
 test("manifest is valid", async () => {
   // TODO: Validate manifest.json structure
-  expect(true, "Test placeholder").toBeTruthy();
+  expect(true).toBeTruthy();
 });

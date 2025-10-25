@@ -12,7 +12,7 @@ import { execSync } from "child_process";
 
 test("export pages CSV", async () => {
   // Ensure example.atls exists (from crawl test)
-  expect(existsSync("./tmp/example.atls").toBeTruthy()).toBe("example.atls should exist from crawl test");
+  expect(existsSync("./tmp/example.atls")).toBeTruthy();
   
   // Remove old CSV if exists
   if (existsSync("./tmp/pages.csv")) {
@@ -25,13 +25,13 @@ test("export pages CSV", async () => {
   execSync(cmd, { stdio: "inherit" });
   
   // Verify CSV exists
-  expect(existsSync("./tmp/pages.csv").toBeTruthy()).toBe("pages.csv should exist");
+  expect(existsSync("./tmp/pages.csv")).toBeTruthy();
   
   // Read CSV
   const csvContent = await readFile("./tmp/pages.csv", "utf-8");
   const lines = csvContent.trim().split("\n");
   
-  expect(lines.length >= 2, "Should have at least header + 1 data row").toBeTruthy();
+  expect(lines.length >= 2).toBeTruthy();
   
   // Verify exact header order
   const expectedHeader = "url,finalUrl,normalizedUrl,statusCode,contentType,rawHtmlHash,domHash,renderMode,navEndReason,depth,discoveredFrom,section,title,metaDescription,h1,internalLinksCount,externalLinksCount,mediaAssetsCount,canonicalHref,canonicalResolved,noindexSurface,fetchMs,renderMs";
@@ -43,7 +43,7 @@ test("export pages CSV", async () => {
   const rows = lines.slice(1).map(line => {
     const values = parseCSVLine(line);
     return {
-      url: values[0]).toBe(finalUrl: values[1],
+      url: values[0], finalUrl: values[1],
       normalizedUrl: values[2],
       statusCode: values[3],
       contentType: values[4],
@@ -70,12 +70,12 @@ test("export pages CSV", async () => {
   
   // Verify at least one page has externalLinksCount >= 1  
   const pageWithExternalLinks = rows.find(r => parseInt(r.externalLinksCount) >= 1);
-  expect(pageWithExternalLinks, "Should have at least one page with external links").toBeTruthy();
+  expect(pageWithExternalLinks).toBeTruthy();
   
   // Verify rawHtmlHash and domHash are present
   const firstPage = rows[0];
-  expect(firstPage.rawHtmlHash && firstPage.rawHtmlHash.length > 0, "rawHtmlHash should be present").toBeTruthy();
-  expect(firstPage.domHash && firstPage.domHash.length > 0, "domHash should be present").toBeTruthy();
+  expect(firstPage.rawHtmlHash && firstPage.rawHtmlHash.length > 0).toBeTruthy();
+  expect(firstPage.domHash && firstPage.domHash.length > 0).toBeTruthy();
   
   console.log(`✓ Exported ${rows.length} pages with correct header order`);
   console.log(`✓ rawHtmlHash: ${firstPage.rawHtmlHash.substring(0, 16)}...`);

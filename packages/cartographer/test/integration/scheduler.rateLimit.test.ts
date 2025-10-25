@@ -1,5 +1,5 @@
 // scheduler.rateLimit.test.ts
-import test from 'node:test';
+import { test, expect } from "vitest";
 import assert from 'node:assert/strict';
 import { Cartographer } from '../../src/engine/cartographer.js';
 import { buildConfig } from '../../src/core/config.js';

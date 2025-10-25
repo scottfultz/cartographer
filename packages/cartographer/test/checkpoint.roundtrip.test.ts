@@ -1,4 +1,4 @@
-import test from 'node:test';
+import { test, expect } from "vitest";
 import assert from 'node:assert/strict';
 import { writeCheckpoint, readCheckpoint, writeVisitedIndex, readVisitedIndex, writeFrontier, readFrontier } from '../src/core/checkpoint.js';
 import { mkdtempSync, rmSync } from 'fs';
@@ -38,6 +38,6 @@ test('checkpoint writer/loader round-trip', () => {
     const loadedFrontier = readFrontier(dir);
     expect(loadedFrontier).toBe(frontier);
   } finally {
-    rmSync(dir).toBe({ recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true });
   }
 });

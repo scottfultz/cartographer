@@ -4,7 +4,7 @@
  * Tests for JSON-LD structured data extraction from HTML
  */
 
-import { describe, test } from "node:test";
+import { describe, test , expect } from "vitest";
 import assert from "node:assert/strict";
 import { extractStructuredData, filterRelevantStructuredData } from "../src/core/extractors/structuredData.js";
 
@@ -285,7 +285,7 @@ describe("filterRelevantStructuredData", () => {
     const result = filterRelevantStructuredData(items);
     
     // Should handle gracefully (either include or exclude)
-    expect(Array.isArray(result).toBeTruthy());
+    expect(Array.isArray(result)).toBeTruthy();
   });
 
   test("real-world example: news article", () => {

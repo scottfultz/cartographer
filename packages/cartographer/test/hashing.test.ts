@@ -4,7 +4,7 @@
  * Tests for SHA256 and SHA1 hashing functions
  */
 
-import { describe, test } from "node:test";
+import { describe, test , expect } from "vitest";
 import assert from "node:assert/strict";
 import { sha256, sha256Hex, sha1Hex } from "../src/utils/hashing.js";
 
@@ -60,7 +60,7 @@ describe("sha256", () => {
     const result = sha256("test");
     
     // Base64 pattern: alphanumeric, +, /, and = for padding
-    expect(/^[A-Za-z0-9+/=]+$/.test(result).toBeTruthy());
+    expect(/^[A-Za-z0-9+/=]+$/.test(result)).toBeTruthy();
   });
 });
 
@@ -72,7 +72,7 @@ describe("sha256Hex", () => {
     expect(result).toBeTruthy();
     expect(typeof result).toBe("string");
     // Hex pattern: only 0-9 and a-f
-    expect(/^[0-9a-f]+$/.test(result).toBeTruthy());
+    expect(/^[0-9a-f]+$/.test(result)).toBeTruthy();
   });
 
   test("produces 64-character hex string (256 bits)", () => {
@@ -102,7 +102,7 @@ describe("sha256Hex", () => {
     const result = sha256Hex(buffer);
     
     expect(result.length).toBe(64);
-    expect(/^[0-9a-f]+$/.test(result).toBeTruthy());
+    expect(/^[0-9a-f]+$/.test(result)).toBeTruthy();
   });
 });
 
@@ -114,7 +114,7 @@ describe("sha1Hex", () => {
     expect(result).toBeTruthy();
     expect(typeof result).toBe("string");
     // Hex pattern
-    expect(/^[0-9a-f]+$/.test(result).toBeTruthy());
+    expect(/^[0-9a-f]+$/.test(result)).toBeTruthy();
   });
 
   test("produces 40-character hex string (160 bits)", () => {
@@ -144,7 +144,7 @@ describe("sha1Hex", () => {
     const result = sha1Hex(input);
     
     expect(result.length).toBe(40);
-    expect(/^[0-9a-f]+$/.test(result).toBeTruthy());
+    expect(/^[0-9a-f]+$/.test(result)).toBeTruthy();
   });
 });
 
@@ -197,7 +197,7 @@ describe("hashing edge cases", () => {
     expect(hash.length).toBe(64);
     
     // Small change produces different hash
-    const modifiedContent = htmlContent.replace("Test Page").toBe("Modified Page");
+    const modifiedContent = htmlContent.replace("Test Page", "Modified Page");
     const hash2 = sha256Hex(modifiedContent);
     expect(hash).not.toBe(hash2);
   });

@@ -17,15 +17,15 @@ test("config - requires seeds array", () => {
     buildConfig({
       outAtls: "test.atls"
     } as any);
-  }).toBe(/At least one seed URL is required/);
+  }, /At least one seed URL is required/);
 });
 
 test("config - rejects empty seeds array", () => {
   expect(() => {
     buildConfig({
-      seeds: []).toBe(outAtls: "test.atls"
+      seeds: [], outAtls: "test.atls"
     });
-  }).toBe(/At least one seed URL is required/);
+  }, /At least one seed URL is required/);
 });
 
 test("config - requires outAtls", () => {
@@ -33,23 +33,23 @@ test("config - requires outAtls", () => {
     buildConfig({
       seeds: ["https://example.com"]
     } as any);
-  }).toBe(/Output .atls path required/);
+  }, /Output .atls path required/);
 });
 
 test("config - rejects empty outAtls string", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: ""
+      seeds: ["https://example.com"], outAtls: ""
     });
-  }).toBe(/Output .atls path required/);
+  }, /Output .atls path required/);
 });
 
 test("config - rejects very short outAtls", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "a.a"
+      seeds: ["https://example.com"], outAtls: "a.a"
     });
-  }).toBe(/must be a string/);
+  }, /must be a string/);
 });
 
 test("config - accepts single seed", () => {
@@ -57,7 +57,7 @@ test("config - accepts single seed", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  expect(config.seeds.length).toBe(1);
+  expect(config.seeds.length, 1);
   expect(config.seeds[0]).toBe("https://example.com");
 });
 
@@ -66,13 +66,13 @@ test("config - accepts multiple seeds", () => {
     seeds: ["https://example.com", "https://test.com", "https://demo.com"],
     outAtls: "test.atls"
   });
-  expect(config.seeds.length).toBe(3);
+  expect(config.seeds.length, 3);
 });
 
 test("config - rejects zero concurrency", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { concurrency: 0 } as any
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(render: { concurrency: 0 } as any
     });
   }, /concurrency must be > 0/);
 });
@@ -80,7 +80,7 @@ test("config - rejects zero concurrency", () => {
 test("config - rejects negative concurrency", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { concurrency: -1 } as any
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(render: { concurrency: -1 } as any
     });
   }, /concurrency must be > 0/);
 });
@@ -91,7 +91,7 @@ test("config - accepts concurrency 1", () => {
     outAtls: "test.atls",
     render: { concurrency: 1 } as any
   });
-  expect(config.render.concurrency).toBe(1);
+  expect(config.render.concurrency, 1);
 });
 
 test("config - accepts high concurrency", () => {
@@ -100,13 +100,13 @@ test("config - accepts high concurrency", () => {
     outAtls: "test.atls",
     render: { concurrency: 100 } as any
   });
-  expect(config.render.concurrency).toBe(100);
+  expect(config.render.concurrency, 100);
 });
 
 test("config - rejects zero RPS", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(http: { rps: 0 } as any
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(http: { rps: 0 } as any
     });
   }, /rps must be > 0/);
 });
@@ -114,7 +114,7 @@ test("config - rejects zero RPS", () => {
 test("config - rejects negative RPS", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(http: { rps: -1 } as any
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(http: { rps: -1 } as any
     });
   }, /rps must be > 0/);
 });
@@ -125,7 +125,7 @@ test("config - accepts RPS 0.5", () => {
     outAtls: "test.atls",
     http: { rps: 0.5 } as any
   });
-  expect(config.http.rps).toBe(0.5);
+  expect(config.http.rps, 0.5);
 });
 
 test("config - accepts very high RPS", () => {
@@ -134,13 +134,13 @@ test("config - accepts very high RPS", () => {
     outAtls: "test.atls",
     http: { rps: 1000 } as any
   });
-  expect(config.http.rps).toBe(1000);
+  expect(config.http.rps, 1000);
 });
 
 test("config - rejects negative maxPages", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(maxPages: -1
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(maxPages: -1
     });
   }, /maxPages must be >= 0/);
 });
@@ -151,7 +151,7 @@ test("config - accepts maxPages 0 (unlimited)", () => {
     outAtls: "test.atls",
     maxPages: 0
   });
-  expect(config.maxPages).toBe(0);
+  expect(config.maxPages, 0);
 });
 
 test("config - accepts maxPages 1", () => {
@@ -160,7 +160,7 @@ test("config - accepts maxPages 1", () => {
     outAtls: "test.atls",
     maxPages: 1
   });
-  expect(config.maxPages).toBe(1);
+  expect(config.maxPages, 1);
 });
 
 test("config - accepts very large maxPages", () => {
@@ -169,13 +169,13 @@ test("config - accepts very large maxPages", () => {
     outAtls: "test.atls",
     maxPages: 1000000
   });
-  expect(config.maxPages).toBe(1000000);
+  expect(config.maxPages, 1000000);
 });
 
 test("config - rejects zero timeout", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { timeoutMs: 0 } as any
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(render: { timeoutMs: 0 } as any
     });
   }, /timeoutMs must be > 0/);
 });
@@ -183,7 +183,7 @@ test("config - rejects zero timeout", () => {
 test("config - rejects negative timeout", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { timeoutMs: -1000 } as any
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(render: { timeoutMs: -1000 } as any
     });
   }, /timeoutMs must be > 0/);
 });
@@ -194,7 +194,7 @@ test("config - accepts 1ms timeout", () => {
     outAtls: "test.atls",
     render: { timeoutMs: 1 } as any
   });
-  expect(config.render.timeoutMs).toBe(1);
+  expect(config.render.timeoutMs, 1);
 });
 
 test("config - accepts very long timeout", () => {
@@ -203,7 +203,7 @@ test("config - accepts very long timeout", () => {
     outAtls: "test.atls",
     render: { timeoutMs: 300000 } as any
   });
-  expect(config.render.timeoutMs).toBe(300000);
+  expect(config.render.timeoutMs, 300000);
 });
 
 test("config - default render mode is prerender", () => {
@@ -237,7 +237,7 @@ test("config - default robots.respect is true", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  expect(config.robots.respect).toBe(true);
+  expect(config.robots.respect, true);
 });
 
 test("config - can disable robots.respect", () => {
@@ -246,7 +246,7 @@ test("config - can disable robots.respect", () => {
     outAtls: "test.atls",
     robots: { respect: false } as any
   });
-  expect(config.robots.respect).toBe(false);
+  expect(config.robots.respect, false);
 });
 
 test("config - default discovery.followExternal is false", () => {
@@ -254,7 +254,7 @@ test("config - default discovery.followExternal is false", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  expect(config.discovery.followExternal).toBe(false);
+  expect(config.discovery.followExternal, false);
 });
 
 test("config - can enable discovery.followExternal", () => {
@@ -263,13 +263,13 @@ test("config - can enable discovery.followExternal", () => {
     outAtls: "test.atls",
     discovery: { followExternal: true } as any
   });
-  expect(config.discovery.followExternal).toBe(true);
+  expect(config.discovery.followExternal, true);
 });
 
 test("config - rejects zero maxRequestsPerPage", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { maxRequestsPerPage: 0 } as any
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(render: { maxRequestsPerPage: 0 } as any
     });
   }, /maxRequestsPerPage must be > 0/);
 });
@@ -277,7 +277,7 @@ test("config - rejects zero maxRequestsPerPage", () => {
 test("config - rejects zero maxBytesPerPage", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { maxBytesPerPage: 0 } as any
+      seeds: ["https://example.com"], outAtls: "test.atls").toBe(render: { maxBytesPerPage: 0 } as any
     });
   }, /maxBytesPerPage must be > 0/);
 });

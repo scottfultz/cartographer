@@ -27,7 +27,7 @@ test("crawl small site", async () => {
   execSync(cmd, { stdio: "inherit" });
     
     // Verify .atls file exists
-    expect(existsSync("./tmp/example.atls").toBeTruthy()).toBe(".atls file should exist");
+    expect(existsSync("./tmp/example.atls")).toBeTruthy();
     
     // Verify it's a valid ZIP
     await new Promise<void>((resolve, reject) => {
@@ -43,19 +43,19 @@ test("crawl small site", async () => {
     
     expect(manifest.atlasVersion).toBe("1.0");
     expect(manifest.owner.name).toBe("Cai Frazier");
-    expect(Array.isArray(manifest.consumers).toBeTruthy()).toBe("Consumers should be an array");
-    expect(manifest.consumers.length > 0, "Consumers should not be empty").toBeTruthy();
-    expect(manifest.hashing.urlKeyAlgo, "URL key algorithm should be present").toBeTruthy();
+    expect(Array.isArray(manifest.consumers)).toBeTruthy();
+    expect(manifest.consumers.length > 0).toBeTruthy();
+    expect(manifest.hashing.urlKeyAlgo).toBeTruthy();
     
     // Verify parts exist
-    expect(manifest.parts.pages.length > 0, "Should have pages parts").toBeTruthy();
-    expect(manifest.parts.edges.length > 0, "Should have edges parts").toBeTruthy();
+    expect(manifest.parts.pages.length > 0).toBeTruthy();
+    expect(manifest.parts.edges.length > 0).toBeTruthy();
     
     // Verify schemas are referenced
-    expect(manifest.schemas.pages, "Pages schema should be referenced").toBeTruthy();
-    expect(manifest.schemas.edges, "Edges schema should be referenced").toBeTruthy();
-    expect(manifest.schemas.assets, "Assets schema should be referenced").toBeTruthy();
-    expect(manifest.schemas.errors, "Errors schema should be referenced").toBeTruthy();
+    expect(manifest.schemas.pages).toBeTruthy();
+    expect(manifest.schemas.edges).toBeTruthy();
+    expect(manifest.schemas.assets).toBeTruthy();
+    expect(manifest.schemas.errors).toBeTruthy();
     
     // Read first PageRecord
     let pageCount = 0;
@@ -65,16 +65,16 @@ test("crawl small site", async () => {
       const page = JSON.parse(line);
       
       // Verify required fields
-      expect(page.rawHtmlHash, "rawHtmlHash should be present").toBeTruthy();
-      expect(page.rawHtmlHash.length > 0, "rawHtmlHash should not be empty").toBeTruthy();
-      expect(page.domHash, "domHash should be present").toBeTruthy();
-      expect(page.domHash.length > 0, "domHash should not be empty").toBeTruthy();
+      expect(page.rawHtmlHash).toBeTruthy();
+      expect(page.rawHtmlHash.length > 0).toBeTruthy();
+      expect(page.domHash).toBeTruthy();
+      expect(page.domHash.length > 0).toBeTruthy();
       expect(page.renderMode).toBe("prerender");
       
       pageCount++;
     }
     
-    expect(pageCount >= 1, "Should have at least 1 page").toBeTruthy();
+    expect(pageCount >= 1).toBeTruthy();
     
     // Verify summary has sensible counts
     const summaryData = await readZipEntry("./tmp/example.atls", "summary.json");
@@ -83,7 +83,7 @@ test("crawl small site", async () => {
     expect(summary.totalPages >= 1).toBeTruthy()`);
     expect(summary.totalEdges >= 1).toBeTruthy()`);
     
-    console.log(`✓ Crawl produced: ${summary.totalPages} pages).toBe(${summary.totalEdges} edges, ${summary.totalAssets} assets`);
+    console.log(`✓ Crawl produced: ${summary.totalPages} pages, ${summary.totalEdges} edges, ${summary.totalAssets} assets`);
 });
 
 /**

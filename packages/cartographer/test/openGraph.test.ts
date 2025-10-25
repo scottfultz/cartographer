@@ -4,7 +4,7 @@
  * Tests for Open Graph (OG) protocol metadata extraction from HTML
  */
 
-import { describe, test } from "node:test";
+import { describe, test , expect } from "vitest";
 import assert from "node:assert/strict";
 import { extractOpenGraph, extractOpenGraphExtensions, extractAllOpenGraph } from "../src/core/extractors/openGraph.js";
 
@@ -66,7 +66,7 @@ describe("extractOpenGraph", () => {
     const result = extractOpenGraph(html);
     
     expect(result).toBeTruthy();
-    expect(Array.isArray(result.data.image).toBeTruthy());
+    expect(Array.isArray(result.data.image)).toBeTruthy();
     expect(result.data.image.length).toBe(3);
     expect(result.data.image[0]).toBe("https://example.com/img1.jpg");
     expect(result.data.image[2]).toBe("https://example.com/img3.jpg");
@@ -211,7 +211,7 @@ describe("extractOpenGraphExtensions", () => {
     
     const result = extractOpenGraphExtensions(html);
     
-    expect(Array.isArray(result).toBeTruthy());
+    expect(Array.isArray(result)).toBeTruthy();
     // Might be empty or might not).toBe(depending on implementation
   });
 });
@@ -253,7 +253,7 @@ describe("extractAllOpenGraph", () => {
     
     const result = extractAllOpenGraph(html);
     
-    expect(Array.isArray(result).toBeTruthy());
+    expect(Array.isArray(result)).toBeTruthy();
     expect(result.length).toBe(0);
   });
 });

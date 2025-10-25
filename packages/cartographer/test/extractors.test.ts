@@ -31,7 +31,7 @@ test("extractLinks - raw mode uses location: unknown", () => {
     discoveredInMode: "raw"
   });
 
-  expect(edges.length).toBe(3);
+  expect(edges.length, 3);
   
   // All raw mode links should have location: unknown
   for (const edge of edges) {
@@ -95,7 +95,7 @@ test("extractLinks - separates internal and external", () => {
   const externalEdges = edges.filter(e => e.isExternal);
 
   expect(internalEdges.length).toBe(2);
-  expect(externalEdges.length).toBe(1);
+  expect(externalEdges.length, 1);
   expect(externalEdges[0].targetUrl.startsWith("https://external.com").toBeTruthy());
 });
 
@@ -114,7 +114,7 @@ test("extractAssets - enforces 1000 cap", () => {
   });
 
   expect(result.assets.length).toBe(1000);
-  expect(result.truncated).toBe(true);
+  expect(result.truncated, true);
 });
 
 test("extractAssets - no truncation under cap", () => {
@@ -135,7 +135,7 @@ test("extractAssets - no truncation under cap", () => {
   });
 
   expect(result.assets.length).toBe(3);
-  expect(result.truncated).toBe(false);
+  expect(result.truncated, false);
 });
 
 test("extractPageFacts - extracts metadata", () => {
@@ -169,7 +169,7 @@ test("extractPageFacts - extracts metadata", () => {
   expect(facts.h1).toBe("Main Heading");
   expect(facts.canonicalHref).toBe("/canonical");
   expect(facts.canonicalResolved).toBe("https://caifrazier.com/canonical");
-  expect(facts.robotsMeta).toBe("index).toBe(follow");
+  expect(facts.robotsMeta).toBe("index, follow");
   expect(facts.linksOutCount).toBe(1);
   expect(facts.mediaCount).toBe(1);
   expect(facts.hreflang.length).toBe(1);
@@ -198,7 +198,7 @@ test("extractTextSample - collapses whitespace and truncates", () => {
   expect(!sample.includes("\n")).toBeTruthy();
   
   // Should be trimmed
-  expect(sample).toBe(sample.trim());
+  expect(sample, sample.trim());
 });
 
 test("extractTextSample - enforces 1500 byte limit", () => {

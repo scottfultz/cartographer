@@ -4,8 +4,7 @@
  * Proprietary and confidential.
  */
 
-import { describe, it } from "node:test";
-// Migrated to vitest expect()
+import { describe, it, expect } from "vitest";
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs";
@@ -44,17 +43,17 @@ describe("CLI Polish - Quiet and JSON modes", () => {
     }
     
     // Verify stdout contains exactly one JSON object
-    expect(stdout.trim().toBeTruthy().length > 0).toBe("stdout should not be empty");
+    expect(stdout.trim().length > 0).toBeTruthy();
     
     const json = JSON.parse(stdout.trim());
-    expect(json.crawlId, "JSON should have crawlId").toBeTruthy();
-    expect(json.outFile, "JSON should have outFile").toBeTruthy();
-    expect(json.summary, "JSON should have summary").toBeTruthy();
-    expect(json.summary.pages !== undefined, "JSON summary should have pages count").toBeTruthy();
-    expect(json.summary.edges !== undefined, "JSON summary should have edges count").toBeTruthy();
-    expect(json.summary.durationMs !== undefined, "JSON summary should have durationMs").toBeTruthy();
-    expect(json.perf, "JSON should have perf").toBeTruthy();
-    expect(json.notes, "JSON should have notes array").toBeTruthy();
+    expect(json.crawlId).toBeTruthy();
+    expect(json.outFile).toBeTruthy();
+    expect(json.summary).toBeTruthy();
+    expect(json.summary.pages !== undefined).toBeTruthy();
+    expect(json.summary.edges !== undefined).toBeTruthy();
+    expect(json.summary.durationMs !== undefined).toBeTruthy();
+    expect(json.perf).toBeTruthy();
+    expect(json.notes).toBeTruthy();
     
     // Verify stderr does NOT contain periodic metrics lines like "Pages: X/Y"
     // But may contain [INFO] startup messages and errors
@@ -64,10 +63,10 @@ describe("CLI Polish - Quiet and JSON modes", () => {
     const hasPeriodicMetrics = stderrLines.some(line => 
       line.includes("Pages:") && line.includes("RSS:")
     );
-    expect(!hasPeriodicMetrics, "stderr should not contain periodic metrics in quiet mode").toBeTruthy();
+    expect(!hasPeriodicMetrics).toBeTruthy();
     
     // Verify .atls file was created
-    expect(fs.existsSync(atlsPath).toBeTruthy()).toBe(".atls file should exist");
+    expect(fs.existsSync(atlsPath)).toBeTruthy();
     
     // Exit code should be 0 for success
     expect(exitCode).toBe(0);
@@ -98,9 +97,9 @@ describe("CLI Polish - Quiet and JSON modes", () => {
     
     // In normal mode, we should see [INFO] log messages
     const hasInfoLogs = stderr.includes("[INFO]");
-    expect(hasInfoLogs, "stderr should contain [INFO] messages in normal mode").toBeTruthy();
+    expect(hasInfoLogs).toBeTruthy();
     
     // Verify .atls file was created
-    expect(fs.existsSync(normalAtlsPath).toBeTruthy()).toBe(".atls file should exist");
+    expect(fs.existsSync(normalAtlsPath)).toBeTruthy();
   });
 });

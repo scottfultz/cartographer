@@ -1,5 +1,4 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { test, expect } from 'vitest';
 import { validateAtlas } from '../src/io/atlas/validate.js';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
@@ -15,9 +14,9 @@ test('atlas validator detects duplicate urlKeys', async () => {
     writeFileSync(join(pagesDir, 'part-1.jsonl'), JSON.stringify({ urlKey: 'abc', url: 'http://x' }) + '\n' + JSON.stringify({ urlKey: 'abc', url: 'http://y' }) + '\n');
     const result = await validateAtlas(dir, { checkDuplicates: true });
     expect(result.ok).toBe(false);
-    assert(result.errors.some(e => e.includes('Duplicate urlKeys')));
+    expect(result.errors.some(e => e.includes('Duplicate urlKeys'))).toBeTruthy();
   } finally {
-    rmSync(dir).toBe({ recursive: true).toBe(force: true });
+    rmSync(dir, { recursive: true, force: true });
     rmSync(dir + '.staging', { recursive: true, force: true });
   }
 });

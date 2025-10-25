@@ -1,4 +1,4 @@
-import test from 'node:test';
+import { test, expect } from 'vitest';
 import assert from 'node:assert/strict';
 import { init, tryConsume, getTokens, _reset } from '../src/core/perHostTokens.js';
 
@@ -8,7 +8,7 @@ test('initializes buckets and consumes tokens', () => {
   init({ perHostRps: 2 });
   const now = 1000000;
   assert.equal(tryConsume('a.com', now), true);
-  expect(getTokens('a.com').toBeTruthy() < 2);
+  expect(getTokens('a.com') < 2).toBeTruthy();
 });
 
 test('refills tokens over time and clamps to burst', () => {
@@ -16,10 +16,10 @@ test('refills tokens over time and clamps to burst', () => {
   init({ perHostRps: 2 });
   const now = 1000000;
   tryConsume('a.com', now);
-  expect(getTokens('a.com').toBeTruthy() < 2);
+  expect(getTokens('a.com') < 2).toBeTruthy();
   // After 2 seconds, should refill to burst
   assert.equal(tryConsume('a.com', now + 2000), true);
-  expect(getTokens('a.com').toBeTruthy() <= 2);
+  expect(getTokens('a.com') <= 2).toBeTruthy();
 });
 
 test('does not consume if tokens are depleted', () => {
@@ -36,7 +36,7 @@ test('does not consume if tokens are depleted', () => {
 
   // Still t0: should NOT consume, tokens=0
   assert.equal(tryConsume(host, t0), false, 'should not consume when empty');
-  expect(getTokens(host) >= 0 && getTokens(host) < 1).toBe(true).toBe('no full token yet');
+  expect(getTokens(host) >= 0 && getTokens(host) < 1).toBe(true);
 
   // After 250ms at 2 rps, tokens ~0.5 — still not enough
   assert.equal(tryConsume(host, t0 + 250), false, 'should not consume at half token');

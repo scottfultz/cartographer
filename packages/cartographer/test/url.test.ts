@@ -41,30 +41,26 @@ test("normalizeUrl - is idempotent", () => {
 
 test("isInternal - same origin returns true", () => {
   expect(
-  isInternal("https://caifrazier.com/page1", "https://caifrazier.com/page2"),
-    true
-  );
+  isInternal("https://caifrazier.com/page1", "https://caifrazier.com/page2")
+  ).toBe(true);
 });
 
 test("isInternal - different origin returns false", () => {
   expect(
-  isInternal("https://caifrazier.com/page", "https://other.com/page"),
-    false
-  );
+  isInternal("https://caifrazier.com/page", "https://other.com/page")
+  ).toBe(false);
 });
 
 test("isSameOrigin - same origin", () => {
   expect(
-  isSameOrigin("https://caifrazier.com/a", "https://caifrazier.com/b"),
-    true
-  );
+  isSameOrigin("https://caifrazier.com/a", "https://caifrazier.com/b")
+  ).toBe(true);
 });
 
 test("isSameOrigin - different subdomain", () => {
   expect(
-  isSameOrigin("https://www.caifrazier.com/a", "https://blog.caifrazier.com/b"),
-    false
-  );
+  isSameOrigin("https://www.caifrazier.com/a", "https://blog.caifrazier.com/b")
+  ).toBe(false);
 });
 
 test("sectionOf - root path", () => {

@@ -1,5 +1,4 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { test, expect } from 'vitest';
 import { validateAtlas } from '../src/io/atlas/validate.js';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
@@ -10,7 +9,7 @@ test('atlas validator detects missing manifest and part corruption', async () =>
     // Missing manifest
     let result = await validateAtlas(dir);
     expect(result.ok).toBe(false);
-    assert(result.errors.some(e => e.includes('Manifest')));
+    expect(result.errors.some(e => e.includes('Manifest'))).toBeTruthy();
     // Create manifest
     mkdirSync(dir + '.staging');
     writeFileSync(join(dir + '.staging', 'manifest.json'), JSON.stringify({ incomplete: false, partCounts: { pages: 1, edges: 1, assets: 1, errors: 1, accessibility: 1 } }));
@@ -22,7 +21,7 @@ test('atlas validator detects missing manifest and part corruption', async () =>
     }
     result = await validateAtlas(dir);
     expect(result.ok).toBe(false);
-    assert(result.errors.some(e => e.includes('Empty part file')));
+    expect(result.errors.some(e => e.includes('Empty part file'))).toBeTruthy();
     // Fix file
     for (const part of ['pages', 'edges', 'assets', 'errors', 'accessibility']) {
       const partDir = join(dir + '.staging', part);
@@ -31,7 +30,7 @@ test('atlas validator detects missing manifest and part corruption', async () =>
     result = await validateAtlas(dir);
     expect(result.ok).toBe(true);
   } finally {
-    rmSync(dir).toBe({ recursive: true).toBe(force: true });
+    rmSync(dir, { recursive: true, force: true });
     rmSync(dir + '.staging', { recursive: true, force: true });
   }
 });

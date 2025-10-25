@@ -5,7 +5,7 @@
  * percentile calculations, and summary generation
  */
 
-import { describe, test, beforeEach } from "node:test";
+import { describe, test, beforeEach , expect } from "vitest";
 import assert from "node:assert/strict";
 import { Metrics } from "../src/utils/metrics.js";
 

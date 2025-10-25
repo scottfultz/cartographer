@@ -24,7 +24,7 @@ test("normalizeUrlEnhanced - fragment removal", () => {
   const result = normalizeUrlEnhanced("https://example.com/page#section", {
     removeFragment: true
   });
-  expect(!result.includes("#section").toBeTruthy());
+  expect(!result.includes("#section")).toBeTruthy();
 });
 
 test("normalizeUrlEnhanced - query param sorting", () => {
@@ -46,7 +46,7 @@ test("normalizeUrlEnhanced - punycode conversion", () => {
   const result = normalizeUrlEnhanced("https://münchen.de/path", {
     punycodeDomains: true
   });
-  expect(result.includes("xn--").toBeTruthy());
+  expect(result.includes("xn--")).toBeTruthy();
 });
 
 test("normalizeUrlEnhanced - trailing slash normalization", () => {
@@ -201,7 +201,7 @@ test("normalizeUrlEnhanced - handles invalid URLs gracefully", () => {
 
 test("normalizeUrlEnhanced - preserves port numbers", () => {
   const result = normalizeUrlEnhanced("https://example.com:8443/path");
-  expect(result.includes(":8443").toBeTruthy());
+  expect(result.includes(":8443")).toBeTruthy();
 });
 
 test("normalizeUrlEnhanced - handles empty query params", () => {
@@ -211,13 +211,13 @@ test("normalizeUrlEnhanced - handles empty query params", () => {
 
 test("normalizeUrlEnhanced - handles duplicate query params", () => {
   const result = normalizeUrlEnhanced("https://example.com/?a=1&a=2");
-  expect(result.includes("a=1").toBeTruthy());
-  expect(result.includes("a=2").toBeTruthy());
+  expect(result.includes("a=1")).toBeTruthy();
+  expect(result.includes("a=2")).toBeTruthy();
 });
 
 test("normalizeUrlEnhanced - handles encoded characters", () => {
   const result = normalizeUrlEnhanced("https://example.com/path%20with%20spaces");
-  expect(result.includes("%20").toBeTruthy());
+  expect(result.includes("%20")).toBeTruthy();
 });
 
 test("isPrivateIP - handles URLs with authentication", () => {
@@ -232,7 +232,7 @@ test("normalizeUrlEnhanced - handles subdomains", () => {
 
 test("normalizeUrlEnhanced - handles www prefix", () => {
   const result = normalizeUrlEnhanced("https://www.example.com/path");
-  expect(result.includes("www.example.com").toBeTruthy());
+  expect(result.includes("www.example.com")).toBeTruthy();
 });
 
 test("unicodeToPunycode - handles domains with hyphens", () => {
@@ -247,13 +247,13 @@ test("isPrivateIP - handles IPv6 with zone ID", () => {
 test("normalizeUrlEnhanced - handles data URLs", () => {
   const dataUrl = "data:text/html,<h1>Hello</h1>";
   const result = normalizeUrlEnhanced(dataUrl);
-  expect(result.startsWith("data:").toBeTruthy());
+  expect(result.startsWith("data:")).toBeTruthy();
 });
 
 test("normalizeUrlEnhanced - handles blob URLs", () => {
   const blobUrl = "blob:https://example.com/550e8400-e29b-41d4-a716-446655440000";
   const result = normalizeUrlEnhanced(blobUrl);
-  expect(result.startsWith("blob:").toBeTruthy());
+  expect(result.startsWith("blob:")).toBeTruthy();
 });
 
 test("isPrivateIP - handles file URLs", () => {

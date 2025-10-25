@@ -5,7 +5,7 @@
  * and structured event logging (NDJSON format)
  */
 
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test, beforeEach, afterEach , expect } from "vitest";
 import assert from "node:assert/strict";
 import * as fs from "fs";
 import * as path from "path";
@@ -71,8 +71,8 @@ describe("initLogging", () => {
     
     const actualPath = getLogFilePath();
     expect(actualPath).toBeTruthy();
-    expect(actualPath!.includes("test123").toBeTruthy());
-    expect(!actualPath!.includes("<crawlId>").toBeTruthy());
+    expect(actualPath!.includes("test123")).toBeTruthy();
+    expect(!actualPath!.includes("<crawlId>")).toBeTruthy();
   });
 
   test("creates log directory if not exists", () => {

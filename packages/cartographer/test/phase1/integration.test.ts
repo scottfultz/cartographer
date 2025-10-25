@@ -204,22 +204,22 @@ test("Integration - Phase 1 data structures are consistent", async () => {
   
   // Data types should be correct
   expect(typeof staticData.ariaLiveRegions.count).toBe('number');
-  expect(Array.isArray(staticData.ariaLiveRegions.regions).toBeTruthy());
+  expect(Array.isArray(staticData.ariaLiveRegions.regions)).toBeTruthy();
   
   expect(typeof staticData.focusOrderAnalysis.customTabIndexCount).toBe('number');
-  expect(Array.isArray(staticData.focusOrderAnalysis.positiveTabIndexElements).toBeTruthy());
+  expect(Array.isArray(staticData.focusOrderAnalysis.positiveTabIndexElements)).toBeTruthy();
   
   expect(typeof staticData.formAutocomplete.totalForms).toBe('number');
-  expect(Array.isArray(staticData.formAutocomplete.personalDataInputs).toBeTruthy());
+  expect(Array.isArray(staticData.formAutocomplete.personalDataInputs)).toBeTruthy();
   
   expect(typeof keyboardTraps.hasPotentialTraps).toBe('boolean');
-  expect(Array.isArray(keyboardTraps.suspiciousElements).toBeTruthy());
+  expect(Array.isArray(keyboardTraps.suspiciousElements)).toBeTruthy();
   
   expect(typeof skipLinks.hasSkipLinks).toBe('boolean');
-  expect(Array.isArray(skipLinks.links).toBeTruthy());
+  expect(Array.isArray(skipLinks.links)).toBeTruthy();
   
-  expect(Array.isArray(mediaElements.videos).toBeTruthy());
-  expect(Array.isArray(mediaElements.audios).toBeTruthy());
+  expect(Array.isArray(mediaElements.videos)).toBeTruthy();
+  expect(Array.isArray(mediaElements.audios)).toBeTruthy();
 });
 
 // =============================================================================
@@ -273,13 +273,13 @@ test("Integration - form autocomplete identifies all expected patterns", async (
   expect(result.formAutocomplete.personalDataInputs.length).toBe(7);
   
   const types = result.formAutocomplete.personalDataInputs.map(i => i.type);
-  expect(types.includes("email").toBeTruthy());
-  expect(types.includes("tel").toBeTruthy());
-  expect(types.includes("name").toBeTruthy());
-  expect(types.includes("address").toBeTruthy());
-  expect(types.includes("postal").toBeTruthy());
-  expect(types.includes("city").toBeTruthy());
-  expect(types.includes("country").toBeTruthy());
+  expect(types.includes("email")).toBeTruthy();
+  expect(types.includes("tel")).toBeTruthy();
+  expect(types.includes("name")).toBeTruthy();
+  expect(types.includes("address")).toBeTruthy();
+  expect(types.includes("postal")).toBeTruthy();
+  expect(types.includes("city")).toBeTruthy();
+  expect(types.includes("country")).toBeTruthy();
 });
 
 test("Integration - media analysis matches fixture expectations", async () => {
@@ -397,13 +397,13 @@ test("Integration - form autocomplete identifies all expected patterns", async (
   expect(result.formAutocomplete.personalDataInputs.length).toBe(7);
   
   const types = result.formAutocomplete.personalDataInputs.map(i => i.type);
-  expect(types.includes("email").toBeTruthy());
-  expect(types.includes("tel").toBeTruthy());
-  expect(types.includes("name").toBeTruthy());
-  expect(types.includes("address").toBeTruthy());
-  expect(types.includes("postal").toBeTruthy());
-  expect(types.includes("city").toBeTruthy());
-  expect(types.includes("country").toBeTruthy());
+  expect(types.includes("email")).toBeTruthy();
+  expect(types.includes("tel")).toBeTruthy();
+  expect(types.includes("name")).toBeTruthy();
+  expect(types.includes("address")).toBeTruthy();
+  expect(types.includes("postal")).toBeTruthy();
+  expect(types.includes("city")).toBeTruthy();
+  expect(types.includes("country")).toBeTruthy();
 });
 
 test("Integration - media analysis matches fixture expectations", async () => {

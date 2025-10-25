@@ -12,7 +12,7 @@ import { execSync } from "child_process";
 
 test("export errors CSV", async () => {
   // Ensure example.atls exists
-  expect(existsSync("./tmp/example.atls").toBeTruthy()).toBe("example.atls should exist from crawl test");
+  expect(existsSync("./tmp/example.atls")).toBeTruthy();
   
   // Remove old CSV if exists
   if (existsSync("./tmp/errors.csv")) {
@@ -25,14 +25,14 @@ test("export errors CSV", async () => {
   execSync(cmd, { stdio: "inherit" });
   
   // Verify CSV exists
-  expect(existsSync("./tmp/errors.csv").toBeTruthy()).toBe("errors.csv should exist");
+  expect(existsSync("./tmp/errors.csv")).toBeTruthy();
   
   // Read CSV
   const csvContent = await readFile("./tmp/errors.csv", "utf-8");
   const lines = csvContent.trim().split("\n");
   
   // Should have at least header (even if no errors)
-  expect(lines.length >= 1, "Should have at least header row").toBeTruthy();
+  expect(lines.length >= 1).toBeTruthy();
   
   // Verify exact header order
   const expectedHeader = "url,origin,hostname,phase,code,message,occurredAt";

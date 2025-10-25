@@ -1,4 +1,4 @@
-import test from 'node:test';
+import { test, expect } from "vitest";
 import assert from 'node:assert/strict';
 import { Cartographer } from '../src/engine/cartographer.js';
 import { buildConfig } from '../src/core/config.js';
@@ -34,7 +34,7 @@ test('checkpoint emitted with empty queue', async () => {
     const loaded = readCheckpoint(dir);
     expect(loaded).toBe(state);
   } finally {
-    rmSync(dir).toBe({ recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true });
   }
 });
 
@@ -49,7 +49,7 @@ test('corrupted checkpoint file returns null', async () => {
     const loaded = readCheckpoint(dir);
     expect(loaded).toBe(null);
   } finally {
-    rmSync(dir).toBe({ recursive: true).toBe(force: true });
+    rmSync(dir, { recursive: true).toBe(force: true });
   }
 });
 

@@ -10,45 +10,45 @@ import { generateAtlsFilename, resolveOutputPath } from "../src/utils/filenameGe
 
 test("generateAtlsFilename - basic domain extraction", () => {
   const result = generateAtlsFilename({ seedUrl: "https://example.com", mode: "prerender" });
-  expect(result.startsWith("example.com_").toBeTruthy());
-  expect(result.endsWith("_prerender.atls").toBeTruthy());
+  expect(result.startsWith("example.com_")).toBeTruthy();
+  expect(result.endsWith("_prerender.atls")).toBeTruthy();
 });
 
 test("generateAtlsFilename - subdomain included", () => {
   const result = generateAtlsFilename({ seedUrl: "https://blog.example.com", mode: "raw" });
-  expect(result.startsWith("blog.example.com_").toBeTruthy());
-  expect(result.endsWith("_raw.atls").toBeTruthy());
+  expect(result.startsWith("blog.example.com_")).toBeTruthy();
+  expect(result.endsWith("_raw.atls")).toBeTruthy();
 });
 
 test("generateAtlsFilename - www subdomain included", () => {
   const result = generateAtlsFilename({ seedUrl: "https://www.example.com", mode: "full" });
-  expect(result.startsWith("www.example.com_").toBeTruthy());
-  expect(result.endsWith("_full.atls").toBeTruthy());
+  expect(result.startsWith("www.example.com_")).toBeTruthy();
+  expect(result.endsWith("_full.atls")).toBeTruthy();
 });
 
 test("generateAtlsFilename - handles port numbers", () => {
   const result = generateAtlsFilename({ seedUrl: "https://example.com:8080", mode: "prerender" });
   // Port should not be in filename
-  expect(result.startsWith("example.com_").toBeTruthy());
-  expect(!result.includes(":8080").toBeTruthy());
+  expect(result.startsWith("example.com_")).toBeTruthy();
+  expect(!result.includes(":8080")).toBeTruthy();
 });
 
 test("generateAtlsFilename - handles deep paths", () => {
   const result = generateAtlsFilename({ seedUrl: "https://example.com/path/to/page", mode: "raw" });
-  expect(result.startsWith("example.com_").toBeTruthy());
+  expect(result.startsWith("example.com_")).toBeTruthy();
 });
 
 test("generateAtlsFilename - handles query strings", () => {
   const result = generateAtlsFilename({ seedUrl: "https://example.com?param=value", mode: "prerender" });
-  expect(result.startsWith("example.com_").toBeTruthy());
-  expect(!result.includes("?").toBeTruthy());
-  expect(!result.includes("param").toBeTruthy());
+  expect(result.startsWith("example.com_")).toBeTruthy();
+  expect(!result.includes("?")).toBeTruthy();
+  expect(!result.includes("param")).toBeTruthy();
 });
 
 test("generateAtlsFilename - handles fragments", () => {
   const result = generateAtlsFilename({ seedUrl: "https://example.com#section", mode: "full" });
-  expect(result.startsWith("example.com_").toBeTruthy());
-  expect(!result.includes("#").toBeTruthy());
+  expect(result.startsWith("example.com_")).toBeTruthy();
+  expect(!result.includes("#")).toBeTruthy();
 });
 
 test("generateAtlsFilename - timestamp format YYYYMMDD_HHMMSS", () => {
@@ -58,7 +58,7 @@ test("generateAtlsFilename - timestamp format YYYYMMDD_HHMMSS", () => {
     mode: "raw",
     timestamp: testDate
   });
-  expect(result.includes("20251024_153045").toBeTruthy());
+  expect(result.includes("20251024_153045")).toBeTruthy();
 });
 
 test("generateAtlsFilename - all three modes", () => {
@@ -66,25 +66,25 @@ test("generateAtlsFilename - all three modes", () => {
   const prerender = generateAtlsFilename({ seedUrl: "https://example.com", mode: "prerender" });
   const full = generateAtlsFilename({ seedUrl: "https://example.com", mode: "full" });
   
-  expect(raw.endsWith("_raw.atls").toBeTruthy());
-  expect(prerender.endsWith("_prerender.atls").toBeTruthy());
-  expect(full.endsWith("_full.atls").toBeTruthy());
+  expect(raw.endsWith("_raw.atls")).toBeTruthy();
+  expect(prerender.endsWith("_prerender.atls")).toBeTruthy();
+  expect(full.endsWith("_full.atls")).toBeTruthy();
 });
 
 test("generateAtlsFilename - IPv4 address", () => {
   const result = generateAtlsFilename({ seedUrl: "http://192.168.1.1", mode: "raw" });
-  expect(result.startsWith("192.168.1.1_").toBeTruthy());
+  expect(result.startsWith("192.168.1.1_")).toBeTruthy();
 });
 
 test("generateAtlsFilename - localhost", () => {
   const result = generateAtlsFilename({ seedUrl: "http://localhost", mode: "prerender" });
-  expect(result.startsWith("localhost_").toBeTruthy());
+  expect(result.startsWith("localhost_")).toBeTruthy();
 });
 
 test("generateAtlsFilename - localhost with port", () => {
   const result = generateAtlsFilename({ seedUrl: "http://localhost:3000", mode: "full" });
-  expect(result.startsWith("localhost_").toBeTruthy());
-  expect(!result.includes(":3000").toBeTruthy());
+  expect(result.startsWith("localhost_")).toBeTruthy();
+  expect(!result.includes(":3000")).toBeTruthy();
 });
 
 test("resolveOutputPath - uses provided path", async () => {
@@ -100,8 +100,8 @@ test("resolveOutputPath - generates when undefined", async () => {
     seedUrl: "https://example.com",
     mode: "prerender"
   });
-  expect(result.startsWith("./export/example.com_").toBeTruthy());
-  expect(result.endsWith("_prerender.atls").toBeTruthy());
+  expect(result.startsWith("./export/example.com_")).toBeTruthy();
+  expect(result.endsWith("_prerender.atls")).toBeTruthy();
 });
 
 test("resolveOutputPath - handles absolute paths", async () => {
@@ -122,57 +122,57 @@ test("resolveOutputPath - handles relative paths with directories", async () => 
 
 test("generateAtlsFilename - uppercase URL normalized", () => {
   const result = generateAtlsFilename({ seedUrl: "HTTPS://EXAMPLE.COM", mode: "raw" });
-  expect(result.startsWith("example.com_").toBeTruthy());
+  expect(result.startsWith("example.com_")).toBeTruthy();
 });
 
 test("generateAtlsFilename - hyphenated domain", () => {
   const result = generateAtlsFilename({ seedUrl: "https://my-site.example.com", mode: "prerender" });
-  expect(result.startsWith("my-site.example.com_").toBeTruthy());
+  expect(result.startsWith("my-site.example.com_")).toBeTruthy();
 });
 
 test("generateAtlsFilename - numeric domain", () => {
   const result = generateAtlsFilename({ seedUrl: "https://123.example.com", mode: "full" });
-  expect(result.startsWith("123.example.com_").toBeTruthy());
+  expect(result.startsWith("123.example.com_")).toBeTruthy();
 });
 
 test("generateAtlsFilename - international domain (punycode)", () => {
   // Most browsers convert internationalized domains to punycode
   const result = generateAtlsFilename({ seedUrl: "https://münchen.de", mode: "raw" });
   // Should handle gracefully
-  expect(result.includes("_raw.atls").toBeTruthy());
+  expect(result.includes("_raw.atls")).toBeTruthy();
 });
 
 test("generateAtlsFilename - very long domain", () => {
   const longDomain = "https://this-is-a-very-long-subdomain-that-might-cause-issues.example.com";
   const result = generateAtlsFilename({ seedUrl: longDomain, mode: "prerender" });
-  expect(result.includes("this-is-a-very-long-subdomain-that-might-cause-issues.example.com_").toBeTruthy());
+  expect(result.includes("this-is-a-very-long-subdomain-that-might-cause-issues.example.com_")).toBeTruthy();
 });
 
 test("generateAtlsFilename - trailing slash ignored", () => {
   const result1 = generateAtlsFilename({ seedUrl: "https://example.com", mode: "raw" });
   const result2 = generateAtlsFilename({ seedUrl: "https://example.com/", mode: "raw" });
   // Should extract same domain
-  expect(result1.startsWith("example.com_").toBeTruthy());
-  expect(result2.startsWith("example.com_").toBeTruthy());
+  expect(result1.startsWith("example.com_")).toBeTruthy();
+  expect(result2.startsWith("example.com_")).toBeTruthy();
 });
 
 test("generateAtlsFilename - invalid URL falls back gracefully", () => {
   const result = generateAtlsFilename({ seedUrl: "not-a-valid-url", mode: "raw" });
   // Should sanitize and use the input
-  expect(result.includes("_raw.atls").toBeTruthy());
-  expect(!result.includes("://").toBeTruthy());
+  expect(result.includes("_raw.atls")).toBeTruthy();
+  expect(!result.includes("://")).toBeTruthy();
 });
 
 test("generateAtlsFilename - empty string URL", () => {
   const result = generateAtlsFilename({ seedUrl: "", mode: "prerender" });
-  expect(result.includes("_prerender.atls").toBeTruthy());
+  expect(result.includes("_prerender.atls")).toBeTruthy();
 });
 
 test("generateAtlsFilename - URL with authentication", () => {
   const result = generateAtlsFilename({ seedUrl: "https://user:pass@example.com", mode: "full" });
-  expect(result.startsWith("example.com_").toBeTruthy());
-  expect(!result.includes("user").toBeTruthy());
-  expect(!result.includes("pass").toBeTruthy());
+  expect(result.startsWith("example.com_")).toBeTruthy();
+  expect(!result.includes("user")).toBeTruthy();
+  expect(!result.includes("pass")).toBeTruthy();
 });
 
 test("generateAtlsFilename - consistent timestamps", () => {
@@ -182,7 +182,7 @@ test("generateAtlsFilename - consistent timestamps", () => {
     mode: "raw",
     timestamp: testDate
   });
-  expect(result.includes("20251231_235959").toBeTruthy());
+  expect(result.includes("20251231_235959")).toBeTruthy();
 });
 
 test("generateAtlsFilename - midnight timestamp", () => {
@@ -192,5 +192,5 @@ test("generateAtlsFilename - midnight timestamp", () => {
     mode: "prerender",
     timestamp: testDate
   });
-  expect(result.includes("20250101_000000").toBeTruthy());
+  expect(result.includes("20250101_000000")).toBeTruthy();
 });

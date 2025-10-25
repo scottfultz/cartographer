@@ -4,7 +4,7 @@
  * Tests for Twitter Card metadata extraction from HTML
  */
 
-import { describe, test } from "node:test";
+import { describe, test , expect } from "vitest";
 import assert from "node:assert/strict";
 import {
   extractTwitterCard,
@@ -218,7 +218,7 @@ describe("extractAllTwitterCards", () => {
     
     const result = extractAllTwitterCards(html);
     
-    expect(Array.isArray(result).toBeTruthy());
+    expect(Array.isArray(result)).toBeTruthy();
     if (result.length > 0) {
       expect(result[0].type).toBe("twittercard");
     }
@@ -231,7 +231,7 @@ describe("extractAllTwitterCards", () => {
     
     const result = extractAllTwitterCards(html);
     
-    expect(Array.isArray(result).toBeTruthy());
+    expect(Array.isArray(result)).toBeTruthy();
     expect(result.length).toBe(0);
   });
 
@@ -244,7 +244,7 @@ describe("extractAllTwitterCards", () => {
     
     const result = extractAllTwitterCards(html);
     
-    expect(Array.isArray(result).toBeTruthy());
+    expect(Array.isArray(result)).toBeTruthy();
     // Should return at least the main card
     expect(result.length >= 0).toBeTruthy();
   });

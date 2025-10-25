@@ -35,9 +35,9 @@ test("extractScriptUrls - extracts script src URLs from HTML", () => {
   const scripts = extractScriptUrls(html);
   
   expect(scripts.length).toBe(3);
-  expect(scripts.includes("https://cdn.example.com/react.js").toBeTruthy());
-  expect(scripts.includes("/js/app.js").toBeTruthy());
-  expect(scripts.includes("https://analytics.google.com/ga.js").toBeTruthy());
+  expect(scripts.includes("https://cdn.example.com/react.js")).toBeTruthy();
+  expect(scripts.includes("/js/app.js")).toBeTruthy();
+  expect(scripts.includes("https://analytics.google.com/ga.js")).toBeTruthy();
 });
 
 test("extractScriptUrls - handles empty HTML", () => {
@@ -78,7 +78,7 @@ test("detectTechStack - returns array of technology names", async () => {
     }
   });
 
-  expect(Array.isArray(result).toBeTruthy());
+  expect(Array.isArray(result)).toBeTruthy();
   // Result should be an array of strings
   if (result.length > 0) {
     expect(typeof result[0]).toBe("string");
@@ -92,7 +92,7 @@ test("detectTechStack - handles empty HTML", async () => {
     headers: {}
   });
 
-  expect(Array.isArray(result).toBeTruthy());
+  expect(Array.isArray(result)).toBeTruthy();
   // Empty or minimal HTML might still detect some technologies (like HTTP headers)
 });
 
@@ -116,7 +116,7 @@ test("detectTechnologies - returns detailed technology info", async () => {
   });
 
   expect(result.technologies).toBeTruthy();
-  expect(Array.isArray(result.technologies).toBeTruthy());
+  expect(Array.isArray(result.technologies)).toBeTruthy();
   expect(typeof result.detectionTime === "number").toBeTruthy();
   expect(result.detectionTime >= 0).toBeTruthy();
 
@@ -124,7 +124,7 @@ test("detectTechnologies - returns detailed technology info", async () => {
   if (result.technologies.length > 0) {
     const tech = result.technologies[0];
     expect(tech.name).toBeTruthy();
-    expect(Array.isArray(tech.categories).toBeTruthy());
+    expect(Array.isArray(tech.categories)).toBeTruthy();
     expect(typeof tech.confidence === "number").toBeTruthy();
   }
 });
@@ -150,7 +150,7 @@ test("detectTechnologies - includes script URLs for better detection", async () 
   });
 
   expect(result.technologies).toBeTruthy();
-  expect(Array.isArray(result.technologies).toBeTruthy());
+  expect(Array.isArray(result.technologies)).toBeTruthy();
 });
 
 test("detectTechStack - with HTTP headers for better detection", async () => {
@@ -166,7 +166,7 @@ test("detectTechStack - with HTTP headers for better detection", async () => {
     }
   });
 
-  expect(Array.isArray(result).toBeTruthy());
+  expect(Array.isArray(result)).toBeTruthy();
   // Should detect at least some technologies from headers
 });
 

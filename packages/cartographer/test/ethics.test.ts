@@ -287,15 +287,15 @@ test("Rate limiting - validates concurrency configuration", () => {
 test("User-Agent - validates custom User-Agent", () => {
   const validUserAgent = "MyBot/1.0 (+https://example.com/bot-info)";
   expect(validUserAgent.length > 0).toBeTruthy();
-  expect(validUserAgent.includes("/").toBeTruthy()); // Should have version
-  expect(validUserAgent.includes("+").toBeTruthy()); // Should have contact info
+  expect(validUserAgent.includes("/")).toBeTruthy(); // Should have version
+  expect(validUserAgent.includes("+")).toBeTruthy(); // Should have contact info
 });
 
 test("User-Agent - validates default User-Agent", () => {
   const defaultUserAgent = "CartographerBot/1.0 (+contact:continuum)";
   expect(defaultUserAgent.length > 0).toBeTruthy();
-  expect(defaultUserAgent.includes("CartographerBot").toBeTruthy());
-  expect(defaultUserAgent.includes("contact:").toBeTruthy());
+  expect(defaultUserAgent.includes("CartographerBot")).toBeTruthy();
+  expect(defaultUserAgent.includes("contact:")).toBeTruthy();
 });
 
 test("Error budget - validates error budget configuration", () => {
@@ -320,13 +320,13 @@ test("Retry logic - validates retry configuration", () => {
 test("Retry logic - validates retryable status codes", () => {
   const retryableStatuses = [429, 503, 500, 502, 504];
   
-  expect(retryableStatuses.includes(429).toBeTruthy()); // Too Many Requests
-  expect(retryableStatuses.includes(503).toBeTruthy()); // Service Unavailable
-  expect(retryableStatuses.includes(500).toBeTruthy()); // Internal Server Error
+  expect(retryableStatuses.includes(429)).toBeTruthy(); // Too Many Requests
+  expect(retryableStatuses.includes(503)).toBeTruthy(); // Service Unavailable
+  expect(retryableStatuses.includes(500)).toBeTruthy(); // Internal Server Error
   
   const nonRetryableStatuses = [400, 401, 403, 404];
-  expect(!retryableStatuses.includes(400).toBeTruthy()); // Bad Request
-  expect(!retryableStatuses.includes(404).toBeTruthy()); // Not Found
+  expect(!retryableStatuses.includes(400)).toBeTruthy(); // Bad Request
+  expect(!retryableStatuses.includes(404)).toBeTruthy(); // Not Found
 });
 
 test("Timeout configuration - validates page timeout", () => {
@@ -368,7 +368,7 @@ Disallow: /admin/
 `;
 
   // Currently not implemented, but test structure for future
-  expect(robotsTxt.includes("Crawl-delay").toBeTruthy());
+  expect(robotsTxt.includes("Crawl-delay")).toBeTruthy();
   
   // Expected behavior: Extract and enforce 1 second delay between requests
   const expectedDelay = 1000; // 1 second in milliseconds
@@ -383,9 +383,9 @@ Disallow: /admin/
 `;
 
   // Sitemap directives should be collected but not enforced
-  expect(robotsTxt.includes("Sitemap:").toBeTruthy());
+  expect(robotsTxt.includes("Sitemap:")).toBeTruthy();
   
   // Expected behavior: Store sitemap URLs in metadata
   const expectedSitemapUrl = "https://example.com/sitemap.xml";
-  expect(expectedSitemapUrl.endsWith(".xml").toBeTruthy());
+  expect(expectedSitemapUrl.endsWith(".xml")).toBeTruthy();
 });
