@@ -197,14 +197,15 @@ export const crawlCommand: CommandModule = {
         // Set the process.exitCode directly here, Node will use it on normal exit
         process.exitCode = incomplete ? 2 : 0;
         if (asJson) {
-          // Print exactly one JSON object to stdout, nothing else
+          // Output full JSON summary (enriched event from scheduler)
           process.stdout.write(
             JSON.stringify({
-              event: 'crawl.finished',
               crawlId: ev.crawlId,
-              manifestPath: ev.manifestPath,
-              incomplete: ev.incomplete
-            }) + '\n'
+              outFile: ev.manifestPath,
+              summary: ev.summary,
+              perf: ev.perf,
+              notes: ev.notes
+            }, null, 2) + '\n'
           );
         } else {
           outStd(`Finished ${ev.crawlId} manifest=${ev.manifestPath} incomplete=${ev.incomplete}`);
@@ -212,6 +213,7 @@ export const crawlCommand: CommandModule = {
         // DO NOT call process.exit() here
       }
     });
+
 
     cart.on("crawl.started", (ev) => {
       // Always create NDJSON log file and write crawl.started event

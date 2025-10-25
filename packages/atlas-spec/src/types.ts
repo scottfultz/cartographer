@@ -486,7 +486,7 @@ export type CrawlEvent =
   | { type: "crawl.heartbeat"; crawlId: string; progress: CrawlProgress; seq: number; timestamp: string }
   | { type: "crawl.backpressure"; crawlId: string; host: string; reason: string; hostsWithTokens: string[]; hostsDeferred: string[]; tokens?: number; queued?: number; seq?: number; timestamp?: string }
   | { type: "crawl.shutdown"; crawlId: string; reason: "cancel"|"error"; seq: number; timestamp: string }
-  | { type: "crawl.finished"; crawlId: string; manifestPath: string; incomplete: boolean; seq: number; timestamp: string };
+  | { type: "crawl.finished"; crawlId: string; manifestPath: string; incomplete: boolean; summary?: { pages: number; edges: number; assets: number; errors: number; durationMs: number }; perf?: { avgPagesPerSec: number; peakRssMB: number }; notes?: string[]; seq: number; timestamp: string };
 
 /**
  * Manifest for .atls file

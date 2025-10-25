@@ -484,11 +484,31 @@ export class Scheduler {
     
     log("info", `[Scheduler] Crawl complete. Processed ${this.pageCount} pages`);
 
-    // Emit crawl.finished event
+    // Get summary and performance data for the event
+    const summary = this.writer.getSummary();
+    const perfSummary = this.metrics.getSummary();
+
+    // Emit crawl.finished event with summary data
   bus.emit(withCrawlId(crawlId, {
       type: "crawl.finished",
       manifestPath: this.writer.getManifestPath(),
-      incomplete: this.gracefulShutdown
+      incomplete: this.gracefulShutdown,
+      summary: {
+        pages: summary.stats.totalPages,
+        edges: summary.stats.totalEdges,
+        assets: summary.stats.totalAssets,
+        errors: summary.stats.totalErrors,
+        durationMs: perfSummary.duration.totalSeconds * 1000
+      },
+      perf: {
+        avgPagesPerSec: perfSummary.throughput.avgPagesPerSec || 0,
+        peakRssMB: perfSummary.memory.peakRssMB || 0
+      },
+      notes: [
+        `Checkpoint interval: ${this.config.checkpoint?.interval || 500} pages`,
+        `Graceful shutdown: ${this.gracefulShutdown}`,
+        ...(this.errorBudgetExceeded ? ["Terminated: error budget exceeded"] : [])
+      ]
     } as any));
 
     // Stop heartbeat
