@@ -266,7 +266,7 @@ test("extractEnhancedSEOMetadata - extracts schema types from JSON-LD", () => {
 
   expect(result.schema).toBeTruthy();
   expect(result.schema.schemaTypes).toBeTruthy();
-  expect(result.schema.schemaTypes.includes("Article")).toBeTruthy());
+  expect(result.schema.schemaTypes.includes("Article")).toBeTruthy();
 });
 
 test("extractEnhancedSEOMetadata - handles multiple schema types", () => {
@@ -293,8 +293,8 @@ test("extractEnhancedSEOMetadata - handles multiple schema types", () => {
 
   expect(result.schema).toBeTruthy();
   expect(result.schema.schemaTypes).toBeTruthy();
-  expect(result.schema.schemaTypes.includes("Organization")).toBeTruthy());
-  expect(result.schema.schemaTypes.includes("WebSite")).toBeTruthy());
+  expect(result.schema.schemaTypes.includes("Organization")).toBeTruthy();
+  expect(result.schema.schemaTypes.includes("WebSite")).toBeTruthy();
 });
 
 test("extractEnhancedSEOMetadata - handles missing title gracefully", () => {

@@ -381,8 +381,8 @@ describe("detectMixedContent", () => {
     });
     
     expect(result.length > 0).toBeTruthy();
-    expect(result.some(item => item.type === "image")).toBeTruthy());
-    expect(result.some(item => item.type === "script")).toBeTruthy());
+    expect(result.some(item => item.type === "image")).toBeTruthy();
+    expect(result.some(item => item.type === "script")).toBeTruthy();
   });
 
   test("no mixed content on HTTP page", () => {

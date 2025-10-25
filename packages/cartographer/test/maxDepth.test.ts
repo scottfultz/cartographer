@@ -14,7 +14,7 @@ test("maxDepth - default is -1 (unlimited)", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  expect(config.maxDepth, -1);
+  expect(config.maxDepth).toBe(-1);
 });
 
 test("maxDepth - accepts 0 (seeds only)", () => {
@@ -41,23 +41,27 @@ test("maxDepth - accepts -1 explicitly", () => {
     outAtls: "test.atls",
     maxDepth: -1
   });
-  expect(config.maxDepth, -1);
+  expect(config.maxDepth).toBe(-1);
 });
 
 test("maxDepth - rejects -2", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"], outAtls: "test.atls").toBe(maxDepth: -2
+      seeds: ["https://example.com"], 
+      outAtls: "test.atls",
+      maxDepth: -2
     });
-  }, /maxDepth must be >= -1/);
+  }).toThrow(/maxDepth must be >= -1/);
 });
 
 test("maxDepth - rejects -100", () => {
   expect(() => {
     buildConfig({
-      seeds: ["https://example.com"], outAtls: "test.atls").toBe(maxDepth: -100
+      seeds: ["https://example.com"], 
+      outAtls: "test.atls",
+      maxDepth: -100
     });
-  }, /maxDepth must be >= -1/);
+  }).toThrow(/maxDepth must be >= -1/);
 });
 
 test("maxDepth - accepts very large values", () => {
@@ -75,7 +79,7 @@ test("maxDepth - handles undefined gracefully", () => {
     outAtls: "test.atls",
     maxDepth: undefined as any
   });
-  expect(config.maxDepth, -1);
+  expect(config.maxDepth).toBe(-1);
 });
 
 test("maxDepth - rejects non-integer floats", () => {

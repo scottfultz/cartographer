@@ -96,7 +96,7 @@ test("extractLinks - separates internal and external", () => {
 
   expect(internalEdges.length).toBe(2);
   expect(externalEdges.length).toBe(1);
-  expect(externalEdges[0].targetUrl.startsWith("https://external.com")).toBeTruthy());
+  expect(externalEdges[0].targetUrl.startsWith("https://external.com")).toBeTruthy();
 });
 
 test("extractAssets - enforces 1000 cap", () => {

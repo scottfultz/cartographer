@@ -247,7 +247,7 @@ test("Integration - skip links static vs runtime comparison", async () => {
   
   expect(skipLinks.hasSkipLinks).toBe(true);
   expect(skipLinks.links.length).toBe(2);
-  expect(skipLinks.links.every(l => l.targetExists).toBeTruthy());
+  expect(skipLinks.links.every(l => l.targetExists)).toBeTruthy();
 });
 
 test("Integration - form autocomplete identifies all expected patterns", async () => {
@@ -371,7 +371,7 @@ test("Integration - skip links static vs runtime comparison", async () => {
   
   expect(skipLinks.hasSkipLinks).toBe(true);
   expect(skipLinks.links.length).toBe(2);
-  expect(skipLinks.links.every(l => l.targetExists).toBeTruthy());
+  expect(skipLinks.links.every(l => l.targetExists)).toBeTruthy();
 });
 
 test("Integration - form autocomplete identifies all expected patterns", async () => {

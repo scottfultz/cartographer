@@ -201,7 +201,7 @@ describe("Metrics - Throughput", () => {
     expect(startedAt).toBeTruthy();
     expect(typeof startedAt === "string").toBeTruthy();
     // Should be valid ISO date
-    expect(!isNaN(Date.parse(startedAt)).toBeTruthy()));
+    expect(!isNaN(Date.parse(startedAt)))).toBeTruthy());
   });
 });
 
@@ -311,8 +311,8 @@ describe("Metrics - Summary Generation", () => {
   test("summary timestamps are valid ISO format", () => {
     const summary = metrics.getSummary();
     
-    expect(!isNaN(Date.parse(summary.duration.startTime)).toBeTruthy()));
-    expect(!isNaN(Date.parse(summary.duration.endTime)).toBeTruthy()));
+    expect(!isNaN(Date.parse(summary.duration.startTime)))).toBeTruthy());
+    expect(!isNaN(Date.parse(summary.duration.endTime)))).toBeTruthy());
   });
 
   test("summary duration increases over time", async () => {

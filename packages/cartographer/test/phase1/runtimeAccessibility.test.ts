@@ -249,7 +249,7 @@ test("detectSkipLinks - detects multiple skip links", async () => {
   
   expect(result.hasSkipLinks).toBe(true);
   expect(result.links.length).toBe(3);
-  expect(result.links.every(link => link.targetExists).toBeTruthy());
+  expect(result.links.every(link => link.targetExists)).toBeTruthy();
 });
 
 test("detectSkipLinks - identifies first focusable element", async () => {
@@ -526,7 +526,7 @@ test("analyzeMediaElements - extracts video source", async () => {
   expect(result.videos.length).toBe(1);
   expect(result.videos[0]).toBeTruthy();
   expect(result.videos[0]!.src).toBeTruthy();
-  expect(result.videos[0]!.src!.includes('video.mp4').toBeTruthy());
+  expect(result.videos[0]!.src!.includes('video.mp4').toBeTruthy();
 });
 
 test("analyzeMediaElements - detects multiple videos", async () => {
@@ -597,7 +597,7 @@ test("analyzeMediaElements - extracts audio source", async () => {
   expect(result.audios.length).toBe(1);
   expect(result.audios[0]).toBeTruthy();
   expect(result.audios[0]!.src).toBeTruthy();
-  expect(result.audios[0]!.src!.includes('audio.mp3').toBeTruthy());
+  expect(result.audios[0]!.src!.includes('audio.mp3').toBeTruthy();
 });
 
 test("analyzeMediaElements - no media returns empty", async () => {
