@@ -39,26 +39,26 @@ describe("initLogging", () => {
     initLogging({});
     
     // Should not crash, defaults applied
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("sets log level", () => {
     initLogging({ level: "warn" });
     
     // Info logs should be filtered out (tested indirectly)
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("enables quiet mode", () => {
     initLogging({ quiet: true });
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("enables JSON mode", () => {
     initLogging({ json: true });
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("creates log file with crawlId substitution", () => {
@@ -70,9 +70,9 @@ describe("initLogging", () => {
     });
     
     const actualPath = getLogFilePath();
-    assert.ok(actualPath);
-    assert.ok(actualPath!.includes("test123"));
-    assert.ok(!actualPath!.includes("<crawlId>"));
+    expect(actualPath).toBeTruthy();
+    expect(actualPath!.includes("test123").toBeTruthy());
+    expect(!actualPath!.includes("<crawlId>").toBeTruthy());
   });
 
   test("creates log directory if not exists", () => {
@@ -81,14 +81,14 @@ describe("initLogging", () => {
     initLogging({ logFile, crawlId: "test" });
     
     const dir = path.dirname(logFile);
-    assert.ok(fs.existsSync(dir));
+    expect(fs.existsSync(dir).toBeTruthy());
   });
 
   test("returns null log file path when not configured", () => {
     initLogging({});
     
     const filePath = getLogFilePath();
-    assert.equal(filePath, null);
+    expect(filePath).toBe(null);
   });
 });
 
@@ -97,14 +97,14 @@ describe("setLogLevel", () => {
     setLogLevel("debug");
     
     // Should allow debug logs (tested indirectly)
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("changes log level to error", () => {
     setLogLevel("error");
     
     // Should filter info/warn/debug (tested indirectly)
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 });
 
@@ -112,13 +112,13 @@ describe("setQuietMode", () => {
   test("enables quiet mode", () => {
     setQuietMode(true);
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("disables quiet mode", () => {
     setQuietMode(false);
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 });
 
@@ -126,13 +126,13 @@ describe("setJsonMode", () => {
   test("enables JSON mode", () => {
     setJsonMode(true);
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("disables JSON mode", () => {
     setJsonMode(false);
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 });
 
@@ -142,28 +142,28 @@ describe("log", () => {
     
     // Should not crash
     log("debug", "Debug message");
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("logs info message", () => {
     setLogLevel("info");
     
     log("info", "Info message");
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("logs warn message", () => {
     setLogLevel("warn");
     
     log("warn", "Warning message");
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("logs error message", () => {
     setLogLevel("error");
     
     log("error", "Error message");
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("filters out debug when level is info", () => {
@@ -171,14 +171,14 @@ describe("log", () => {
     
     // Debug should be filtered (no console output expected)
     log("debug", "Should not appear");
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("filters out info when level is warn", () => {
     setLogLevel("warn");
     
     log("info", "Should not appear");
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("always shows errors in quiet mode", () => {
@@ -186,7 +186,7 @@ describe("log", () => {
     setLogLevel("error");
     
     log("error", "Critical error");
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 });
 
@@ -236,9 +236,9 @@ describe("logEvent", () => {
     
     const event = JSON.parse(content.trim());
     
-    assert.equal(event.event, "page_crawled");
-    assert.equal(event.url, "https://example.com");
-    assert.equal(event.status, 200);
+    expect(event.event).toBe("page_crawled");
+    expect(event.url).toBe("https://example.com");
+    expect(event.status).toBe(200);
   });
 
   test("appends multiple events", async () => {
@@ -276,12 +276,12 @@ describe("logEvent", () => {
     
     const content = fs.readFileSync(logFile, "utf-8");
     const lines = content.trim().split("\n");
-    assert.equal(lines.length, 3);
+    expect(lines.length).toBe(3);
     
     const events = lines.map(line => JSON.parse(line));
-    assert.equal(events[0].event, "crawl_start");
-    assert.equal(events[1].event, "page_crawled");
-    assert.equal(events[2].event, "crawl_complete");
+    expect(events[0].event).toBe("crawl_start");
+    expect(events[1].event).toBe("page_crawled");
+    expect(events[2].event).toBe("crawl_complete");
   });
 
   test("adds timestamp if not provided", async () => {
@@ -307,10 +307,10 @@ describe("logEvent", () => {
     const content = fs.readFileSync(logFile, "utf-8");
     const event = JSON.parse(content.trim());
     
-    assert.ok(event.ts);
-    assert.ok(event.ts.length > 0);
+    expect(event.ts).toBeTruthy();
+    expect(event.ts.length > 0).toBeTruthy();
     // Should be valid ISO date
-    assert.ok(!isNaN(Date.parse(event.ts)));
+    expect(!isNaN(Date.parse(event.ts).toBeTruthy()));
   });
 
   test("respects log level filtering", async () => {
@@ -352,11 +352,11 @@ describe("logEvent", () => {
     const lines = content.trim().split("\n").filter(l => l.length > 0);
     
     // Should only have 2 events (warn and error)
-    assert.equal(lines.length, 2);
+    expect(lines.length).toBe(2);
     
     const events = lines.map(line => JSON.parse(line));
-    assert.equal(events[0].event, "warn_event");
-    assert.equal(events[1].event, "error_event");
+    expect(events[0].event).toBe("warn_event");
+    expect(events[1].event).toBe("error_event");
   });
 
   test("does nothing when no log file configured", () => {
@@ -369,7 +369,7 @@ describe("logEvent", () => {
       event: "test"
     });
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("handles custom event fields", async () => {
@@ -405,10 +405,10 @@ describe("logEvent", () => {
     const content = fs.readFileSync(logFile, "utf-8");
     const event = JSON.parse(content.trim());
     
-    assert.equal(event.depth, 2);
-    assert.equal(event.fetchMs, 150);
-    assert.equal(event.customField, "custom value");
-    assert.deepEqual(event.nested, { data: "here" });
+    expect(event.depth).toBe(2);
+    expect(event.fetchMs).toBe(150);
+    expect(event.customField).toBe("custom value");
+    expect(event.nested).toBe({ data: "here" });
   });
 
   test("real-world crawl event sequence", async () => {
@@ -485,12 +485,12 @@ describe("logEvent", () => {
     
     const content = fs.readFileSync(logFile, "utf-8");
     const lines = content.trim().split("\n");
-    assert.equal(lines.length, 5);
+    expect(lines.length).toBe(5);
     
     const events = lines.map(line => JSON.parse(line));
-    assert.equal(events[0].event, "crawl_start");
-    assert.equal(events[4].event, "crawl_complete");
-    assert.equal(events[4].totalPages, 2);
+    expect(events[0].event).toBe("crawl_start");
+    expect(events[4].event).toBe("crawl_complete");
+    expect(events[4].totalPages).toBe(2);
   });
 });
 
@@ -513,7 +513,7 @@ describe("closeLogFile", () => {
     // Should be able to read the file after closing
     // Gracefully handle CI timing issues
     if (fs.existsSync(logFile) && fs.readFileSync(logFile, "utf-8").trim().length > 0) {
-      assert.ok(true);
+      expect(true).toBeTruthy();
     } else {
       console.warn("Log file issue, skipping test (CI timing)");
     }
@@ -524,6 +524,6 @@ describe("closeLogFile", () => {
     closeLogFile();
     closeLogFile();
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 });

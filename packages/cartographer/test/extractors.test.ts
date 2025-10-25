@@ -4,8 +4,8 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { extractLinks } from "../src/core/extractors/links.js";
 import { extractAssets } from "../src/core/extractors/assets.js";
 import { extractPageFacts } from "../src/core/extractors/pageFacts.js";
@@ -31,11 +31,11 @@ test("extractLinks - raw mode uses location: unknown", () => {
     discoveredInMode: "raw"
   });
 
-  assert.strictEqual(edges.length, 3);
+  expect(edges.length).toBe(3);
   
   // All raw mode links should have location: unknown
   for (const edge of edges) {
-    assert.strictEqual(edge.location, "unknown", "Raw mode should use location: unknown");
+    expect(edge.location).toBe("unknown");
   }
 });
 
@@ -66,11 +66,11 @@ test("extractLinks - playwright mode detects location", () => {
   const footerLink = edges.find(e => e.targetUrl.includes("/footer-page"));
   const otherLink = edges.find(e => e.targetUrl.includes("/other-page"));
 
-  assert.strictEqual(navLink?.location, "nav");
-  assert.strictEqual(headerLink?.location, "header");
-  assert.strictEqual(mainLink?.location, "main");
-  assert.strictEqual(footerLink?.location, "footer");
-  assert.strictEqual(otherLink?.location, "other");
+  expect(navLink?.location).toBe("nav");
+  expect(headerLink?.location).toBe("header");
+  expect(mainLink?.location).toBe("main");
+  expect(footerLink?.location).toBe("footer");
+  expect(otherLink?.location).toBe("other");
 });
 
 test("extractLinks - separates internal and external", () => {
@@ -94,9 +94,9 @@ test("extractLinks - separates internal and external", () => {
   const internalEdges = edges.filter(e => !e.isExternal);
   const externalEdges = edges.filter(e => e.isExternal);
 
-  assert.strictEqual(internalEdges.length, 2);
-  assert.strictEqual(externalEdges.length, 1);
-  assert.ok(externalEdges[0].targetUrl.startsWith("https://external.com"));
+  expect(internalEdges.length).toBe(2);
+  expect(externalEdges.length).toBe(1);
+  expect(externalEdges[0].targetUrl.startsWith("https://external.com").toBeTruthy());
 });
 
 test("extractAssets - enforces 1000 cap", () => {
@@ -113,8 +113,8 @@ test("extractAssets - enforces 1000 cap", () => {
   baseUrl: "https://caifrazier.com"
   });
 
-  assert.strictEqual(result.assets.length, 1000, "Should cap at 1000 assets");
-  assert.strictEqual(result.truncated, true, "Should set truncated flag");
+  expect(result.assets.length).toBe(1000);
+  expect(result.truncated).toBe(true);
 });
 
 test("extractAssets - no truncation under cap", () => {
@@ -134,8 +134,8 @@ test("extractAssets - no truncation under cap", () => {
   baseUrl: "https://caifrazier.com"
   });
 
-  assert.strictEqual(result.assets.length, 3);
-  assert.strictEqual(result.truncated, false);
+  expect(result.assets.length).toBe(3);
+  expect(result.truncated).toBe(false);
 });
 
 test("extractPageFacts - extracts metadata", () => {
@@ -164,16 +164,16 @@ test("extractPageFacts - extracts metadata", () => {
   baseUrl: "https://caifrazier.com"
   });
 
-  assert.strictEqual(facts.title, "Test Page");
-  assert.strictEqual(facts.metaDescription, "Test description");
-  assert.strictEqual(facts.h1, "Main Heading");
-  assert.strictEqual(facts.canonicalHref, "/canonical");
-  assert.strictEqual(facts.canonicalResolved, "https://caifrazier.com/canonical");
-  assert.strictEqual(facts.robotsMeta, "index, follow");
-  assert.strictEqual(facts.linksOutCount, 1);
-  assert.strictEqual(facts.mediaCount, 1);
-  assert.strictEqual(facts.hreflang.length, 1);
-  assert.strictEqual(facts.hreflang[0].lang, "es");
+  expect(facts.title).toBe("Test Page");
+  expect(facts.metaDescription).toBe("Test description");
+  expect(facts.h1).toBe("Main Heading");
+  expect(facts.canonicalHref).toBe("/canonical");
+  expect(facts.canonicalResolved).toBe("https://caifrazier.com/canonical");
+  expect(facts.robotsMeta).toBe("index).toBe(follow");
+  expect(facts.linksOutCount).toBe(1);
+  expect(facts.mediaCount).toBe(1);
+  expect(facts.hreflang.length).toBe(1);
+  expect(facts.hreflang[0].lang).toBe("es");
 });
 
 test("extractTextSample - collapses whitespace and truncates", () => {
@@ -194,11 +194,11 @@ test("extractTextSample - collapses whitespace and truncates", () => {
   });
 
   // Should collapse all whitespace to single spaces
-  assert.ok(!sample.includes("  "), "Should not have multiple spaces");
-  assert.ok(!sample.includes("\n"), "Should not have newlines");
+  expect(!sample.includes("  ")).toBeTruthy();
+  expect(!sample.includes("\n")).toBeTruthy();
   
   // Should be trimmed
-  assert.strictEqual(sample, sample.trim());
+  expect(sample).toBe(sample.trim());
 });
 
 test("extractTextSample - enforces 1500 byte limit", () => {
@@ -212,5 +212,5 @@ test("extractTextSample - enforces 1500 byte limit", () => {
   });
 
   const byteLength = Buffer.from(sample, "utf-8").length;
-  assert.ok(byteLength <= 1500, `Should be <= 1500 bytes, got ${byteLength}`);
+  expect(byteLength <= 1500, `Should be <= 1500 bytes, got ${byteLength}`).toBeTruthy();
 });

@@ -28,12 +28,12 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.ok(result);
-    assert.equal(result.type, "twittercard");
-    assert.equal(result.data.card, "summary");
-    assert.equal(result.data.title, "Page Title");
-    assert.equal(result.data.description, "Page description");
-    assert.equal(result.data.image, "https://example.com/image.jpg");
+    expect(result).toBeTruthy();
+    expect(result.type).toBe("twittercard");
+    expect(result.data.card).toBe("summary");
+    expect(result.data.title).toBe("Page Title");
+    expect(result.data.description).toBe("Page description");
+    expect(result.data.image).toBe("https://example.com/image.jpg");
   });
 
   test("extracts summary_large_image card", () => {
@@ -45,8 +45,8 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.ok(result);
-    assert.equal(result.data.card, "summary_large_image");
+    expect(result).toBeTruthy();
+    expect(result.data.card).toBe("summary_large_image");
   });
 
   test("extracts twitter:site", () => {
@@ -58,8 +58,8 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.ok(result);
-    assert.equal(result.data.site, "@nytimes");
+    expect(result).toBeTruthy();
+    expect(result.data.site).toBe("@nytimes");
   });
 
   test("extracts twitter:creator", () => {
@@ -71,8 +71,8 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.ok(result);
-    assert.equal(result.data.creator, "@johndoe");
+    expect(result).toBeTruthy();
+    expect(result.data.creator).toBe("@johndoe");
   });
 
   test("extracts twitter:image:alt", () => {
@@ -84,8 +84,8 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.ok(result);
-    assert.ok(result.data["image:alt"] || result.data.image_alt);
+    expect(result).toBeTruthy();
+    expect(result.data["image:alt"] || result.data.image_alt).toBeTruthy();
   });
 
   test("handles multiple images as array", () => {
@@ -97,9 +97,9 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.ok(result);
+    expect(result).toBeTruthy();
     if (Array.isArray(result.data.image)) {
-      assert.equal(result.data.image.length, 2);
+      expect(result.data.image.length).toBe(2);
     }
   });
 
@@ -115,7 +115,7 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.equal(result, null);
+    expect(result).toBe(null);
   });
 
   test("handles single quotes in attributes", () => {
@@ -126,8 +126,8 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.ok(result);
-    assert.equal(result.data.title, "Title with single quotes");
+    expect(result).toBeTruthy();
+    expect(result.data.title).toBe("Title with single quotes");
   });
 
   test("real-world example: news article", () => {
@@ -147,10 +147,10 @@ describe("extractTwitterCard", () => {
     
     const result = extractTwitterCard(html);
     
-    assert.ok(result);
-    assert.equal(result.data.card, "summary_large_image");
-    assert.equal(result.data.site, "@BBCNews");
-    assert.equal(result.data.title, "Breaking: Major Event");
+    expect(result).toBeTruthy();
+    expect(result.data.card).toBe("summary_large_image");
+    expect(result.data.site).toBe("@BBCNews");
+    expect(result.data.title).toBe("Breaking: Major Event");
   });
 });
 
@@ -166,7 +166,7 @@ describe("extractTwitterAppCard", () => {
     const result = extractTwitterAppCard(html);
     
     // Function should extract app-specific metadata
-    assert.ok(result === null || result.type === "twittercard");
+    expect(result === null || result.type === "twittercard").toBeTruthy();
   });
 
   test("returns null when no app card present", () => {
@@ -177,7 +177,7 @@ describe("extractTwitterAppCard", () => {
     const result = extractTwitterAppCard(html);
     
     // Should return null if not an app card
-    assert.ok(result === null || result !== null);
+    expect(result === null || result !== null).toBeTruthy();
   });
 });
 
@@ -193,7 +193,7 @@ describe("extractTwitterPlayerCard", () => {
     const result = extractTwitterPlayerCard(html);
     
     // Function should extract player-specific metadata
-    assert.ok(result === null || result.type === "twittercard");
+    expect(result === null || result.type === "twittercard").toBeTruthy();
   });
 
   test("returns null when no player card present", () => {
@@ -204,7 +204,7 @@ describe("extractTwitterPlayerCard", () => {
     const result = extractTwitterPlayerCard(html);
     
     // Should return null if not a player card
-    assert.ok(result === null || result !== null);
+    expect(result === null || result !== null).toBeTruthy();
   });
 });
 
@@ -218,9 +218,9 @@ describe("extractAllTwitterCards", () => {
     
     const result = extractAllTwitterCards(html);
     
-    assert.ok(Array.isArray(result));
+    expect(Array.isArray(result).toBeTruthy());
     if (result.length > 0) {
-      assert.equal(result[0].type, "twittercard");
+      expect(result[0].type).toBe("twittercard");
     }
   });
 
@@ -231,8 +231,8 @@ describe("extractAllTwitterCards", () => {
     
     const result = extractAllTwitterCards(html);
     
-    assert.ok(Array.isArray(result));
-    assert.equal(result.length, 0);
+    expect(Array.isArray(result).toBeTruthy());
+    expect(result.length).toBe(0);
   });
 
   test("handles multiple card types in single page", () => {
@@ -244,8 +244,8 @@ describe("extractAllTwitterCards", () => {
     
     const result = extractAllTwitterCards(html);
     
-    assert.ok(Array.isArray(result));
+    expect(Array.isArray(result).toBeTruthy());
     // Should return at least the main card
-    assert.ok(result.length >= 0);
+    expect(result.length >= 0).toBeTruthy();
   });
 });

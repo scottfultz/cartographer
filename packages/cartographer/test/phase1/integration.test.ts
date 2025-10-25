@@ -13,7 +13,7 @@
  * - Data structures match expected interfaces
  */
 
-import { test } from "node:test";
+import { test, expect } from "vitest";
 import { strict as assert } from "node:assert";
 import * as cheerio from "cheerio";
 import { chromium, type Browser, type Page } from "playwright";
@@ -109,30 +109,30 @@ test("Integration - collectWCAGData includes Phase 1 static data", () => {
   const result = collectWCAGData($, "https://example.com");
   
   // Phase 1 static features
-  assert.ok(result.ariaLiveRegions);
-  assert.equal(result.ariaLiveRegions.count, 3);
+  expect(result.ariaLiveRegions).toBeTruthy();
+  expect(result.ariaLiveRegions.count).toBe(3);
   
-  assert.ok(result.focusOrderAnalysis);
-  assert.equal(result.focusOrderAnalysis.customTabIndexCount, 3);
-  assert.equal(result.focusOrderAnalysis.positiveTabIndexElements.length, 1);
+  expect(result.focusOrderAnalysis).toBeTruthy();
+  expect(result.focusOrderAnalysis.customTabIndexCount).toBe(3);
+  expect(result.focusOrderAnalysis.positiveTabIndexElements.length).toBe(1);
   
-  assert.ok(result.formAutocomplete);
-  assert.equal(result.formAutocomplete.totalForms, 1);
-  assert.equal(result.formAutocomplete.personalDataInputs.length, 4);
+  expect(result.formAutocomplete).toBeTruthy();
+  expect(result.formAutocomplete.totalForms).toBe(1);
+  expect(result.formAutocomplete.personalDataInputs.length).toBe(4);
 });
 
 test("Integration - static analysis works with empty page", () => {
   const $ = cheerio.load('<html><body></body></html>');
   const result = collectWCAGData($, "https://example.com");
   
-  assert.ok(result.ariaLiveRegions);
-  assert.equal(result.ariaLiveRegions.count, 0);
+  expect(result.ariaLiveRegions).toBeTruthy();
+  expect(result.ariaLiveRegions.count).toBe(0);
   
-  assert.ok(result.focusOrderAnalysis);
-  assert.equal(result.focusOrderAnalysis.customTabIndexCount, 0);
+  expect(result.focusOrderAnalysis).toBeTruthy();
+  expect(result.focusOrderAnalysis.customTabIndexCount).toBe(0);
   
-  assert.ok(result.formAutocomplete);
-  assert.equal(result.formAutocomplete.totalForms, 0);
+  expect(result.formAutocomplete).toBeTruthy();
+  expect(result.formAutocomplete.totalForms).toBe(0);
 });
 
 // =============================================================================
@@ -149,16 +149,16 @@ test("Integration - runtime functions work together", async () => {
   const skipLinks = await detectSkipLinks(page);
   const mediaElements = await analyzeMediaElements(page);
   
-  assert.ok(keyboardTraps);
-  assert.ok(typeof keyboardTraps.hasPotentialTraps === 'boolean');
+  expect(keyboardTraps).toBeTruthy();
+  expect(typeof keyboardTraps.hasPotentialTraps === 'boolean').toBeTruthy();
   
-  assert.ok(skipLinks);
-  assert.ok(skipLinks.hasSkipLinks);
-  assert.ok(skipLinks.links.length >= 2);
+  expect(skipLinks).toBeTruthy();
+  expect(skipLinks.hasSkipLinks).toBeTruthy();
+  expect(skipLinks.links.length >= 2).toBeTruthy();
   
-  assert.ok(mediaElements);
-  assert.equal(mediaElements.videos.length, 1);
-  assert.equal(mediaElements.audios.length, 1);
+  expect(mediaElements).toBeTruthy();
+  expect(mediaElements.videos.length).toBe(1);
+  expect(mediaElements.audios.length).toBe(1);
 });
 
 test("Integration - runtime functions handle empty page", async () => {
@@ -170,10 +170,10 @@ test("Integration - runtime functions handle empty page", async () => {
   const skipLinks = await detectSkipLinks(page);
   const mediaElements = await analyzeMediaElements(page);
   
-  assert.equal(keyboardTraps.hasPotentialTraps, false);
-  assert.equal(skipLinks.hasSkipLinks, false);
-  assert.equal(mediaElements.videos.length, 0);
-  assert.equal(mediaElements.audios.length, 0);
+  expect(keyboardTraps.hasPotentialTraps).toBe(false);
+  expect(skipLinks.hasSkipLinks).toBe(false);
+  expect(mediaElements.videos.length).toBe(0);
+  expect(mediaElements.audios.length).toBe(0);
 });
 
 // =============================================================================
@@ -195,31 +195,31 @@ test("Integration - Phase 1 data structures are consistent", async () => {
   const mediaElements = await analyzeMediaElements(page);
   
   // All Phase 1 features should have data
-  assert.ok(staticData.ariaLiveRegions);
-  assert.ok(staticData.focusOrderAnalysis);
-  assert.ok(staticData.formAutocomplete);
-  assert.ok(keyboardTraps);
-  assert.ok(skipLinks);
-  assert.ok(mediaElements);
+  expect(staticData.ariaLiveRegions).toBeTruthy();
+  expect(staticData.focusOrderAnalysis).toBeTruthy();
+  expect(staticData.formAutocomplete).toBeTruthy();
+  expect(keyboardTraps).toBeTruthy();
+  expect(skipLinks).toBeTruthy();
+  expect(mediaElements).toBeTruthy();
   
   // Data types should be correct
-  assert.equal(typeof staticData.ariaLiveRegions.count, 'number');
-  assert.ok(Array.isArray(staticData.ariaLiveRegions.regions));
+  expect(typeof staticData.ariaLiveRegions.count).toBe('number');
+  expect(Array.isArray(staticData.ariaLiveRegions.regions).toBeTruthy());
   
-  assert.equal(typeof staticData.focusOrderAnalysis.customTabIndexCount, 'number');
-  assert.ok(Array.isArray(staticData.focusOrderAnalysis.positiveTabIndexElements));
+  expect(typeof staticData.focusOrderAnalysis.customTabIndexCount).toBe('number');
+  expect(Array.isArray(staticData.focusOrderAnalysis.positiveTabIndexElements).toBeTruthy());
   
-  assert.equal(typeof staticData.formAutocomplete.totalForms, 'number');
-  assert.ok(Array.isArray(staticData.formAutocomplete.personalDataInputs));
+  expect(typeof staticData.formAutocomplete.totalForms).toBe('number');
+  expect(Array.isArray(staticData.formAutocomplete.personalDataInputs).toBeTruthy());
   
-  assert.equal(typeof keyboardTraps.hasPotentialTraps, 'boolean');
-  assert.ok(Array.isArray(keyboardTraps.suspiciousElements));
+  expect(typeof keyboardTraps.hasPotentialTraps).toBe('boolean');
+  expect(Array.isArray(keyboardTraps.suspiciousElements).toBeTruthy());
   
-  assert.equal(typeof skipLinks.hasSkipLinks, 'boolean');
-  assert.ok(Array.isArray(skipLinks.links));
+  expect(typeof skipLinks.hasSkipLinks).toBe('boolean');
+  expect(Array.isArray(skipLinks.links).toBeTruthy());
   
-  assert.ok(Array.isArray(mediaElements.videos));
-  assert.ok(Array.isArray(mediaElements.audios));
+  expect(Array.isArray(mediaElements.videos).toBeTruthy());
+  expect(Array.isArray(mediaElements.audios).toBeTruthy());
 });
 
 // =============================================================================
@@ -245,9 +245,9 @@ test("Integration - skip links static vs runtime comparison", async () => {
   // Runtime can detect skip links
   const skipLinks = await detectSkipLinks(page);
   
-  assert.equal(skipLinks.hasSkipLinks, true);
-  assert.equal(skipLinks.links.length, 2);
-  assert.ok(skipLinks.links.every(l => l.targetExists));
+  expect(skipLinks.hasSkipLinks).toBe(true);
+  expect(skipLinks.links.length).toBe(2);
+  expect(skipLinks.links.every(l => l.targetExists).toBeTruthy());
 });
 
 test("Integration - form autocomplete identifies all expected patterns", async () => {
@@ -269,17 +269,17 @@ test("Integration - form autocomplete identifies all expected patterns", async (
   
   const result = collectWCAGData($, "https://example.com");
   
-  assert.ok(result.formAutocomplete);
-  assert.equal(result.formAutocomplete.personalDataInputs.length, 7);
+  expect(result.formAutocomplete).toBeTruthy();
+  expect(result.formAutocomplete.personalDataInputs.length).toBe(7);
   
   const types = result.formAutocomplete.personalDataInputs.map(i => i.type);
-  assert.ok(types.includes("email"));
-  assert.ok(types.includes("tel"));
-  assert.ok(types.includes("name"));
-  assert.ok(types.includes("address"));
-  assert.ok(types.includes("postal"));
-  assert.ok(types.includes("city"));
-  assert.ok(types.includes("country"));
+  expect(types.includes("email").toBeTruthy());
+  expect(types.includes("tel").toBeTruthy());
+  expect(types.includes("name").toBeTruthy());
+  expect(types.includes("address").toBeTruthy());
+  expect(types.includes("postal").toBeTruthy());
+  expect(types.includes("city").toBeTruthy());
+  expect(types.includes("country").toBeTruthy());
 });
 
 test("Integration - media analysis matches fixture expectations", async () => {
@@ -299,20 +299,20 @@ test("Integration - media analysis matches fixture expectations", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 2);
-  assert.equal(result.audios.length, 1);
+  expect(result.videos.length).toBe(2);
+  expect(result.audios.length).toBe(1);
   
   // First video has captions and controls
-  assert.equal(result.videos[0].hasCaptions, true);
-  assert.equal(result.videos[0].controls, true);
-  assert.equal(result.videos[0].autoplay, false);
+  expect(result.videos[0].hasCaptions).toBe(true);
+  expect(result.videos[0].controls).toBe(true);
+  expect(result.videos[0].autoplay).toBe(false);
   
   // Second video has autoplay, no captions
-  assert.equal(result.videos[1].hasCaptions, false);
-  assert.equal(result.videos[1].autoplay, true);
+  expect(result.videos[1].hasCaptions).toBe(false);
+  expect(result.videos[1].autoplay).toBe(true);
   
   // Audio has controls
-  assert.equal(result.audios[0].controls, true);
+  expect(result.audios[0].controls).toBe(true);
 });
 
 test("Integration - ARIA live regions with various configurations", () => {
@@ -331,18 +331,18 @@ test("Integration - ARIA live regions with various configurations", () => {
   
   const result = collectWCAGData($, "https://example.com");
   
-  assert.ok(result.ariaLiveRegions);
-  assert.equal(result.ariaLiveRegions.count, 6);
+  expect(result.ariaLiveRegions).toBeTruthy();
+  expect(result.ariaLiveRegions.count).toBe(6);
   
   // Check explicit regions
   const polite = result.ariaLiveRegions.regions.find(r => r.live === 'polite' && !r.atomic);
-  assert.ok(polite);
+  expect(polite).toBeTruthy();
   
   const assertive = result.ariaLiveRegions.regions.find(r => r.live === 'assertive' && r.atomic);
-  assert.ok(assertive);
+  expect(assertive).toBeTruthy();
   
   const off = result.ariaLiveRegions.regions.find(r => r.live === 'off');
-  assert.ok(off);
+  expect(off).toBeTruthy();
 });
 
 
@@ -369,9 +369,9 @@ test("Integration - skip links static vs runtime comparison", async () => {
   // Runtime can detect skip links
   const skipLinks = await detectSkipLinks(page);
   
-  assert.equal(skipLinks.hasSkipLinks, true);
-  assert.equal(skipLinks.links.length, 2);
-  assert.ok(skipLinks.links.every(l => l.targetExists));
+  expect(skipLinks.hasSkipLinks).toBe(true);
+  expect(skipLinks.links.length).toBe(2);
+  expect(skipLinks.links.every(l => l.targetExists).toBeTruthy());
 });
 
 test("Integration - form autocomplete identifies all expected patterns", async () => {
@@ -393,17 +393,17 @@ test("Integration - form autocomplete identifies all expected patterns", async (
   
   const result = collectWCAGData($, "https://example.com");
   
-  assert.ok(result.formAutocomplete);
-  assert.equal(result.formAutocomplete.personalDataInputs.length, 7);
+  expect(result.formAutocomplete).toBeTruthy();
+  expect(result.formAutocomplete.personalDataInputs.length).toBe(7);
   
   const types = result.formAutocomplete.personalDataInputs.map(i => i.type);
-  assert.ok(types.includes("email"));
-  assert.ok(types.includes("tel"));
-  assert.ok(types.includes("name"));
-  assert.ok(types.includes("address"));
-  assert.ok(types.includes("postal"));
-  assert.ok(types.includes("city"));
-  assert.ok(types.includes("country"));
+  expect(types.includes("email").toBeTruthy());
+  expect(types.includes("tel").toBeTruthy());
+  expect(types.includes("name").toBeTruthy());
+  expect(types.includes("address").toBeTruthy());
+  expect(types.includes("postal").toBeTruthy());
+  expect(types.includes("city").toBeTruthy());
+  expect(types.includes("country").toBeTruthy());
 });
 
 test("Integration - media analysis matches fixture expectations", async () => {
@@ -423,20 +423,20 @@ test("Integration - media analysis matches fixture expectations", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 2);
-  assert.equal(result.audios.length, 1);
+  expect(result.videos.length).toBe(2);
+  expect(result.audios.length).toBe(1);
   
   // First video has captions and controls
-  assert.equal(result.videos[0].hasCaptions, true);
-  assert.equal(result.videos[0].controls, true);
-  assert.equal(result.videos[0].autoplay, false);
+  expect(result.videos[0].hasCaptions).toBe(true);
+  expect(result.videos[0].controls).toBe(true);
+  expect(result.videos[0].autoplay).toBe(false);
   
   // Second video has autoplay, no captions
-  assert.equal(result.videos[1].hasCaptions, false);
-  assert.equal(result.videos[1].autoplay, true);
+  expect(result.videos[1].hasCaptions).toBe(false);
+  expect(result.videos[1].autoplay).toBe(true);
   
   // Audio has controls
-  assert.equal(result.audios[0].controls, true);
+  expect(result.audios[0].controls).toBe(true);
 });
 
 test("Integration - ARIA live regions with various configurations", () => {
@@ -455,16 +455,16 @@ test("Integration - ARIA live regions with various configurations", () => {
   
   const result = collectWCAGData($, "https://example.com");
   
-  assert.ok(result.ariaLiveRegions);
-  assert.equal(result.ariaLiveRegions.count, 6);
+  expect(result.ariaLiveRegions).toBeTruthy();
+  expect(result.ariaLiveRegions.count).toBe(6);
   
   // Check explicit regions
   const polite = result.ariaLiveRegions.regions.find(r => r.live === 'polite' && !r.atomic);
-  assert.ok(polite);
+  expect(polite).toBeTruthy();
   
   const assertive = result.ariaLiveRegions.regions.find(r => r.live === 'assertive' && r.atomic);
-  assert.ok(assertive);
+  expect(assertive).toBeTruthy();
   
   const off = result.ariaLiveRegions.regions.find(r => r.live === 'off');
-  assert.ok(off);
+  expect(off).toBeTruthy();
 });

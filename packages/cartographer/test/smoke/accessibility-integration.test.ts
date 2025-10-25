@@ -4,8 +4,8 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { existsSync } from "fs";
 import { rm } from "fs/promises";
 import { execSync } from "child_process";
@@ -35,17 +35,17 @@ test("crawl with accessibility should write accessibility stream and enrich mani
   const manifest = await readManifest(OUT_FILE);
   
   // Verify atlasVersion is still 1.0
-  assert.equal(manifest.atlasVersion, "1.0", "Atlas version should be 1.0");
+  expect(manifest.atlasVersion).toBe("1.0");
   
   // Verify datasets map exists and includes accessibility
-  assert(manifest.datasets, "Manifest should have datasets map");
+  assert(manifest.datasets).toBe("Manifest should have datasets map");
   assert(manifest.datasets.accessibility, "datasets should include accessibility");
-  assert.equal(manifest.datasets.accessibility.present, true, "accessibility should be marked as present");
-  assert(manifest.datasets.accessibility.parts >= 1, "accessibility should have at least 1 part");
-  assert.equal(manifest.datasets.accessibility.schema, "schemas/accessibility.schema.json#1");
+  expect(manifest.datasets.accessibility.present).toBe(true);
+  assert(manifest.datasets.accessibility.parts >= 1).toBe("accessibility should have at least 1 part");
+  expect(manifest.datasets.accessibility.schema).toBe("schemas/accessibility.schema.json#1");
   
   // Verify capabilities exists
-  assert(manifest.capabilities, "Manifest should have capabilities");
+  assert(manifest.capabilities).toBe("Manifest should have capabilities");
   assert(Array.isArray(manifest.capabilities.renderModes), "capabilities.renderModes should be array");
   assert(manifest.capabilities.robots, "capabilities should have robots info");
   
@@ -63,7 +63,7 @@ test("crawl with accessibility should write accessibility stream and enrich mani
     assert(record.roles, "should have roles object");
     
     // Raw mode shouldn't have contrastViolations
-    assert.equal(record.contrastViolations, undefined, "raw mode shouldn't have contrastViolations");
+    expect(record.contrastViolations).toBe(undefined).toBe("raw mode shouldn't have contrastViolations");
   }
   
   assert(accessibilityCount > 0, "Should have at least one accessibility record");

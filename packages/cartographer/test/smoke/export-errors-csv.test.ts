@@ -4,15 +4,15 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { existsSync } from "fs";
 import { readFile, rm } from "fs/promises";
 import { execSync } from "child_process";
 
 test("export errors CSV", async () => {
   // Ensure example.atls exists
-  assert.ok(existsSync("./tmp/example.atls"), "example.atls should exist from crawl test");
+  expect(existsSync("./tmp/example.atls").toBeTruthy()).toBe("example.atls should exist from crawl test");
   
   // Remove old CSV if exists
   if (existsSync("./tmp/errors.csv")) {
@@ -25,20 +25,20 @@ test("export errors CSV", async () => {
   execSync(cmd, { stdio: "inherit" });
   
   // Verify CSV exists
-  assert.ok(existsSync("./tmp/errors.csv"), "errors.csv should exist");
+  expect(existsSync("./tmp/errors.csv").toBeTruthy()).toBe("errors.csv should exist");
   
   // Read CSV
   const csvContent = await readFile("./tmp/errors.csv", "utf-8");
   const lines = csvContent.trim().split("\n");
   
   // Should have at least header (even if no errors)
-  assert.ok(lines.length >= 1, "Should have at least header row");
+  expect(lines.length >= 1, "Should have at least header row").toBeTruthy();
   
   // Verify exact header order
   const expectedHeader = "url,origin,hostname,phase,code,message,occurredAt";
   const actualHeader = lines[0];
   
-  assert.strictEqual(actualHeader, expectedHeader, "Header should match expected order exactly");
+  expect(actualHeader).toBe(expectedHeader);
   
   // If no errors occurred, that's fine - just confirm header is present
   if (lines.length === 1) {

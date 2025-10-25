@@ -4,8 +4,8 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 
 /**
  * CompletionReason Edge Cases
@@ -39,7 +39,7 @@ test("completionReason - finished when queue empty naturally", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "finished");
+  expect(result).toBe("finished");
 });
 
 test("completionReason - finished when maxPages is 0 (unlimited)", () => {
@@ -49,7 +49,7 @@ test("completionReason - finished when maxPages is 0 (unlimited)", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "finished");
+  expect(result).toBe("finished");
 });
 
 test("completionReason - capped when pageCount equals maxPages", () => {
@@ -59,7 +59,7 @@ test("completionReason - capped when pageCount equals maxPages", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "capped");
+  expect(result).toBe("capped");
 });
 
 test("completionReason - capped when pageCount exceeds maxPages", () => {
@@ -69,7 +69,7 @@ test("completionReason - capped when pageCount exceeds maxPages", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "capped");
+  expect(result).toBe("capped");
 });
 
 test("completionReason - capped at boundary (maxPages=1, pageCount=1)", () => {
@@ -79,7 +79,7 @@ test("completionReason - capped at boundary (maxPages=1, pageCount=1)", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "capped");
+  expect(result).toBe("capped");
 });
 
 test("completionReason - manual when gracefulShutdown", () => {
@@ -89,7 +89,7 @@ test("completionReason - manual when gracefulShutdown", () => {
     gracefulShutdown: true,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "manual");
+  expect(result).toBe("manual");
 });
 
 test("completionReason - manual overrides natural finish", () => {
@@ -99,7 +99,7 @@ test("completionReason - manual overrides natural finish", () => {
     gracefulShutdown: true,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "manual");
+  expect(result).toBe("manual");
 });
 
 test("completionReason - error_budget takes priority", () => {
@@ -109,7 +109,7 @@ test("completionReason - error_budget takes priority", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: true
   });
-  assert.strictEqual(result, "error_budget");
+  expect(result).toBe("error_budget");
 });
 
 test("completionReason - error_budget over capped", () => {
@@ -119,7 +119,7 @@ test("completionReason - error_budget over capped", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: true
   });
-  assert.strictEqual(result, "error_budget");
+  expect(result).toBe("error_budget");
 });
 
 test("completionReason - error_budget over manual", () => {
@@ -129,7 +129,7 @@ test("completionReason - error_budget over manual", () => {
     gracefulShutdown: true,
     errorBudgetExceeded: true
   });
-  assert.strictEqual(result, "error_budget");
+  expect(result).toBe("error_budget");
 });
 
 test("completionReason - capped over manual", () => {
@@ -140,7 +140,7 @@ test("completionReason - capped over manual", () => {
     errorBudgetExceeded: false
   });
   // Current logic: capped takes priority over manual
-  assert.strictEqual(result, "capped");
+  expect(result).toBe("capped");
 });
 
 test("completionReason - zero pages crawled", () => {
@@ -150,7 +150,7 @@ test("completionReason - zero pages crawled", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "finished");
+  expect(result).toBe("finished");
 });
 
 test("completionReason - negative maxPages treated as unlimited", () => {
@@ -161,7 +161,7 @@ test("completionReason - negative maxPages treated as unlimited", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "finished");
+  expect(result).toBe("finished");
 });
 
 test("completionReason - large pageCount with no limit", () => {
@@ -171,7 +171,7 @@ test("completionReason - large pageCount with no limit", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "finished");
+  expect(result).toBe("finished");
 });
 
 test("completionReason - maxPages=1000000, pageCount=999999", () => {
@@ -181,7 +181,7 @@ test("completionReason - maxPages=1000000, pageCount=999999", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "finished");
+  expect(result).toBe("finished");
 });
 
 test("completionReason - maxPages=1000000, pageCount=1000000", () => {
@@ -191,5 +191,5 @@ test("completionReason - maxPages=1000000, pageCount=1000000", () => {
     gracefulShutdown: false,
     errorBudgetExceeded: false
   });
-  assert.strictEqual(result, "capped");
+  expect(result).toBe("capped");
 });

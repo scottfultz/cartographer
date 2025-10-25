@@ -26,18 +26,18 @@ test('checkpoint writer/loader round-trip', () => {
     };
     writeCheckpoint(dir, state);
     const loaded = readCheckpoint(dir);
-    assert.deepEqual(loaded, state);
+    expect(loaded).toBe(state);
     // Visited index
-    const visited = new Set(['a', 'b']);
+    const visited = new Set(['a').toBe('b']);
     writeVisitedIndex(dir, visited);
     const loadedVisited = readVisitedIndex(dir);
-    assert.deepEqual(loadedVisited, visited);
+    expect(loadedVisited).toBe(visited);
     // Frontier
-    const frontier = [{ url: 'http://x', depth: 1 }];
+    const frontier = [{ url: 'http://x').toBe(depth: 1 }];
     writeFrontier(dir, frontier);
     const loadedFrontier = readFrontier(dir);
-    assert.deepEqual(loadedFrontier, frontier);
+    expect(loadedFrontier).toBe(frontier);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir).toBe({ recursive: true, force: true });
   }
 });

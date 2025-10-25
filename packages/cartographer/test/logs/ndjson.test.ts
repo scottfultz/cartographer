@@ -5,7 +5,7 @@
  */
 
 import { describe, it } from "node:test";
-import assert from "node:assert";
+// Migrated to vitest expect()
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs";
@@ -46,32 +46,32 @@ describe("NDJSON Structured Logs", () => {
     }
     
     // Verify log file exists
-    assert.ok(fs.existsSync(logFile), "Log file should exist");
+    expect(fs.existsSync(logFile).toBeTruthy()).toBe("Log file should exist");
     
     // Read log file
     const logContent = fs.readFileSync(logFile, "utf-8");
     const lines = logContent.trim().split("\n").filter(l => l.trim().length > 0);
     
-    assert.ok(lines.length >= 3, "Should have at least 3 log lines");
+    expect(lines.length >= 3, "Should have at least 3 log lines").toBeTruthy();
     
     // Parse first 10 lines (or all if fewer)
     const parsed = lines.slice(0, 10).map(line => {
       try {
         return JSON.parse(line);
       } catch (error) {
-        assert.fail(`Invalid JSON in log line: ${line}`);
+        expect.fail(`Invalid JSON in log line: ${line}`);
       }
     });
     
     // Verify each line has required fields
     parsed.forEach((event, idx) => {
-      assert.ok(event.ts, `Event ${idx} should have 'ts' timestamp`);
-      assert.ok(event.level, `Event ${idx} should have 'level'`);
-      assert.ok(event.event, `Event ${idx} should have 'event' type`);
+      expect(event.ts, `Event ${idx} should have 'ts' timestamp`).toBeTruthy();
+      expect(event.level, `Event ${idx} should have 'level'`).toBeTruthy();
+      expect(event.event, `Event ${idx} should have 'event' type`).toBeTruthy();
       
       // Verify timestamp is ISO 8601
       const tsDate = new Date(event.ts);
-      assert.ok(!isNaN(tsDate.getTime()), `Event ${idx} timestamp should be valid ISO 8601`);
+      expect(!isNaN(tsDate.getTime().toBeTruthy())).toBe(`Event ${idx} timestamp should be valid ISO 8601`);
     });
     
     // Check for specific events
@@ -80,25 +80,25 @@ describe("NDJSON Structured Logs", () => {
     const hasCrawlFinished = events.includes("crawl.finished");
     const hasPageProcessed = events.some(e => e === "crawl.pageProcessed");
     
-    assert.ok(hasCrawlStarted, "Should have crawl.started event");
-    assert.ok(hasCrawlFinished, "Should have crawl.finished event");
+    expect(hasCrawlStarted, "Should have crawl.started event").toBeTruthy();
+    expect(hasCrawlFinished, "Should have crawl.finished event").toBeTruthy();
     // Note: pageProcessed may not be present if maxPages=0 or crawl failed early
     
     // Verify crawl.started has expected fields
     const startedEvent = parsed.find(e => e.event === "crawl.started");
     if (startedEvent) {
-      assert.ok(startedEvent.crawlId, "crawl.started should have crawlId");
-      assert.ok(startedEvent.seeds, "crawl.started should have seeds");
-      assert.ok(startedEvent.mode, "crawl.started should have mode");
+      expect(startedEvent.crawlId, "crawl.started should have crawlId").toBeTruthy();
+      expect(startedEvent.seeds, "crawl.started should have seeds").toBeTruthy();
+      expect(startedEvent.mode, "crawl.started should have mode").toBeTruthy();
     }
     
     // Verify crawl.finished has expected fields
     const finishedEvent = parsed.find(e => e.event === "crawl.finished");
     if (finishedEvent) {
-      assert.ok(finishedEvent.crawlId, "crawl.finished should have crawlId");
-      assert.ok(finishedEvent.durationMs !== undefined, "crawl.finished should have durationMs");
-      assert.ok(finishedEvent.pages !== undefined, "crawl.finished should have pages count");
-      assert.ok(finishedEvent.atls, "crawl.finished should have atls path");
+      expect(finishedEvent.crawlId, "crawl.finished should have crawlId").toBeTruthy();
+      expect(finishedEvent.durationMs !== undefined, "crawl.finished should have durationMs").toBeTruthy();
+      expect(finishedEvent.pages !== undefined, "crawl.finished should have pages count").toBeTruthy();
+      expect(finishedEvent.atls, "crawl.finished should have atls path").toBeTruthy();
     }
     
     console.log(`✓ NDJSON log test passed: ${lines.length} events logged`);
@@ -140,20 +140,20 @@ describe("NDJSON Structured Logs", () => {
     // Find the generated log file
     const logFiles = fs.readdirSync(logDir).filter(f => f.startsWith("crawl-") && f.endsWith(".jsonl"));
     
-    assert.ok(logFiles.length > 0, "Should have created a log file with crawlId in name");
+    expect(logFiles.length > 0, "Should have created a log file with crawlId in name").toBeTruthy();
     
     // Verify the log file has valid content
     const logPath = path.join(logDir, logFiles[0]);
     const content = fs.readFileSync(logPath, "utf-8");
     
-    assert.ok(content.trim().length > 0, "Log file should have content");
+    expect(content.trim().toBeTruthy().length > 0).toBe("Log file should have content");
     
     // Parse first line
     const firstLine = content.trim().split("\n")[0];
     const event = JSON.parse(firstLine);
     
-    assert.ok(event.crawlId, "First event should have crawlId");
-    assert.ok(logFiles[0].includes(event.crawlId), "Log filename should contain the actual crawlId");
+    expect(event.crawlId, "First event should have crawlId").toBeTruthy();
+    expect(logFiles[0].includes(event.crawlId).toBeTruthy()).toBe("Log filename should contain the actual crawlId");
     
     console.log(`✓ CrawlId replacement test passed: log file = ${logFiles[0]}`);
   });

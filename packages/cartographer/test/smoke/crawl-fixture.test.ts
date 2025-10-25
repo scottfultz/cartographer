@@ -4,8 +4,8 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { existsSync } from "fs";
 import { mkdir, rm } from "fs/promises";
 import { execSync } from "child_process";
@@ -27,7 +27,7 @@ test("crawl small site", async () => {
   execSync(cmd, { stdio: "inherit" });
     
     // Verify .atls file exists
-    assert.ok(existsSync("./tmp/example.atls"), ".atls file should exist");
+    expect(existsSync("./tmp/example.atls").toBeTruthy()).toBe(".atls file should exist");
     
     // Verify it's a valid ZIP
     await new Promise<void>((resolve, reject) => {
@@ -41,21 +41,21 @@ test("crawl small site", async () => {
     // Verify manifest.json exists and has correct structure
     const manifest = await readManifest("./tmp/example.atls");
     
-    assert.strictEqual(manifest.atlasVersion, "1.0", "Atlas version should be 1.0");
-    assert.strictEqual(manifest.owner.name, "Cai Frazier", "Owner name should be Cai Frazier");
-    assert.ok(Array.isArray(manifest.consumers), "Consumers should be an array");
-    assert.ok(manifest.consumers.length > 0, "Consumers should not be empty");
-    assert.ok(manifest.hashing.urlKeyAlgo, "URL key algorithm should be present");
+    expect(manifest.atlasVersion).toBe("1.0");
+    expect(manifest.owner.name).toBe("Cai Frazier");
+    expect(Array.isArray(manifest.consumers).toBeTruthy()).toBe("Consumers should be an array");
+    expect(manifest.consumers.length > 0, "Consumers should not be empty").toBeTruthy();
+    expect(manifest.hashing.urlKeyAlgo, "URL key algorithm should be present").toBeTruthy();
     
     // Verify parts exist
-    assert.ok(manifest.parts.pages.length > 0, "Should have pages parts");
-    assert.ok(manifest.parts.edges.length > 0, "Should have edges parts");
+    expect(manifest.parts.pages.length > 0, "Should have pages parts").toBeTruthy();
+    expect(manifest.parts.edges.length > 0, "Should have edges parts").toBeTruthy();
     
     // Verify schemas are referenced
-    assert.ok(manifest.schemas.pages, "Pages schema should be referenced");
-    assert.ok(manifest.schemas.edges, "Edges schema should be referenced");
-    assert.ok(manifest.schemas.assets, "Assets schema should be referenced");
-    assert.ok(manifest.schemas.errors, "Errors schema should be referenced");
+    expect(manifest.schemas.pages, "Pages schema should be referenced").toBeTruthy();
+    expect(manifest.schemas.edges, "Edges schema should be referenced").toBeTruthy();
+    expect(manifest.schemas.assets, "Assets schema should be referenced").toBeTruthy();
+    expect(manifest.schemas.errors, "Errors schema should be referenced").toBeTruthy();
     
     // Read first PageRecord
     let pageCount = 0;
@@ -65,25 +65,25 @@ test("crawl small site", async () => {
       const page = JSON.parse(line);
       
       // Verify required fields
-      assert.ok(page.rawHtmlHash, "rawHtmlHash should be present");
-      assert.ok(page.rawHtmlHash.length > 0, "rawHtmlHash should not be empty");
-      assert.ok(page.domHash, "domHash should be present");
-      assert.ok(page.domHash.length > 0, "domHash should not be empty");
-      assert.strictEqual(page.renderMode, "prerender", "renderMode should be prerender");
+      expect(page.rawHtmlHash, "rawHtmlHash should be present").toBeTruthy();
+      expect(page.rawHtmlHash.length > 0, "rawHtmlHash should not be empty").toBeTruthy();
+      expect(page.domHash, "domHash should be present").toBeTruthy();
+      expect(page.domHash.length > 0, "domHash should not be empty").toBeTruthy();
+      expect(page.renderMode).toBe("prerender");
       
       pageCount++;
     }
     
-    assert.ok(pageCount >= 1, "Should have at least 1 page");
+    expect(pageCount >= 1, "Should have at least 1 page").toBeTruthy();
     
     // Verify summary has sensible counts
     const summaryData = await readZipEntry("./tmp/example.atls", "summary.json");
     const summary = JSON.parse(summaryData.toString("utf-8"));
     
-    assert.ok(summary.totalPages >= 1, `Should have at least 1 page (got ${summary.totalPages})`);
-    assert.ok(summary.totalEdges >= 1, `Should have at least 1 edge (got ${summary.totalEdges})`);
+    expect(summary.totalPages >= 1).toBeTruthy()`);
+    expect(summary.totalEdges >= 1).toBeTruthy()`);
     
-    console.log(`✓ Crawl produced: ${summary.totalPages} pages, ${summary.totalEdges} edges, ${summary.totalAssets} assets`);
+    console.log(`✓ Crawl produced: ${summary.totalPages} pages).toBe(${summary.totalEdges} edges, ${summary.totalAssets} assets`);
 });
 
 /**

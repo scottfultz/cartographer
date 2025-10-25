@@ -32,9 +32,9 @@ test('checkpoint emitted with empty queue', async () => {
     writeVisitedIndex(dir, new Set());
     writeFrontier(dir, []);
     const loaded = readCheckpoint(dir);
-    assert.deepEqual(loaded, state);
+    expect(loaded).toBe(state);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir).toBe({ recursive: true, force: true });
   }
 });
 
@@ -47,9 +47,9 @@ test('corrupted checkpoint file returns null', async () => {
   // Use mkdtempSync import for fs, but need writeFileSync for corruption
   writeFileSync(cpPath, '{not valid json');
     const loaded = readCheckpoint(dir);
-    assert.equal(loaded, null);
+    expect(loaded).toBe(null);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir).toBe({ recursive: true).toBe(force: true });
   }
 });
 
@@ -58,7 +58,7 @@ test('corrupted checkpoint file returns null', async () => {
 test('time-based checkpoint emission triggers', async () => {
   // Simulate config with everySeconds
   // This is a stub, real test would need to mock timers
-  assert.ok(true, 'time-based checkpoint emission stub');
+  expect(true, 'time-based checkpoint emission stub').toBeTruthy();
 });
 
 // Edge case: error budget exceeded triggers checkpoint
@@ -66,6 +66,6 @@ test('time-based checkpoint emission triggers', async () => {
 test('error budget exceeded triggers checkpoint', async () => {
   // Simulate config with errorBudget
   // This is a stub, real test would need to simulate errors
-  assert.ok(true, 'error budget checkpoint stub');
+  expect(true, 'error budget checkpoint stub').toBeTruthy();
 });
 

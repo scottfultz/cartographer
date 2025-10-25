@@ -4,8 +4,8 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import {
   normalizeUrl,
   isInternal,
@@ -18,76 +18,74 @@ import {
 
 test("normalizeUrl - removes fragment", () => {
   const result = normalizeUrl("https://caifrazier.com/page#section");
-  assert.ok(!result.includes("#"), "Should remove fragment");
+  expect(!result.includes("#")).toBeTruthy();
 });
 
 test("normalizeUrl - lowercases URL", () => {
   const result = normalizeUrl("HTTPS://CAIFRAZIER.COM/PAGE");
-  assert.strictEqual(result, "https://caifrazier.com/page");
+  expect(result).toBe("https://caifrazier.com/page");
 });
 
 test("normalizeUrl - sorts query params", () => {
   const result = normalizeUrl("https://caifrazier.com?z=1&a=2&m=3");
-  assert.ok(result.includes("a=2") && result.indexOf("a=2") < result.indexOf("m=3"));
-  assert.ok(result.indexOf("m=3") < result.indexOf("z=1"));
+  expect(result.includes("a=2") && result.indexOf("a=2") < result.indexOf("m=3")).toBeTruthy();
+  expect(result.indexOf("m=3") < result.indexOf("z=1")).toBeTruthy();
 });
 
 test("normalizeUrl - is idempotent", () => {
   const url = "https://caifrazier.com/Page?b=2&a=1#frag";
   const normalized = normalizeUrl(url);
   const doubleNormalized = normalizeUrl(normalized);
-  assert.strictEqual(normalized, doubleNormalized, "Should be idempotent");
+  expect(normalized).toBe(doubleNormalized);
 });
 
 test("isInternal - same origin returns true", () => {
-  assert.strictEqual(
+  expect(
   isInternal("https://caifrazier.com/page1", "https://caifrazier.com/page2"),
     true
   );
 });
 
 test("isInternal - different origin returns false", () => {
-  assert.strictEqual(
+  expect(
   isInternal("https://caifrazier.com/page", "https://other.com/page"),
     false
   );
 });
 
 test("isSameOrigin - same origin", () => {
-  assert.strictEqual(
+  expect(
   isSameOrigin("https://caifrazier.com/a", "https://caifrazier.com/b"),
     true
   );
 });
 
 test("isSameOrigin - different subdomain", () => {
-  assert.strictEqual(
+  expect(
   isSameOrigin("https://www.caifrazier.com/a", "https://blog.caifrazier.com/b"),
     false
   );
 });
 
 test("sectionOf - root path", () => {
-  assert.strictEqual(sectionOf("https://example.com/"), "/");
-  assert.strictEqual(sectionOf("https://caifrazier.com/"), "/");
-  assert.strictEqual(sectionOf("https://caifrazier.com"), "/");
-  assert.strictEqual(sectionOf("https://caifrazier.com/products"), "/products/");
-  assert.strictEqual(sectionOf("https://caifrazier.com/products/"), "/products/");
-  assert.strictEqual(sectionOf("https://example.com/products"), "/products/");
-  assert.strictEqual(sectionOf("https://example.com/products/"), "/products/");
+  expect(sectionOf("https://example.com/")).toBe("/");
+  expect(sectionOf("https://caifrazier.com/")).toBe("/");
+  expect(sectionOf("https://caifrazier.com")).toBe("/");
+  expect(sectionOf("https://caifrazier.com/products")).toBe("/products/");
+  expect(sectionOf("https://caifrazier.com/products/")).toBe("/products/");
+  expect(sectionOf("https://example.com/products")).toBe("/products/");
+  expect(sectionOf("https://example.com/products/")).toBe("/products/");
 });
 
 test("sectionOf - multiple segments", () => {
-  assert.strictEqual(
-  sectionOf("https://caifrazier.com/products/shoes/nike"),
-    "/products/"
+  expect(
+  sectionOf("https://caifrazier.com/products/shoes/nike")).toBe("/products/"
   );
 });
 
 test("sectionOf - with query and fragment", () => {
-  assert.strictEqual(
-  sectionOf("https://caifrazier.com/blog/post?id=1#section"),
-    "/blog/"
+  expect(
+  sectionOf("https://caifrazier.com/blog/post?id=1#section")).toBe("/blog/"
   );
 });
 
@@ -96,8 +94,8 @@ test("stripTrackingParams - removes exact matches", () => {
   const blockList = ["gclid", "fbclid"];
   const result = stripTrackingParams(url, blockList);
   
-  assert.strictEqual(result.searchParams.has("gclid"), false);
-  assert.strictEqual(result.searchParams.has("page"), true);
+  expect(result.searchParams.has("gclid")).toBe(false);
+  expect(result.searchParams.has("page")).toBe(true);
 });
 
 test("stripTrackingParams - handles wildcards", () => {
@@ -105,9 +103,9 @@ test("stripTrackingParams - handles wildcards", () => {
   const blockList = ["utm_*"];
   const result = stripTrackingParams(url, blockList);
   
-  assert.strictEqual(result.searchParams.has("utm_source"), false);
-  assert.strictEqual(result.searchParams.has("utm_medium"), false);
-  assert.strictEqual(result.searchParams.has("page"), true);
+  expect(result.searchParams.has("utm_source")).toBe(false);
+  expect(result.searchParams.has("utm_medium")).toBe(false);
+  expect(result.searchParams.has("page")).toBe(true);
 });
 
 test("stripTrackingParams - multiple wildcards", () => {
@@ -115,17 +113,17 @@ test("stripTrackingParams - multiple wildcards", () => {
   const blockList = ["ref", "ref_*"];
   const result = stripTrackingParams(url, blockList);
   
-  assert.strictEqual(result.searchParams.has("ref"), false);
-  assert.strictEqual(result.searchParams.has("ref_source"), false);
-  assert.strictEqual(result.searchParams.has("other"), true);
+  expect(result.searchParams.has("ref")).toBe(false);
+  expect(result.searchParams.has("ref_source")).toBe(false);
+  expect(result.searchParams.has("other")).toBe(true);
 });
 
 test("shouldSampleParam - first value is kept", () => {
   const seenParams = new Map<string, Set<string>>();
   
   const result = shouldSampleParam("color", "red", seenParams);
-  assert.strictEqual(result, true, "First value should be kept");
-  assert.strictEqual(seenParams.get("color")?.has("red"), true);
+  expect(result).toBe(true);
+  expect(seenParams.get("color")?.has("red")).toBe(true);
 });
 
 test("shouldSampleParam - second different value is rejected", () => {
@@ -133,7 +131,7 @@ test("shouldSampleParam - second different value is rejected", () => {
   seenParams.set("color", new Set(["red"]));
   
   const result = shouldSampleParam("color", "blue", seenParams);
-  assert.strictEqual(result, false, "Second value should be rejected in sample mode");
+  expect(result).toBe(false);
 });
 
 test("shouldSampleParam - same value is kept", () => {
@@ -141,7 +139,7 @@ test("shouldSampleParam - same value is kept", () => {
   seenParams.set("color", new Set(["red"]));
   
   const result = shouldSampleParam("color", "red", seenParams);
-  assert.strictEqual(result, true, "Same value should be kept");
+  expect(result).toBe(true);
 });
 
 test("applyParamPolicy - keep policy keeps all params", () => {
@@ -150,9 +148,9 @@ test("applyParamPolicy - keep policy keeps all params", () => {
   
   const result = applyParamPolicy(url, "keep", [], seenParams);
   
-  assert.strictEqual(result.searchParams.get("a"), "1");
-  assert.strictEqual(result.searchParams.get("b"), "2");
-  assert.strictEqual(result.searchParams.get("c"), "3");
+  expect(result.searchParams.get("a")).toBe("1");
+  expect(result.searchParams.get("b")).toBe("2");
+  expect(result.searchParams.get("c")).toBe("3");
 });
 
 test("applyParamPolicy - strip policy removes all params", () => {
@@ -161,7 +159,7 @@ test("applyParamPolicy - strip policy removes all params", () => {
   
   const result = applyParamPolicy(url, "strip", [], seenParams);
   
-  assert.strictEqual(result.search, "");
+  expect(result.search).toBe("");
 });
 
 test("applyParamPolicy - sample policy keeps first value only", () => {
@@ -170,12 +168,12 @@ test("applyParamPolicy - sample policy keeps first value only", () => {
   // First URL with color=red
   const url1 = new URL("https://example.com?color=red");
   const result1 = applyParamPolicy(url1, "sample", [], seenParams);
-  assert.strictEqual(result1.searchParams.get("color"), "red");
+  expect(result1.searchParams.get("color")).toBe("red");
   
   // Second URL with color=blue - should be stripped
   const url2 = new URL("https://example.com?color=blue");
   const result2 = applyParamPolicy(url2, "sample", [], seenParams);
-  assert.strictEqual(result2.searchParams.has("color"), false, "Should strip second value");
+  expect(result2.searchParams.has("color")).toBe(false);
 });
 
 test("applyParamPolicy - sample policy strips blocked params first", () => {
@@ -185,8 +183,8 @@ test("applyParamPolicy - sample policy strips blocked params first", () => {
   
   const result = applyParamPolicy(url, "sample", blockList, seenParams);
   
-  assert.strictEqual(result.searchParams.has("gclid"), false);
-  assert.strictEqual(result.searchParams.get("color"), "red");
+  expect(result.searchParams.has("gclid")).toBe(false);
+  expect(result.searchParams.get("color")).toBe("red");
 });
 
 test("applyParamPolicy - keeps same URL normalized", () => {
@@ -199,6 +197,6 @@ test("applyParamPolicy - keeps same URL normalized", () => {
   const url2 = new URL("https://example.com?size=large&color=red");
   const result2 = applyParamPolicy(url2, "sample", [], seenParams);
   
-  assert.strictEqual(result2.searchParams.get("size"), "large");
-  assert.strictEqual(result2.searchParams.get("color"), "red");
+  expect(result2.searchParams.get("size")).toBe("large");
+  expect(result2.searchParams.get("color")).toBe("red");
 });

@@ -13,7 +13,7 @@
  * - analyzeFormAutocomplete()
  */
 
-import { test } from "node:test";
+import { test, expect } from "vitest";
 import { strict as assert } from "node:assert";
 import * as cheerio from "cheerio";
 import {
@@ -38,10 +38,10 @@ test("extractAriaLiveRegions - detects explicit aria-live polite", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 1);
-  assert.equal(result.regions.length, 1);
-  assert.equal(result.regions[0].live, "polite");
-  assert.equal(result.regions[0].atomic, false); // Default when not specified
+  expect(result.count).toBe(1);
+  expect(result.regions.length).toBe(1);
+  expect(result.regions[0].live).toBe("polite");
+  expect(result.regions[0].atomic).toBe(false); // Default when not specified
 });
 
 test("extractAriaLiveRegions - detects explicit aria-live assertive", () => {
@@ -56,9 +56,9 @@ test("extractAriaLiveRegions - detects explicit aria-live assertive", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 1);
-  assert.equal(result.regions[0].live, "assertive");
-  assert.equal(result.regions[0].atomic, true);
+  expect(result.count).toBe(1);
+  expect(result.regions[0].live).toBe("assertive");
+  expect(result.regions[0].atomic).toBe(true);
 });
 
 test("extractAriaLiveRegions - detects aria-live off", () => {
@@ -73,8 +73,8 @@ test("extractAriaLiveRegions - detects aria-live off", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 1);
-  assert.equal(result.regions[0].live, "off");
+  expect(result.count).toBe(1);
+  expect(result.regions[0].live).toBe("off");
 });
 
 test("extractAriaLiveRegions - detects implicit status role", () => {
@@ -89,9 +89,9 @@ test("extractAriaLiveRegions - detects implicit status role", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 1);
-  assert.equal(result.regions[0].live, "polite");
-  assert.ok(result.regions[0].selector.includes("status"));
+  expect(result.count).toBe(1);
+  expect(result.regions[0].live).toBe("polite");
+  expect(result.regions[0].selector.includes("status").toBeTruthy());
 });
 
 test("extractAriaLiveRegions - detects implicit alert role", () => {
@@ -106,8 +106,8 @@ test("extractAriaLiveRegions - detects implicit alert role", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 1);
-  assert.equal(result.regions[0].live, "assertive");
+  expect(result.count).toBe(1);
+  expect(result.regions[0].live).toBe("assertive");
 });
 
 test("extractAriaLiveRegions - detects implicit log role", () => {
@@ -122,8 +122,8 @@ test("extractAriaLiveRegions - detects implicit log role", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 1);
-  assert.equal(result.regions[0].live, "polite");
+  expect(result.count).toBe(1);
+  expect(result.regions[0].live).toBe("polite");
 });
 
 test("extractAriaLiveRegions - detects aria-relevant attribute", () => {
@@ -138,8 +138,8 @@ test("extractAriaLiveRegions - detects aria-relevant attribute", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 1);
-  assert.equal(result.regions[0].relevant, "additions text");
+  expect(result.count).toBe(1);
+  expect(result.regions[0].relevant).toBe("additions text");
 });
 
 test("extractAriaLiveRegions - handles multiple regions", () => {
@@ -157,8 +157,8 @@ test("extractAriaLiveRegions - handles multiple regions", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 4);
-  assert.equal(result.regions.length, 4);
+  expect(result.count).toBe(4);
+  expect(result.regions.length).toBe(4);
 });
 
 test("extractAriaLiveRegions - enforces 50 region cap", () => {
@@ -171,8 +171,8 @@ test("extractAriaLiveRegions - enforces 50 region cap", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 50);
-  assert.equal(result.regions.length, 50);
+  expect(result.count).toBe(50);
+  expect(result.regions.length).toBe(50);
 });
 
 test("extractAriaLiveRegions - no regions returns zero", () => {
@@ -188,8 +188,8 @@ test("extractAriaLiveRegions - no regions returns zero", () => {
   const $ = cheerio.load(html);
   const result = extractAriaLiveRegions($);
   
-  assert.equal(result.count, 0);
-  assert.equal(result.regions.length, 0);
+  expect(result.count).toBe(0);
+  expect(result.regions.length).toBe(0);
 });
 
 test("extractAriaLiveRegions - ignores duplicate explicit and implicit", () => {
@@ -205,7 +205,7 @@ test("extractAriaLiveRegions - ignores duplicate explicit and implicit", () => {
   const result = extractAriaLiveRegions($);
   
   // Should only count once (explicit takes precedence)
-  assert.equal(result.count, 1);
+  expect(result.count).toBe(1);
 });
 
 test("extractAriaLiveRegions - handles nested regions", () => {
@@ -223,7 +223,7 @@ test("extractAriaLiveRegions - handles nested regions", () => {
   const result = extractAriaLiveRegions($);
   
   // Both should be detected
-  assert.equal(result.count, 2);
+  expect(result.count).toBe(2);
 });
 
 // =============================================================================
@@ -244,9 +244,9 @@ test("analyzeFocusOrder - detects no custom tabindex", () => {
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.customTabIndexCount, 0);
-  assert.equal(result.negativeTabIndexCount, 0);
-  assert.equal(result.positiveTabIndexElements.length, 0);
+  expect(result.customTabIndexCount).toBe(0);
+  expect(result.negativeTabIndexCount).toBe(0);
+  expect(result.positiveTabIndexElements.length).toBe(0);
 });
 
 test("analyzeFocusOrder - counts negative tabindex", () => {
@@ -263,9 +263,9 @@ test("analyzeFocusOrder - counts negative tabindex", () => {
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.customTabIndexCount, 3);
-  assert.equal(result.negativeTabIndexCount, 3);
-  assert.equal(result.positiveTabIndexElements.length, 0);
+  expect(result.customTabIndexCount).toBe(3);
+  expect(result.negativeTabIndexCount).toBe(3);
+  expect(result.positiveTabIndexElements.length).toBe(0);
 });
 
 test("analyzeFocusOrder - flags positive tabindex (anti-pattern)", () => {
@@ -281,11 +281,11 @@ test("analyzeFocusOrder - flags positive tabindex (anti-pattern)", () => {
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.customTabIndexCount, 2);
-  assert.equal(result.negativeTabIndexCount, 0);
-  assert.equal(result.positiveTabIndexElements.length, 2);
-  assert.equal(result.positiveTabIndexElements[0].tabindex, 1);
-  assert.equal(result.positiveTabIndexElements[1].tabindex, 2);
+  expect(result.customTabIndexCount).toBe(2);
+  expect(result.negativeTabIndexCount).toBe(0);
+  expect(result.positiveTabIndexElements.length).toBe(2);
+  expect(result.positiveTabIndexElements[0].tabindex).toBe(1);
+  expect(result.positiveTabIndexElements[1].tabindex).toBe(2);
 });
 
 test("analyzeFocusOrder - tabindex 0 is not flagged as positive", () => {
@@ -300,9 +300,9 @@ test("analyzeFocusOrder - tabindex 0 is not flagged as positive", () => {
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.customTabIndexCount, 1);
-  assert.equal(result.negativeTabIndexCount, 0);
-  assert.equal(result.positiveTabIndexElements.length, 0);
+  expect(result.customTabIndexCount).toBe(1);
+  expect(result.negativeTabIndexCount).toBe(0);
+  expect(result.positiveTabIndexElements.length).toBe(0);
 });
 
 test("analyzeFocusOrder - mixed positive and negative", () => {
@@ -320,9 +320,9 @@ test("analyzeFocusOrder - mixed positive and negative", () => {
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.customTabIndexCount, 4);
-  assert.equal(result.negativeTabIndexCount, 1);
-  assert.equal(result.positiveTabIndexElements.length, 2);
+  expect(result.customTabIndexCount).toBe(4);
+  expect(result.negativeTabIndexCount).toBe(1);
+  expect(result.positiveTabIndexElements.length).toBe(2);
 });
 
 test("analyzeFocusOrder - enforces 100 element cap on positive tracking", () => {
@@ -335,8 +335,8 @@ test("analyzeFocusOrder - enforces 100 element cap on positive tracking", () => 
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.customTabIndexCount, 120);
-  assert.equal(result.positiveTabIndexElements.length, 100); // Capped at 100
+  expect(result.customTabIndexCount).toBe(120);
+  expect(result.positiveTabIndexElements.length).toBe(100); // Capped at 100
 });
 
 test("analyzeFocusOrder - handles large negative tabindex values", () => {
@@ -351,8 +351,8 @@ test("analyzeFocusOrder - handles large negative tabindex values", () => {
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.customTabIndexCount, 1);
-  assert.equal(result.negativeTabIndexCount, 1);
+  expect(result.customTabIndexCount).toBe(1);
+  expect(result.negativeTabIndexCount).toBe(1);
 });
 
 test("analyzeFocusOrder - handles large positive tabindex values", () => {
@@ -367,9 +367,9 @@ test("analyzeFocusOrder - handles large positive tabindex values", () => {
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.customTabIndexCount, 1);
-  assert.equal(result.positiveTabIndexElements.length, 1);
-  assert.equal(result.positiveTabIndexElements[0].tabindex, 32767);
+  expect(result.customTabIndexCount).toBe(1);
+  expect(result.positiveTabIndexElements.length).toBe(1);
+  expect(result.positiveTabIndexElements[0].tabindex).toBe(32767);
 });
 
 test("analyzeFocusOrder - includes selector in positive elements", () => {
@@ -384,8 +384,8 @@ test("analyzeFocusOrder - includes selector in positive elements", () => {
   const $ = cheerio.load(html);
   const result = analyzeFocusOrder($);
   
-  assert.equal(result.positiveTabIndexElements.length, 1);
-  assert.ok(result.positiveTabIndexElements[0].selector.includes("focus-me"));
+  expect(result.positiveTabIndexElements.length).toBe(1);
+  expect(result.positiveTabIndexElements[0].selector.includes("focus-me").toBeTruthy());
 });
 
 // =============================================================================
@@ -404,9 +404,9 @@ test("analyzeFormAutocomplete - no forms returns zero", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.totalForms, 0);
-  assert.equal(result.formsWithAutocomplete, 0);
-  assert.equal(result.personalDataInputs.length, 0);
+  expect(result.totalForms).toBe(0);
+  expect(result.formsWithAutocomplete).toBe(0);
+  expect(result.personalDataInputs.length).toBe(0);
 });
 
 test("analyzeFormAutocomplete - counts forms", () => {
@@ -426,7 +426,7 @@ test("analyzeFormAutocomplete - counts forms", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.totalForms, 2);
+  expect(result.totalForms).toBe(2);
 });
 
 test("analyzeFormAutocomplete - detects email input", () => {
@@ -443,9 +443,9 @@ test("analyzeFormAutocomplete - detects email input", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs.length, 1);
-  assert.equal(result.personalDataInputs[0].type, "email");
-  assert.equal(result.personalDataInputs[0].hasAutocomplete, false);
+  expect(result.personalDataInputs.length).toBe(1);
+  expect(result.personalDataInputs[0].type).toBe("email");
+  expect(result.personalDataInputs[0].hasAutocomplete).toBe(false);
 });
 
 test("analyzeFormAutocomplete - detects tel input", () => {
@@ -462,8 +462,8 @@ test("analyzeFormAutocomplete - detects tel input", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs.length, 1);
-  assert.equal(result.personalDataInputs[0].type, "tel");
+  expect(result.personalDataInputs.length).toBe(1);
+  expect(result.personalDataInputs[0].type).toBe("tel");
 });
 
 test("analyzeFormAutocomplete - detects autocomplete attribute", () => {
@@ -480,8 +480,8 @@ test("analyzeFormAutocomplete - detects autocomplete attribute", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs[0].hasAutocomplete, true);
-  assert.equal(result.personalDataInputs[0].autocompleteValue, "email");
+  expect(result.personalDataInputs[0].hasAutocomplete).toBe(true);
+  expect(result.personalDataInputs[0].autocompleteValue).toBe("email");
 });
 
 test("analyzeFormAutocomplete - detects name fields by name attribute", () => {
@@ -500,8 +500,8 @@ test("analyzeFormAutocomplete - detects name fields by name attribute", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs.length, 3);
-  assert.ok(result.personalDataInputs.some(i => i.type === "name"));
+  expect(result.personalDataInputs.length).toBe(3);
+  expect(result.personalDataInputs.some(i => i.type === "name").toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - detects address fields", () => {
@@ -519,8 +519,8 @@ test("analyzeFormAutocomplete - detects address fields", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs.length, 2);
-  assert.ok(result.personalDataInputs.every(i => i.type === "address"));
+  expect(result.personalDataInputs.length).toBe(2);
+  expect(result.personalDataInputs.every(i => i.type === "address").toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - detects postal code fields", () => {
@@ -539,8 +539,8 @@ test("analyzeFormAutocomplete - detects postal code fields", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs.length, 3);
-  assert.ok(result.personalDataInputs.every(i => i.type === "postal"));
+  expect(result.personalDataInputs.length).toBe(3);
+  expect(result.personalDataInputs.every(i => i.type === "postal").toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - detects city and country fields", () => {
@@ -558,9 +558,9 @@ test("analyzeFormAutocomplete - detects city and country fields", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs.length, 2);
-  assert.ok(result.personalDataInputs.some(i => i.type === "city"));
-  assert.ok(result.personalDataInputs.some(i => i.type === "country"));
+  expect(result.personalDataInputs.length).toBe(2);
+  expect(result.personalDataInputs.some(i => i.type === "city").toBeTruthy());
+  expect(result.personalDataInputs.some(i => i.type === "country").toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - counts forms with autocomplete", () => {
@@ -580,8 +580,8 @@ test("analyzeFormAutocomplete - counts forms with autocomplete", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.totalForms, 2);
-  assert.equal(result.formsWithAutocomplete, 1);
+  expect(result.totalForms).toBe(2);
+  expect(result.formsWithAutocomplete).toBe(1);
 });
 
 test("analyzeFormAutocomplete - handles complex form", () => {
@@ -605,10 +605,10 @@ test("analyzeFormAutocomplete - handles complex form", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.totalForms, 1);
-  assert.equal(result.formsWithAutocomplete, 1);
-  assert.equal(result.personalDataInputs.length, 8);
-  assert.ok(result.personalDataInputs.every(i => i.hasAutocomplete));
+  expect(result.totalForms).toBe(1);
+  expect(result.formsWithAutocomplete).toBe(1);
+  expect(result.personalDataInputs.length).toBe(8);
+  expect(result.personalDataInputs.every(i => i.hasAutocomplete).toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - includes selectors", () => {
@@ -625,8 +625,8 @@ test("analyzeFormAutocomplete - includes selectors", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs.length, 1);
-  assert.ok(result.personalDataInputs[0].selector.includes("user-email"));
+  expect(result.personalDataInputs.length).toBe(1);
+  expect(result.personalDataInputs[0].selector.includes("user-email").toBeTruthy());
 });
 
 test("analyzeFormAutocomplete - enforces 100 input cap", () => {
@@ -639,7 +639,7 @@ test("analyzeFormAutocomplete - enforces 100 input cap", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.personalDataInputs.length, 100); // Capped at 100
+  expect(result.personalDataInputs.length).toBe(100); // Capped at 100
 });
 
 test("analyzeFormAutocomplete - ignores non-personal data inputs", () => {
@@ -659,8 +659,8 @@ test("analyzeFormAutocomplete - ignores non-personal data inputs", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.totalForms, 1);
-  assert.equal(result.personalDataInputs.length, 0);
+  expect(result.totalForms).toBe(1);
+  expect(result.personalDataInputs.length).toBe(0);
 });
 
 test("analyzeFormAutocomplete - handles forms without inputs", () => {
@@ -677,6 +677,6 @@ test("analyzeFormAutocomplete - handles forms without inputs", () => {
   const $ = cheerio.load(html);
   const result = analyzeFormAutocomplete($);
   
-  assert.equal(result.totalForms, 1);
-  assert.equal(result.personalDataInputs.length, 0);
+  expect(result.totalForms).toBe(1);
+  expect(result.personalDataInputs.length).toBe(0);
 });

@@ -3,8 +3,8 @@
  * Atlas SDK Integration Test - Verifies SDK works with engine output
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { existsSync } from "fs";
 import { rm } from "fs/promises";
 import { execSync } from "child_process";
@@ -32,7 +32,7 @@ test("Atlas SDK can read engine output", async () => {
   // Test 1: openAtlas
   const atlas = await openAtlas(OUT_FILE);
   
-  assert.equal(atlas.manifest.atlasVersion, "1.0");
+  expect(atlas.manifest.atlasVersion).toBe("1.0");
   assert(atlas.summary.totalPages > 0);
   assert(atlas.datasets.has("pages"));
   assert(atlas.datasets.has("accessibility"));
@@ -44,7 +44,7 @@ test("Atlas SDK can read engine output", async () => {
     assert(typeof page.statusCode === "number");
     pageCount++;
   }
-  assert.equal(pageCount, atlas.summary.totalPages);
+  expect(pageCount).toBe(atlas.summary.totalPages);
   
   // Test 3: select with filter
   let successCount = 0;
@@ -52,7 +52,7 @@ test("Atlas SDK can read engine output", async () => {
     dataset: "pages",
     where: (p: any) => p.statusCode === 200
   })) {
-    assert.equal(page.statusCode, 200);
+    expect(page.statusCode).toBe(200);
     successCount++;
   }
   assert(successCount > 0);

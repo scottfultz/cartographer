@@ -10,8 +10,8 @@
  * Tests for new link attributes: sponsored and ugc (user-generated content)
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { extractLinks } from "../src/core/extractors/links.js";
 import { baseTestConfig } from './helpers/testConfig.js';
 
@@ -38,9 +38,9 @@ test("extractLinks - detects sponsored links", () => {
   const affiliateLink = edges.find(e => e.targetUrl.includes("affiliate.com"));
   const adLink = edges.find(e => e.targetUrl.includes("ad.com"));
 
-  assert.strictEqual(regularLink?.sponsored, false);
-  assert.strictEqual(affiliateLink?.sponsored, true);
-  assert.strictEqual(adLink?.sponsored, true);
+  expect(regularLink?.sponsored).toBe(false);
+  expect(affiliateLink?.sponsored).toBe(true);
+  expect(adLink?.sponsored).toBe(true);
 });
 
 test("extractLinks - detects UGC (user-generated content) links", () => {
@@ -66,9 +66,9 @@ test("extractLinks - detects UGC (user-generated content) links", () => {
   const commentLink = edges.find(e => e.targetUrl.includes("user-comment.com"));
   const forumLink = edges.find(e => e.targetUrl.includes("forum-post.com"));
 
-  assert.strictEqual(internalLink?.ugc, false);
-  assert.strictEqual(commentLink?.ugc, true);
-  assert.strictEqual(forumLink?.ugc, true);
+  expect(internalLink?.ugc).toBe(false);
+  expect(commentLink?.ugc).toBe(true);
+  expect(forumLink?.ugc).toBe(true);
 });
 
 test("extractLinks - handles combined rel attributes", () => {
@@ -88,10 +88,10 @@ test("extractLinks - handles combined rel attributes", () => {
     discoveredInMode: "prerender"
   });
 
-  assert.strictEqual(edges.length, 1);
-  assert.strictEqual(edges[0].nofollow, true);
-  assert.strictEqual(edges[0].sponsored, true);
-  assert.strictEqual(edges[0].ugc, true);
+  expect(edges.length).toBe(1);
+  expect(edges[0].nofollow).toBe(true);
+  expect(edges[0].sponsored).toBe(true);
+  expect(edges[0].ugc).toBe(true);
 });
 
 test("extractLinks - sponsored/ugc default to false when not present", () => {
@@ -113,8 +113,8 @@ test("extractLinks - sponsored/ugc default to false when not present", () => {
   });
 
   edges.forEach(edge => {
-    assert.strictEqual(edge.sponsored, false);
-    assert.strictEqual(edge.ugc, false);
+    expect(edge.sponsored).toBe(false);
+    expect(edge.ugc).toBe(false);
   });
 });
 
@@ -140,10 +140,10 @@ test("extractLinks - raw mode sets sponsored/ugc to false", () => {
   edges.forEach(edge => {
     // Even in raw mode, we parse rel attributes from HTML
     if (edge.targetUrl.includes("page1")) {
-      assert.strictEqual(edge.sponsored, true);
+      expect(edge.sponsored).toBe(true);
     }
     if (edge.targetUrl.includes("page2")) {
-      assert.strictEqual(edge.ugc, true);
+      expect(edge.ugc).toBe(true);
     }
   });
 });

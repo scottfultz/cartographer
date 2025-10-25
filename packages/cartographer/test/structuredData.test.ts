@@ -27,11 +27,11 @@ describe("extractStructuredData", () => {
     
     const result = extractStructuredData({ html, url: "https://example.com" });
     
-    assert.equal(result.length, 1);
-    assert.equal(result[0].type, "json-ld");
-    assert.equal(result[0].schemaType, "Product");
-    assert.equal(result[0].data.name, "Widget");
-    assert.equal(result[0].data.price, "29.99");
+    expect(result.length).toBe(1);
+    expect(result[0].type).toBe("json-ld");
+    expect(result[0].schemaType).toBe("Product");
+    expect(result[0].data.name).toBe("Widget");
+    expect(result[0].data.price).toBe("29.99");
   });
 
   test("extracts multiple JSON-LD objects", () => {
@@ -56,9 +56,9 @@ describe("extractStructuredData", () => {
     
     const result = extractStructuredData({ html, url: "https://example.com" });
     
-    assert.equal(result.length, 2);
-    assert.equal(result[0].schemaType, "Organization");
-    assert.equal(result[1].schemaType, "Article");
+    expect(result.length).toBe(2);
+    expect(result[0].schemaType).toBe("Organization");
+    expect(result[1].schemaType).toBe("Article");
   });
 
   test("handles JSON-LD array format", () => {
@@ -79,9 +79,9 @@ describe("extractStructuredData", () => {
     
     const result = extractStructuredData({ html, url: "https://example.com" });
     
-    assert.equal(result.length, 2);
-    assert.equal(result[0].schemaType, "BreadcrumbList");
-    assert.equal(result[1].schemaType, "WebPage");
+    expect(result.length).toBe(2);
+    expect(result[0].schemaType).toBe("BreadcrumbList");
+    expect(result[1].schemaType).toBe("WebPage");
   });
 
   test("handles nested @type arrays", () => {
@@ -96,13 +96,11 @@ describe("extractStructuredData", () => {
     
     const result = extractStructuredData({ html, url: "https://example.com" });
     
-    assert.equal(result.length, 1);
+    expect(result.length).toBe(1);
     // Implementation might store as array or as first value
     const schemaType = result[0].schemaType;
-    assert.ok(
-      Array.isArray(schemaType) || typeof schemaType === "string",
-      "schemaType should be array or string"
-    );
+    expect(
+      Array.isArray(schemaType) || typeof schemaType === "string").toBeTruthy();
   });
 
   test("ignores invalid JSON", () => {
@@ -121,8 +119,8 @@ describe("extractStructuredData", () => {
     const result = extractStructuredData({ html, url: "https://example.com" });
     
     // Should skip invalid JSON and parse valid one
-    assert.equal(result.length, 1);
-    assert.equal(result[0].schemaType, "Organization");
+    expect(result.length).toBe(1);
+    expect(result[0].schemaType).toBe("Organization");
   });
 
   test("ignores empty script tags", () => {
@@ -133,7 +131,7 @@ describe("extractStructuredData", () => {
     
     const result = extractStructuredData({ html, url: "https://example.com" });
     
-    assert.equal(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("handles no structured data", () => {
@@ -145,7 +143,7 @@ describe("extractStructuredData", () => {
     
     const result = extractStructuredData({ html, url: "https://example.com" });
     
-    assert.equal(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("limits individual item size to 50KB", () => {
@@ -164,7 +162,7 @@ describe("extractStructuredData", () => {
     const result = extractStructuredData({ html, url: "https://example.com" });
     
     // Should be skipped due to size
-    assert.equal(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("extracts common schema types", () => {
@@ -184,10 +182,10 @@ describe("extractStructuredData", () => {
     
     const result = extractStructuredData({ html, url: "https://example.com" });
     
-    assert.equal(result.length, 1);
-    assert.equal(result[0].schemaType, "Product");
-    assert.ok(result[0].data.offers);
-    assert.equal(result[0].data.offers["@type"], "Offer");
+    expect(result.length).toBe(1);
+    expect(result[0].schemaType).toBe("Product");
+    expect(result[0].data.offers).toBeTruthy();
+    expect(result[0].data.offers["@type"]).toBe("Offer");
   });
 
   test("handles various script tag formats", () => {
@@ -200,7 +198,7 @@ describe("extractStructuredData", () => {
     const result = extractStructuredData({ html, url: "https://example.com" });
     
     // Regex-based parser should handle at least quoted variations
-    assert.ok(result.length >= 2, `Expected at least 2, got ${result.length}`);
+    expect(result.length >= 2, `Expected at least 2, got ${result.length}`).toBeTruthy();
   });
 });
 
@@ -226,7 +224,7 @@ describe("filterRelevantStructuredData", () => {
     
     const result = filterRelevantStructuredData(items);
     
-    assert.equal(result.length, 3);
+    expect(result.length).toBe(3);
   });
 
   test("filters out non-SEO types", () => {
@@ -252,7 +250,7 @@ describe("filterRelevantStructuredData", () => {
     
     // SearchAction and WebSite might be filtered (depends on implementation)
     // At minimum, Article should be kept
-    assert.ok(result.some(item => item.schemaType === "Article"));
+    expect(result.some(item => item.schemaType === "Article").toBeTruthy());
   });
 
   test("keeps BreadcrumbList", () => {
@@ -266,14 +264,14 @@ describe("filterRelevantStructuredData", () => {
     
     const result = filterRelevantStructuredData(items);
     
-    assert.equal(result.length, 1);
-    assert.equal(result[0].schemaType, "BreadcrumbList");
+    expect(result.length).toBe(1);
+    expect(result[0].schemaType).toBe("BreadcrumbList");
   });
 
   test("handles empty input", () => {
     const result = filterRelevantStructuredData([]);
     
-    assert.equal(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("handles items without schemaType", () => {
@@ -287,7 +285,7 @@ describe("filterRelevantStructuredData", () => {
     const result = filterRelevantStructuredData(items);
     
     // Should handle gracefully (either include or exclude)
-    assert.ok(Array.isArray(result));
+    expect(Array.isArray(result).toBeTruthy());
   });
 
   test("real-world example: news article", () => {
@@ -310,9 +308,9 @@ describe("filterRelevantStructuredData", () => {
     const extracted = extractStructuredData({ html, url: "https://example.com/news" });
     const filtered = filterRelevantStructuredData(extracted);
     
-    assert.equal(filtered.length, 1);
-    assert.equal(filtered[0].schemaType, "NewsArticle");
-    assert.equal(filtered[0].data.headline, "Breaking News");
+    expect(filtered.length).toBe(1);
+    expect(filtered[0].schemaType).toBe("NewsArticle");
+    expect(filtered[0].data.headline).toBe("Breaking News");
   });
 
   test("real-world example: e-commerce product", () => {
@@ -340,10 +338,10 @@ describe("filterRelevantStructuredData", () => {
     const extracted = extractStructuredData({ html, url: "https://shop.example.com/product" });
     const filtered = filterRelevantStructuredData(extracted);
     
-    assert.equal(filtered.length, 1);
-    assert.equal(filtered[0].schemaType, "Product");
-    assert.equal(filtered[0].data.name, "Wireless Headphones");
-    assert.ok(filtered[0].data.offers);
-    assert.ok(filtered[0].data.aggregateRating);
+    expect(filtered.length).toBe(1);
+    expect(filtered[0].schemaType).toBe("Product");
+    expect(filtered[0].data.name).toBe("Wireless Headphones");
+    expect(filtered[0].data.offers).toBeTruthy();
+    expect(filtered[0].data.aggregateRating).toBeTruthy();
   });
 });

@@ -4,8 +4,8 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { buildConfig } from "../src/core/config.js";
 
 /**
@@ -13,46 +13,43 @@ import { buildConfig } from "../src/core/config.js";
  */
 
 test("config - requires seeds array", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
       outAtls: "test.atls"
     } as any);
-  }, /At least one seed URL is required/);
+  }).toBe(/At least one seed URL is required/);
 });
 
 test("config - rejects empty seeds array", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: [],
-      outAtls: "test.atls"
+      seeds: []).toBe(outAtls: "test.atls"
     });
-  }, /At least one seed URL is required/);
+  }).toBe(/At least one seed URL is required/);
 });
 
 test("config - requires outAtls", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
       seeds: ["https://example.com"]
     } as any);
-  }, /Output .atls path required/);
+  }).toBe(/Output .atls path required/);
 });
 
 test("config - rejects empty outAtls string", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: ""
+      seeds: ["https://example.com"]).toBe(outAtls: ""
     });
-  }, /Output .atls path required/);
+  }).toBe(/Output .atls path required/);
 });
 
 test("config - rejects very short outAtls", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "a.a"
+      seeds: ["https://example.com"]).toBe(outAtls: "a.a"
     });
-  }, /must be a string/);
+  }).toBe(/must be a string/);
 });
 
 test("config - accepts single seed", () => {
@@ -60,8 +57,8 @@ test("config - accepts single seed", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  assert.strictEqual(config.seeds.length, 1);
-  assert.strictEqual(config.seeds[0], "https://example.com");
+  expect(config.seeds.length).toBe(1);
+  expect(config.seeds[0]).toBe("https://example.com");
 });
 
 test("config - accepts multiple seeds", () => {
@@ -69,25 +66,21 @@ test("config - accepts multiple seeds", () => {
     seeds: ["https://example.com", "https://test.com", "https://demo.com"],
     outAtls: "test.atls"
   });
-  assert.strictEqual(config.seeds.length, 3);
+  expect(config.seeds.length).toBe(3);
 });
 
 test("config - rejects zero concurrency", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      render: { concurrency: 0 } as any
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { concurrency: 0 } as any
     });
   }, /concurrency must be > 0/);
 });
 
 test("config - rejects negative concurrency", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      render: { concurrency: -1 } as any
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { concurrency: -1 } as any
     });
   }, /concurrency must be > 0/);
 });
@@ -98,7 +91,7 @@ test("config - accepts concurrency 1", () => {
     outAtls: "test.atls",
     render: { concurrency: 1 } as any
   });
-  assert.strictEqual(config.render.concurrency, 1);
+  expect(config.render.concurrency).toBe(1);
 });
 
 test("config - accepts high concurrency", () => {
@@ -107,25 +100,21 @@ test("config - accepts high concurrency", () => {
     outAtls: "test.atls",
     render: { concurrency: 100 } as any
   });
-  assert.strictEqual(config.render.concurrency, 100);
+  expect(config.render.concurrency).toBe(100);
 });
 
 test("config - rejects zero RPS", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      http: { rps: 0 } as any
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(http: { rps: 0 } as any
     });
   }, /rps must be > 0/);
 });
 
 test("config - rejects negative RPS", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      http: { rps: -1 } as any
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(http: { rps: -1 } as any
     });
   }, /rps must be > 0/);
 });
@@ -136,7 +125,7 @@ test("config - accepts RPS 0.5", () => {
     outAtls: "test.atls",
     http: { rps: 0.5 } as any
   });
-  assert.strictEqual(config.http.rps, 0.5);
+  expect(config.http.rps).toBe(0.5);
 });
 
 test("config - accepts very high RPS", () => {
@@ -145,15 +134,13 @@ test("config - accepts very high RPS", () => {
     outAtls: "test.atls",
     http: { rps: 1000 } as any
   });
-  assert.strictEqual(config.http.rps, 1000);
+  expect(config.http.rps).toBe(1000);
 });
 
 test("config - rejects negative maxPages", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      maxPages: -1
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(maxPages: -1
     });
   }, /maxPages must be >= 0/);
 });
@@ -164,7 +151,7 @@ test("config - accepts maxPages 0 (unlimited)", () => {
     outAtls: "test.atls",
     maxPages: 0
   });
-  assert.strictEqual(config.maxPages, 0);
+  expect(config.maxPages).toBe(0);
 });
 
 test("config - accepts maxPages 1", () => {
@@ -173,7 +160,7 @@ test("config - accepts maxPages 1", () => {
     outAtls: "test.atls",
     maxPages: 1
   });
-  assert.strictEqual(config.maxPages, 1);
+  expect(config.maxPages).toBe(1);
 });
 
 test("config - accepts very large maxPages", () => {
@@ -182,25 +169,21 @@ test("config - accepts very large maxPages", () => {
     outAtls: "test.atls",
     maxPages: 1000000
   });
-  assert.strictEqual(config.maxPages, 1000000);
+  expect(config.maxPages).toBe(1000000);
 });
 
 test("config - rejects zero timeout", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      render: { timeoutMs: 0 } as any
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { timeoutMs: 0 } as any
     });
   }, /timeoutMs must be > 0/);
 });
 
 test("config - rejects negative timeout", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      render: { timeoutMs: -1000 } as any
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { timeoutMs: -1000 } as any
     });
   }, /timeoutMs must be > 0/);
 });
@@ -211,7 +194,7 @@ test("config - accepts 1ms timeout", () => {
     outAtls: "test.atls",
     render: { timeoutMs: 1 } as any
   });
-  assert.strictEqual(config.render.timeoutMs, 1);
+  expect(config.render.timeoutMs).toBe(1);
 });
 
 test("config - accepts very long timeout", () => {
@@ -220,7 +203,7 @@ test("config - accepts very long timeout", () => {
     outAtls: "test.atls",
     render: { timeoutMs: 300000 } as any
   });
-  assert.strictEqual(config.render.timeoutMs, 300000);
+  expect(config.render.timeoutMs).toBe(300000);
 });
 
 test("config - default render mode is prerender", () => {
@@ -228,7 +211,7 @@ test("config - default render mode is prerender", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  assert.strictEqual(config.render.mode, "prerender");
+  expect(config.render.mode).toBe("prerender");
 });
 
 test("config - accepts raw mode", () => {
@@ -237,7 +220,7 @@ test("config - accepts raw mode", () => {
     outAtls: "test.atls",
     render: { mode: "raw" } as any
   });
-  assert.strictEqual(config.render.mode, "raw");
+  expect(config.render.mode).toBe("raw");
 });
 
 test("config - accepts full mode", () => {
@@ -246,7 +229,7 @@ test("config - accepts full mode", () => {
     outAtls: "test.atls",
     render: { mode: "full" } as any
   });
-  assert.strictEqual(config.render.mode, "full");
+  expect(config.render.mode).toBe("full");
 });
 
 test("config - default robots.respect is true", () => {
@@ -254,7 +237,7 @@ test("config - default robots.respect is true", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  assert.strictEqual(config.robots.respect, true);
+  expect(config.robots.respect).toBe(true);
 });
 
 test("config - can disable robots.respect", () => {
@@ -263,7 +246,7 @@ test("config - can disable robots.respect", () => {
     outAtls: "test.atls",
     robots: { respect: false } as any
   });
-  assert.strictEqual(config.robots.respect, false);
+  expect(config.robots.respect).toBe(false);
 });
 
 test("config - default discovery.followExternal is false", () => {
@@ -271,7 +254,7 @@ test("config - default discovery.followExternal is false", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  assert.strictEqual(config.discovery.followExternal, false);
+  expect(config.discovery.followExternal).toBe(false);
 });
 
 test("config - can enable discovery.followExternal", () => {
@@ -280,25 +263,21 @@ test("config - can enable discovery.followExternal", () => {
     outAtls: "test.atls",
     discovery: { followExternal: true } as any
   });
-  assert.strictEqual(config.discovery.followExternal, true);
+  expect(config.discovery.followExternal).toBe(true);
 });
 
 test("config - rejects zero maxRequestsPerPage", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      render: { maxRequestsPerPage: 0 } as any
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { maxRequestsPerPage: 0 } as any
     });
   }, /maxRequestsPerPage must be > 0/);
 });
 
 test("config - rejects zero maxBytesPerPage", () => {
-  assert.throws(() => {
+  expect(() => {
     buildConfig({
-      seeds: ["https://example.com"],
-      outAtls: "test.atls",
-      render: { maxBytesPerPage: 0 } as any
+      seeds: ["https://example.com"]).toBe(outAtls: "test.atls").toBe(render: { maxBytesPerPage: 0 } as any
     });
   }, /maxBytesPerPage must be > 0/);
 });
@@ -308,9 +287,9 @@ test("config - accepts minimal valid config", () => {
     seeds: ["https://example.com"],
     outAtls: "test.atls"
   });
-  assert.ok(config);
-  assert.strictEqual(config.seeds[0], "https://example.com");
-  assert.strictEqual(config.outAtls, "test.atls");
+  expect(config).toBeTruthy();
+  expect(config.seeds[0]).toBe("https://example.com");
+  expect(config.outAtls).toBe("test.atls");
 });
 
 test("config - merges partial render config with defaults", () => {
@@ -319,9 +298,9 @@ test("config - merges partial render config with defaults", () => {
     outAtls: "test.atls",
     render: { mode: "raw" } as any
   });
-  assert.strictEqual(config.render.mode, "raw");
-  assert.ok(config.render.concurrency > 0); // Should have default
-  assert.ok(config.render.timeoutMs > 0); // Should have default
+  expect(config.render.mode).toBe("raw");
+  expect(config.render.concurrency > 0).toBeTruthy(); // Should have default
+  expect(config.render.timeoutMs > 0).toBeTruthy(); // Should have default
 });
 
 test("config - handles undefined optional fields", () => {
@@ -332,5 +311,5 @@ test("config - handles undefined optional fields", () => {
     checkpoint: undefined,
     cli: undefined
   });
-  assert.ok(config);
+  expect(config).toBeTruthy();
 });

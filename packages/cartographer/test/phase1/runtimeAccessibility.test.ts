@@ -15,7 +15,7 @@
  * These tests use Playwright to test actual browser behavior.
  */
 
-import { test } from "node:test";
+import { test, expect } from "vitest";
 import { strict as assert } from "node:assert";
 import { chromium, type Browser, type Page } from "playwright";
 
@@ -74,8 +74,8 @@ test("detectKeyboardTraps - no traps on simple page", async () => {
   
   const result = await detectKeyboardTraps(page);
   
-  assert.equal(result.hasPotentialTraps, false);
-  assert.equal(result.suspiciousElements.length, 0);
+  expect(result.hasPotentialTraps).toBe(false);
+  expect(result.suspiciousElements.length).toBe(0);
 });
 
 test("detectKeyboardTraps - detects positive tabindex pattern", async () => {
@@ -94,7 +94,7 @@ test("detectKeyboardTraps - detects positive tabindex pattern", async () => {
   const result = await detectKeyboardTraps(page);
   
   // Positive tabindex can indicate potential traps
-  assert.ok(result.suspiciousElements.length > 0);
+  expect(result.suspiciousElements.length > 0).toBeTruthy();
 });
 
 test("detectKeyboardTraps - handles tabindex 0 (not suspicious)", async () => {
@@ -112,7 +112,7 @@ test("detectKeyboardTraps - handles tabindex 0 (not suspicious)", async () => {
   const result = await detectKeyboardTraps(page);
   
   // tabindex="0" is standard practice, not suspicious
-  assert.equal(result.hasPotentialTraps, false);
+  expect(result.hasPotentialTraps).toBe(false);
 });
 
 test("detectKeyboardTraps - detects keydown event listeners", async () => {
@@ -134,7 +134,7 @@ test("detectKeyboardTraps - detects keydown event listeners", async () => {
   const result = await detectKeyboardTraps(page);
   
   // Elements with keydown listeners may prevent keyboard exit
-  assert.ok(result.suspiciousElements.length >= 0); // May or may not detect depending on heuristic
+  expect(result.suspiciousElements.length >= 0).toBeTruthy(); // May or may not detect depending on heuristic
 });
 
 test("detectKeyboardTraps - handles pages with many focusable elements", async () => {
@@ -151,7 +151,7 @@ test("detectKeyboardTraps - handles pages with many focusable elements", async (
   const result = await detectKeyboardTraps(page);
   
   // Should complete without error
-  assert.ok(typeof result.hasPotentialTraps === 'boolean');
+  expect(typeof result.hasPotentialTraps === 'boolean').toBeTruthy();
 });
 
 test("detectKeyboardTraps - handles empty page", async () => {
@@ -161,8 +161,8 @@ test("detectKeyboardTraps - handles empty page", async () => {
   
   const result = await detectKeyboardTraps(page);
   
-  assert.equal(result.hasPotentialTraps, false);
-  assert.equal(result.suspiciousElements.length, 0);
+  expect(result.hasPotentialTraps).toBe(false);
+  expect(result.suspiciousElements.length).toBe(0);
 });
 
 test("detectKeyboardTraps - handles page with only negative tabindex", async () => {
@@ -181,7 +181,7 @@ test("detectKeyboardTraps - handles page with only negative tabindex", async () 
   const result = await detectKeyboardTraps(page);
   
   // Negative tabindex removes from tab order, not suspicious
-  assert.equal(result.hasPotentialTraps, false);
+  expect(result.hasPotentialTraps).toBe(false);
 });
 
 // =============================================================================
@@ -203,10 +203,10 @@ test("detectSkipLinks - detects skip to main content", async () => {
   
   const result = await detectSkipLinks(page);
   
-  assert.equal(result.hasSkipLinks, true);
-  assert.equal(result.links.length, 1);
-  assert.ok(result.links[0].text.toLowerCase().includes('skip'));
-  assert.equal(result.links[0].targetExists, true);
+  expect(result.hasSkipLinks).toBe(true);
+  expect(result.links.length).toBe(1);
+  expect(result.links[0].text.toLowerCase().toBeTruthy().includes('skip'));
+  expect(result.links[0].targetExists).toBe(true);
 });
 
 test("detectSkipLinks - detects skip navigation", async () => {
@@ -224,9 +224,9 @@ test("detectSkipLinks - detects skip navigation", async () => {
   
   const result = await detectSkipLinks(page);
   
-  assert.equal(result.hasSkipLinks, true);
-  assert.equal(result.links.length, 1);
-  assert.ok(result.links[0].text.toLowerCase().includes('skip'));
+  expect(result.hasSkipLinks).toBe(true);
+  expect(result.links.length).toBe(1);
+  expect(result.links[0].text.toLowerCase().toBeTruthy().includes('skip'));
 });
 
 test("detectSkipLinks - detects multiple skip links", async () => {
@@ -247,9 +247,9 @@ test("detectSkipLinks - detects multiple skip links", async () => {
   
   const result = await detectSkipLinks(page);
   
-  assert.equal(result.hasSkipLinks, true);
-  assert.equal(result.links.length, 3);
-  assert.ok(result.links.every(link => link.targetExists));
+  expect(result.hasSkipLinks).toBe(true);
+  expect(result.links.length).toBe(3);
+  expect(result.links.every(link => link.targetExists).toBeTruthy());
 });
 
 test("detectSkipLinks - identifies first focusable element", async () => {
@@ -267,8 +267,8 @@ test("detectSkipLinks - identifies first focusable element", async () => {
   
   const result = await detectSkipLinks(page);
   
-  assert.equal(result.hasSkipLinks, true);
-  assert.equal(result.links[0].isFirstFocusable, true);
+  expect(result.hasSkipLinks).toBe(true);
+  expect(result.links[0].isFirstFocusable).toBe(true);
 });
 
 test("detectSkipLinks - checks visibility", async () => {
@@ -292,7 +292,7 @@ test("detectSkipLinks - checks visibility", async () => {
   
   // Should still detect, but mark as not visible
   if (result.links.length > 0) {
-    assert.equal(result.links[0].isVisible, false);
+    expect(result.links[0].isVisible).toBe(false);
   }
 });
 
@@ -311,13 +311,13 @@ test("detectSkipLinks - validates target exists", async () => {
   
   const result = await detectSkipLinks(page);
   
-  assert.equal(result.links.length, 2);
+  expect(result.links.length).toBe(2);
   
   const validLink = result.links.find(l => l.href.includes('#main'));
   const invalidLink = result.links.find(l => l.href.includes('#nonexistent'));
   
-  assert.equal(validLink?.targetExists, true);
-  assert.equal(invalidLink?.targetExists, false);
+  expect(validLink?.targetExists).toBe(true);
+  expect(invalidLink?.targetExists).toBe(false);
 });
 
 test("detectSkipLinks - no skip links returns empty", async () => {
@@ -334,8 +334,8 @@ test("detectSkipLinks - no skip links returns empty", async () => {
   
   const result = await detectSkipLinks(page);
   
-  assert.equal(result.hasSkipLinks, false);
-  assert.equal(result.links.length, 0);
+  expect(result.hasSkipLinks).toBe(false);
+  expect(result.links.length).toBe(0);
 });
 
 test("detectSkipLinks - detects jump links", async () => {
@@ -352,8 +352,8 @@ test("detectSkipLinks - detects jump links", async () => {
   
   const result = await detectSkipLinks(page);
   
-  assert.equal(result.hasSkipLinks, true);
-  assert.ok(result.links[0].text.toLowerCase().includes('jump'));
+  expect(result.hasSkipLinks).toBe(true);
+  expect(result.links[0].text.toLowerCase().toBeTruthy().includes('jump'));
 });
 
 test("detectSkipLinks - handles anchors without href", async () => {
@@ -371,7 +371,7 @@ test("detectSkipLinks - handles anchors without href", async () => {
   const result = await detectSkipLinks(page);
   
   // Should not detect links without href
-  assert.equal(result.hasSkipLinks, false);
+  expect(result.hasSkipLinks).toBe(false);
 });
 
 test("detectSkipLinks - handles external links with skip text", async () => {
@@ -389,7 +389,7 @@ test("detectSkipLinks - handles external links with skip text", async () => {
   const result = await detectSkipLinks(page);
   
   // Should not detect external links as skip links
-  assert.equal(result.hasSkipLinks, false);
+  expect(result.hasSkipLinks).toBe(false);
 });
 
 // =============================================================================
@@ -411,10 +411,10 @@ test("analyzeMediaElements - detects video with captions", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.equal(result.videos[0].hasCaptions, true);
-  assert.equal(result.videos[0].trackCount, 1);
-  assert.equal(result.videos[0].controls, true);
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0].hasCaptions).toBe(true);
+  expect(result.videos[0].trackCount).toBe(1);
+  expect(result.videos[0].controls).toBe(true);
 });
 
 test("analyzeMediaElements - detects video with subtitles", async () => {
@@ -432,9 +432,9 @@ test("analyzeMediaElements - detects video with subtitles", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.equal(result.videos[0].hasSubtitles, true);
-  assert.equal(result.videos[0].trackCount, 1);
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0].hasSubtitles).toBe(true);
+  expect(result.videos[0].trackCount).toBe(1);
 });
 
 test("analyzeMediaElements - detects video with descriptions", async () => {
@@ -452,8 +452,8 @@ test("analyzeMediaElements - detects video with descriptions", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.equal(result.videos[0].hasDescriptions, true);
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0].hasDescriptions).toBe(true);
 });
 
 test("analyzeMediaElements - detects video without accessibility tracks", async () => {
@@ -469,11 +469,11 @@ test("analyzeMediaElements - detects video without accessibility tracks", async 
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.equal(result.videos[0].hasCaptions, false);
-  assert.equal(result.videos[0].hasSubtitles, false);
-  assert.equal(result.videos[0].hasDescriptions, false);
-  assert.equal(result.videos[0].trackCount, 0);
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0].hasCaptions).toBe(false);
+  expect(result.videos[0].hasSubtitles).toBe(false);
+  expect(result.videos[0].hasDescriptions).toBe(false);
+  expect(result.videos[0].trackCount).toBe(0);
 });
 
 test("analyzeMediaElements - detects autoplay attribute", async () => {
@@ -489,8 +489,8 @@ test("analyzeMediaElements - detects autoplay attribute", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.equal(result.videos[0].autoplay, true);
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0].autoplay).toBe(true);
 });
 
 test("analyzeMediaElements - detects controls attribute", async () => {
@@ -506,8 +506,8 @@ test("analyzeMediaElements - detects controls attribute", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.equal(result.videos[0].controls, true);
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0].controls).toBe(true);
 });
 
 test("analyzeMediaElements - extracts video source", async () => {
@@ -523,10 +523,10 @@ test("analyzeMediaElements - extracts video source", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.ok(result.videos[0]);
-  assert.ok(result.videos[0]!.src);
-  assert.ok(result.videos[0]!.src!.includes('video.mp4'));
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0]).toBeTruthy();
+  expect(result.videos[0]!.src).toBeTruthy();
+  expect(result.videos[0]!.src!.includes('video.mp4').toBeTruthy());
 });
 
 test("analyzeMediaElements - detects multiple videos", async () => {
@@ -544,7 +544,7 @@ test("analyzeMediaElements - detects multiple videos", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 3);
+  expect(result.videos.length).toBe(3);
 });
 
 test("analyzeMediaElements - detects audio elements", async () => {
@@ -560,8 +560,8 @@ test("analyzeMediaElements - detects audio elements", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.audios.length, 1);
-  assert.equal(result.audios[0].controls, true);
+  expect(result.audios.length).toBe(1);
+  expect(result.audios[0].controls).toBe(true);
 });
 
 test("analyzeMediaElements - detects audio autoplay", async () => {
@@ -577,8 +577,8 @@ test("analyzeMediaElements - detects audio autoplay", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.audios.length, 1);
-  assert.equal(result.audios[0].autoplay, true);
+  expect(result.audios.length).toBe(1);
+  expect(result.audios[0].autoplay).toBe(true);
 });
 
 test("analyzeMediaElements - extracts audio source", async () => {
@@ -594,10 +594,10 @@ test("analyzeMediaElements - extracts audio source", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.audios.length, 1);
-  assert.ok(result.audios[0]);
-  assert.ok(result.audios[0]!.src);
-  assert.ok(result.audios[0]!.src!.includes('audio.mp3'));
+  expect(result.audios.length).toBe(1);
+  expect(result.audios[0]).toBeTruthy();
+  expect(result.audios[0]!.src).toBeTruthy();
+  expect(result.audios[0]!.src!.includes('audio.mp3').toBeTruthy());
 });
 
 test("analyzeMediaElements - no media returns empty", async () => {
@@ -613,8 +613,8 @@ test("analyzeMediaElements - no media returns empty", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 0);
-  assert.equal(result.audios.length, 0);
+  expect(result.videos.length).toBe(0);
+  expect(result.audios.length).toBe(0);
 });
 
 test("analyzeMediaElements - detects mixed media", async () => {
@@ -634,10 +634,10 @@ test("analyzeMediaElements - detects mixed media", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 2);
-  assert.equal(result.audios.length, 1);
-  assert.equal(result.videos[0].hasCaptions, true);
-  assert.equal(result.videos[1].hasCaptions, false);
+  expect(result.videos.length).toBe(2);
+  expect(result.audios.length).toBe(1);
+  expect(result.videos[0].hasCaptions).toBe(true);
+  expect(result.videos[1].hasCaptions).toBe(false);
 });
 
 test("analyzeMediaElements - handles video with multiple tracks", async () => {
@@ -658,11 +658,11 @@ test("analyzeMediaElements - handles video with multiple tracks", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.equal(result.videos[0].hasCaptions, true);
-  assert.equal(result.videos[0].hasSubtitles, true);
-  assert.equal(result.videos[0].hasDescriptions, true);
-  assert.equal(result.videos[0].trackCount, 4);
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0].hasCaptions).toBe(true);
+  expect(result.videos[0].hasSubtitles).toBe(true);
+  expect(result.videos[0].hasDescriptions).toBe(true);
+  expect(result.videos[0].trackCount).toBe(4);
 });
 
 test("analyzeMediaElements - handles video with source elements", async () => {
@@ -681,10 +681,10 @@ test("analyzeMediaElements - handles video with source elements", async () => {
   
   const result = await analyzeMediaElements(page);
   
-  assert.equal(result.videos.length, 1);
-  assert.ok(result.videos[0]);
+  expect(result.videos.length).toBe(1);
+  expect(result.videos[0]).toBeTruthy();
   // Should extract src from first source element
   const src = result.videos[0]!.src;
-  assert.ok(src);
-  assert.ok(src.includes('video.mp4') || src.includes('video.webm'));
+  expect(src).toBeTruthy();
+  expect(src.includes('video.mp4').toBeTruthy() || src.includes('video.webm'));
 });

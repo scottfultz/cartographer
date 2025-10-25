@@ -25,9 +25,9 @@ describe("extractEncoding", () => {
       contentTypeHeader: "text/html; charset=UTF-8"
     });
     
-    assert.ok(result);
-    assert.equal(result.encoding, "UTF-8");
-    assert.equal(result.source, "header");
+    expect(result).toBeTruthy();
+    expect(result.encoding).toBe("UTF-8");
+    expect(result.source).toBe("header");
   });
 
   test("extracts encoding from meta charset tag", () => {
@@ -41,9 +41,9 @@ describe("extractEncoding", () => {
     
     const result = extractEncoding({ html });
     
-    assert.ok(result);
-    assert.equal(result.encoding, "UTF-8");
-    assert.equal(result.source, "meta");
+    expect(result).toBeTruthy();
+    expect(result.encoding).toBe("UTF-8");
+    expect(result.source).toBe("meta");
   });
 
   test("extracts encoding from meta http-equiv tag", () => {
@@ -57,9 +57,9 @@ describe("extractEncoding", () => {
     
     const result = extractEncoding({ html });
     
-    assert.ok(result);
-    assert.equal(result.encoding, "ISO-8859-1");
-    assert.equal(result.source, "meta");
+    expect(result).toBeTruthy();
+    expect(result.encoding).toBe("ISO-8859-1");
+    expect(result.source).toBe("meta");
   });
 
   test("prefers header over meta tag", () => {
@@ -76,9 +76,9 @@ describe("extractEncoding", () => {
       contentTypeHeader: "text/html; charset=UTF-8"
     });
     
-    assert.ok(result);
-    assert.equal(result.encoding, "UTF-8");
-    assert.equal(result.source, "header");
+    expect(result).toBeTruthy();
+    expect(result.encoding).toBe("UTF-8");
+    expect(result.source).toBe("header");
   });
 
   test("returns undefined when no encoding found", () => {
@@ -86,7 +86,7 @@ describe("extractEncoding", () => {
     
     const result = extractEncoding({ html });
     
-    assert.equal(result, undefined);
+    expect(result).toBe(undefined);
   });
 
   test("handles various charset formats", () => {
@@ -101,8 +101,8 @@ describe("extractEncoding", () => {
         html: "",
         contentTypeHeader: tc.header
       });
-      assert.ok(result, `Should extract encoding from: ${tc.header}`);
-      assert.equal(result.encoding.toUpperCase(), tc.expected);
+      expect(result, `Should extract encoding from: ${tc.header}`).toBeTruthy();
+      expect(result.encoding.toUpperCase()).toBe(tc.expected);
     });
   });
 });
@@ -121,7 +121,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    assert.equal(result.cssCount, 3);
+    expect(result.cssCount).toBe(3);
   });
 
   test("counts inline styles", () => {
@@ -139,7 +139,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    assert.equal(result.inlineStyles, 3);
+    expect(result.inlineStyles).toBe(3);
   });
 
   test("counts external scripts", () => {
@@ -157,7 +157,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    assert.equal(result.jsCount, 3);
+    expect(result.jsCount).toBe(3);
   });
 
   test("counts inline scripts", () => {
@@ -174,7 +174,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    assert.equal(result.inlineScripts, 2);
+    expect(result.inlineScripts).toBe(2);
   });
 
   test("counts font preloads", () => {
@@ -189,7 +189,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    assert.equal(result.fontCount, 2);
+    expect(result.fontCount).toBe(2);
   });
 
   test("counts @font-face declarations", () => {
@@ -212,7 +212,7 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    assert.ok(result.fontCount >= 2, `Expected at least 2 fonts, got ${result.fontCount}`);
+    expect(result.fontCount >= 2, `Expected at least 2 fonts, got ${result.fontCount}`).toBeTruthy();
   });
 
   test("returns zero for empty HTML", () => {
@@ -220,11 +220,11 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    assert.equal(result.cssCount, 0);
-    assert.equal(result.jsCount, 0);
-    assert.equal(result.fontCount, 0);
-    assert.equal(result.inlineStyles, 0);
-    assert.equal(result.inlineScripts, 0);
+    expect(result.cssCount).toBe(0);
+    expect(result.jsCount).toBe(0);
+    expect(result.fontCount).toBe(0);
+    expect(result.inlineStyles).toBe(0);
+    expect(result.inlineScripts).toBe(0);
   });
 
   test("real-world example: typical page", () => {
@@ -246,11 +246,11 @@ describe("countResources", () => {
     
     const result = countResources(html);
     
-    assert.equal(result.cssCount, 2);
-    assert.equal(result.jsCount, 2);
-    assert.equal(result.inlineStyles, 1);
-    assert.equal(result.inlineScripts, 1);
-    assert.equal(result.fontCount, 1);
+    expect(result.cssCount).toBe(2);
+    expect(result.jsCount).toBe(2);
+    expect(result.inlineStyles).toBe(1);
+    expect(result.inlineScripts).toBe(1);
+    expect(result.fontCount).toBe(1);
   });
 });
 
@@ -262,8 +262,8 @@ describe("extractCompression", () => {
     
     const result = extractCompression(headers);
     
-    assert.equal(result.compression, "gzip");
-    assert.equal(result.contentEncoding, "gzip");
+    expect(result.compression).toBe("gzip");
+    expect(result.contentEncoding).toBe("gzip");
   });
 
   test("detects br (Brotli) compression", () => {
@@ -273,7 +273,7 @@ describe("extractCompression", () => {
     
     const result = extractCompression(headers);
     
-    assert.equal(result.compression, "brotli");
+    expect(result.compression).toBe("brotli");
   });
 
   test("detects deflate compression", () => {
@@ -283,7 +283,7 @@ describe("extractCompression", () => {
     
     const result = extractCompression(headers);
     
-    assert.equal(result.compression, "deflate");
+    expect(result.compression).toBe("deflate");
   });
 
   test("handles no compression", () => {
@@ -293,7 +293,7 @@ describe("extractCompression", () => {
     
     const result = extractCompression(headers);
     
-    assert.equal(result.compression, "none");
+    expect(result.compression).toBe("none");
   });
 
   test("handles multiple encodings", () => {
@@ -304,7 +304,7 @@ describe("extractCompression", () => {
     const result = extractCompression(headers);
     
     // Should detect first or primary encoding
-    assert.ok(result.compression === "gzip" || result.compression === "deflate");
+    expect(result.compression === "gzip" || result.compression === "deflate").toBeTruthy();
   });
 });
 
@@ -320,9 +320,9 @@ describe("extractViewportMeta", () => {
     
     const result = extractViewportMeta(html);
     
-    assert.ok(result);
-    assert.ok(result.hasViewport);
-    assert.equal(result.content, "width=device-width, initial-scale=1.0");
+    expect(result).toBeTruthy();
+    expect(result.hasViewport).toBeTruthy();
+    expect(result.content).toBe("width=device-width).toBe(initial-scale=1.0");
   });
 
   test("detects mobile-friendly viewport", () => {
@@ -332,10 +332,10 @@ describe("extractViewportMeta", () => {
     
     const result = extractViewportMeta(html);
     
-    assert.ok(result);
-    assert.ok(result.hasViewport);
-    assert.equal(result.width, "device-width");
-    assert.equal(result.initialScale, 1);
+    expect(result).toBeTruthy();
+    expect(result.hasViewport).toBeTruthy();
+    expect(result.width).toBe("device-width");
+    expect(result.initialScale).toBe(1);
   });
 
   test("returns undefined when missing", () => {
@@ -343,7 +343,7 @@ describe("extractViewportMeta", () => {
     
     const result = extractViewportMeta(html);
     
-    assert.equal(result, undefined);
+    expect(result).toBe(undefined);
   });
 
   test("handles various viewport values", () => {
@@ -357,9 +357,9 @@ describe("extractViewportMeta", () => {
     testCases.forEach(content => {
       const html = `<meta name="viewport" content="${content}" />`;
       const result = extractViewportMeta(html);
-      assert.ok(result);
-      assert.ok(result.hasViewport);
-      assert.equal(result.content, content);
+      expect(result).toBeTruthy();
+      expect(result.hasViewport).toBeTruthy();
+      expect(result.content).toBe(content);
     });
   });
 });
@@ -380,9 +380,9 @@ describe("detectMixedContent", () => {
       pageUrl: "https://secure.example.com/page"
     });
     
-    assert.ok(result.length > 0);
-    assert.ok(result.some(item => item.type === "image"));
-    assert.ok(result.some(item => item.type === "script"));
+    expect(result.length > 0).toBeTruthy();
+    expect(result.some(item => item.type === "image").toBeTruthy());
+    expect(result.some(item => item.type === "script").toBeTruthy());
   });
 
   test("no mixed content on HTTP page", () => {
@@ -399,7 +399,7 @@ describe("detectMixedContent", () => {
       pageUrl: "http://example.com/page"
     });
     
-    assert.equal(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("no mixed content when all resources are HTTPS", () => {
@@ -417,7 +417,7 @@ describe("detectMixedContent", () => {
       pageUrl: "https://example.com/page"
     });
     
-    assert.equal(result.length, 0);
+    expect(result.length).toBe(0);
   });
 });
 
@@ -435,8 +435,8 @@ describe("checkSubresourceIntegrity", () => {
     
     const result = checkSubresourceIntegrity(html);
     
-    assert.equal(result.totalScripts, 1);
-    assert.equal(result.scriptsWithSRI, 1);
+    expect(result.totalScripts).toBe(1);
+    expect(result.scriptsWithSRI).toBe(1);
   });
 
   test("counts scripts without SRI", () => {
@@ -451,10 +451,10 @@ describe("checkSubresourceIntegrity", () => {
     
     const result = checkSubresourceIntegrity(html);
     
-    assert.equal(result.totalScripts, 2);
-    assert.equal(result.scriptsWithSRI, 0);
-    assert.ok(result.missingResources);
-    assert.equal(result.missingResources.length, 2);
+    expect(result.totalScripts).toBe(2);
+    expect(result.scriptsWithSRI).toBe(0);
+    expect(result.missingResources).toBeTruthy();
+    expect(result.missingResources.length).toBe(2);
   });
 });
 
@@ -469,7 +469,7 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    assert.equal(result, 2);
+    expect(result).toBe(2);
   });
 
   test("counts 5xx server errors", () => {
@@ -481,7 +481,7 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    assert.equal(result, 2);
+    expect(result).toBe(2);
   });
 
   test("returns zero for all successful links", () => {
@@ -493,13 +493,13 @@ describe("countBrokenLinks", () => {
     
     const result = countBrokenLinks(edges);
     
-    assert.equal(result, 0);
+    expect(result).toBe(0);
   });
 
   test("handles empty edges array", () => {
     const result = countBrokenLinks([]);
     
-    assert.equal(result, 0);
+    expect(result).toBe(0);
   });
 });
 
@@ -514,9 +514,9 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    assert.equal(result.length, 2);
-    assert.ok(result.includes("example.com"));
-    assert.ok(result.includes("google.com"));
+    expect(result.length).toBe(2);
+    expect(result.includes("example.com").toBeTruthy());
+    expect(result.includes("google.com").toBeTruthy());
   });
 
   test("deduplicates domains", () => {
@@ -528,8 +528,8 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    assert.equal(result.length, 1);
-    assert.equal(result[0], "example.com");
+    expect(result.length).toBe(1);
+    expect(result[0]).toBe("example.com");
   });
 
   test("ignores internal links", () => {
@@ -540,13 +540,13 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    assert.equal(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("handles empty edges array", () => {
     const result = extractOutboundDomains([]);
     
-    assert.equal(result.length, 0);
+    expect(result.length).toBe(0);
   });
 
   test("handles mixed internal and external", () => {
@@ -559,8 +559,8 @@ describe("extractOutboundDomains", () => {
     
     const result = extractOutboundDomains(edges);
     
-    assert.equal(result.length, 2);
-    assert.ok(result.includes("external1.com"));
-    assert.ok(result.includes("external2.com"));
+    expect(result.length).toBe(2);
+    expect(result.includes("external1.com").toBeTruthy());
+    expect(result.includes("external2.com").toBeTruthy());
   });
 });

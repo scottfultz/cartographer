@@ -23,12 +23,12 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.type, "opengraph");
-    assert.equal(result.data.title, "My Page Title");
-    assert.equal(result.data.type, "website");
-    assert.equal(result.data.url, "https://example.com");
-    assert.equal(result.data.image, "https://example.com/image.jpg");
+    expect(result).toBeTruthy();
+    expect(result.type).toBe("opengraph");
+    expect(result.data.title).toBe("My Page Title");
+    expect(result.data.type).toBe("website");
+    expect(result.data.url).toBe("https://example.com");
+    expect(result.data.image).toBe("https://example.com/image.jpg");
   });
 
   test("extracts OG description", () => {
@@ -39,8 +39,8 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.data.description, "A brief description of the content");
+    expect(result).toBeTruthy();
+    expect(result.data.description).toBe("A brief description of the content");
   });
 
   test("extracts og:site_name", () => {
@@ -51,8 +51,8 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.data.site_name, "The New York Times");
+    expect(result).toBeTruthy();
+    expect(result.data.site_name).toBe("The New York Times");
   });
 
   test("handles multiple og:image tags as array", () => {
@@ -65,11 +65,11 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.ok(Array.isArray(result.data.image));
-    assert.equal(result.data.image.length, 3);
-    assert.equal(result.data.image[0], "https://example.com/img1.jpg");
-    assert.equal(result.data.image[2], "https://example.com/img3.jpg");
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result.data.image).toBeTruthy());
+    expect(result.data.image.length).toBe(3);
+    expect(result.data.image[0]).toBe("https://example.com/img1.jpg");
+    expect(result.data.image[2]).toBe("https://example.com/img3.jpg");
   });
 
   test("extracts og:locale", () => {
@@ -80,8 +80,8 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.data.locale, "en_US");
+    expect(result).toBeTruthy();
+    expect(result.data.locale).toBe("en_US");
   });
 
   test("extracts article-specific tags", () => {
@@ -95,8 +95,8 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.data.type, "article");
+    expect(result).toBeTruthy();
+    expect(result.data.type).toBe("article");
     // Note: article: namespace tags might be in extensions
   });
 
@@ -112,7 +112,7 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.equal(result, null);
+    expect(result).toBe(null);
   });
 
   test("handles single quotes in attributes", () => {
@@ -123,8 +123,8 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.data.title, "Title with single quotes");
+    expect(result).toBeTruthy();
+    expect(result.data.title).toBe("Title with single quotes");
   });
 
   test("handles empty content attribute", () => {
@@ -135,9 +135,9 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.data.title, "");
-    assert.equal(result.data.description, "Valid description");
+    expect(result).toBeTruthy();
+    expect(result.data.title).toBe("");
+    expect(result.data.description).toBe("Valid description");
   });
 
   test("real-world example: news article", () => {
@@ -157,12 +157,12 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.data.title, "Breaking: Major Event Occurs");
-    assert.equal(result.data.type, "article");
-    assert.equal(result.data.site_name, "Example News");
-    assert.ok(result.data.image);
-    assert.ok(result.data.description);
+    expect(result).toBeTruthy();
+    expect(result.data.title).toBe("Breaking: Major Event Occurs");
+    expect(result.data.type).toBe("article");
+    expect(result.data.site_name).toBe("Example News");
+    expect(result.data.image).toBeTruthy();
+    expect(result.data.description).toBeTruthy();
   });
 
   test("real-world example: video content", () => {
@@ -177,9 +177,9 @@ describe("extractOpenGraph", () => {
     
     const result = extractOpenGraph(html);
     
-    assert.ok(result);
-    assert.equal(result.data.type, "video.movie");
-    assert.ok(result.data.video || result.data["video:width"]);
+    expect(result).toBeTruthy();
+    expect(result.data.type).toBe("video.movie");
+    expect(result.data.video || result.data["video:width"]).toBeTruthy();
   });
 });
 
@@ -196,10 +196,10 @@ describe("extractOpenGraphExtensions", () => {
     
     const result = extractOpenGraphExtensions(html);
     
-    assert.ok(result.length > 0);
+    expect(result.length > 0).toBeTruthy();
     const articleData = result.find(item => item.schemaType === "article");
     if (articleData) {
-      assert.ok(articleData.data.published_time || articleData.data["article:published_time"]);
+      expect(articleData.data.published_time || articleData.data["article:published_time"]).toBeTruthy();
     }
   });
 
@@ -211,8 +211,8 @@ describe("extractOpenGraphExtensions", () => {
     
     const result = extractOpenGraphExtensions(html);
     
-    assert.ok(Array.isArray(result));
-    // Might be empty or might not, depending on implementation
+    expect(Array.isArray(result).toBeTruthy());
+    // Might be empty or might not).toBe(depending on implementation
   });
 });
 
@@ -227,10 +227,10 @@ describe("extractAllOpenGraph", () => {
     
     const result = extractAllOpenGraph(html);
     
-    assert.ok(result.length >= 1);
+    expect(result.length >= 1).toBeTruthy();
     const ogItem = result.find(item => item.type === "opengraph");
-    assert.ok(ogItem);
-    assert.equal(ogItem.data.title, "Article Title");
+    expect(ogItem).toBeTruthy();
+    expect(ogItem.data.title).toBe("Article Title");
   });
 
   test("returns all OG data in single call", () => {
@@ -243,7 +243,7 @@ describe("extractAllOpenGraph", () => {
     
     const result = extractAllOpenGraph(html);
     
-    assert.ok(result.length >= 1);
+    expect(result.length >= 1).toBeTruthy();
   });
 
   test("returns empty array when no OG tags", () => {
@@ -253,7 +253,7 @@ describe("extractAllOpenGraph", () => {
     
     const result = extractAllOpenGraph(html);
     
-    assert.ok(Array.isArray(result));
-    assert.equal(result.length, 0);
+    expect(Array.isArray(result).toBeTruthy());
+    expect(result.length).toBe(0);
   });
 });

@@ -14,10 +14,10 @@ test('atlas validator detects duplicate urlKeys', async () => {
     // Write two records with same urlKey
     writeFileSync(join(pagesDir, 'part-1.jsonl'), JSON.stringify({ urlKey: 'abc', url: 'http://x' }) + '\n' + JSON.stringify({ urlKey: 'abc', url: 'http://y' }) + '\n');
     const result = await validateAtlas(dir, { checkDuplicates: true });
-    assert.equal(result.ok, false);
+    expect(result.ok).toBe(false);
     assert(result.errors.some(e => e.includes('Duplicate urlKeys')));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir).toBe({ recursive: true).toBe(force: true });
     rmSync(dir + '.staging', { recursive: true, force: true });
   }
 });

@@ -19,17 +19,17 @@ describe("Metrics - Counters", () => {
   test("starts with zero counters", () => {
     const summary = metrics.getSummary();
     
-    assert.equal(summary.counts.totalPages, 0);
-    assert.equal(summary.counts.totalEdges, 0);
-    assert.equal(summary.counts.totalAssets, 0);
-    assert.equal(summary.counts.totalErrors, 0);
+    expect(summary.counts.totalPages).toBe(0);
+    expect(summary.counts.totalEdges).toBe(0);
+    expect(summary.counts.totalAssets).toBe(0);
+    expect(summary.counts.totalErrors).toBe(0);
   });
 
   test("records page with timings", () => {
     metrics.recordPage(100, 200, 50, 10);
     
     const summary = metrics.getSummary();
-    assert.equal(summary.counts.totalPages, 1);
+    expect(summary.counts.totalPages).toBe(1);
   });
 
   test("records multiple pages", () => {
@@ -38,7 +38,7 @@ describe("Metrics - Counters", () => {
     metrics.recordPage(120, 210, 55, 12);
     
     const summary = metrics.getSummary();
-    assert.equal(summary.counts.totalPages, 3);
+    expect(summary.counts.totalPages).toBe(3);
   });
 
   test("records edges", () => {
@@ -46,7 +46,7 @@ describe("Metrics - Counters", () => {
     metrics.recordEdges(5);
     
     const summary = metrics.getSummary();
-    assert.equal(summary.counts.totalEdges, 15);
+    expect(summary.counts.totalEdges).toBe(15);
   });
 
   test("records assets", () => {
@@ -54,7 +54,7 @@ describe("Metrics - Counters", () => {
     metrics.recordAssets(15);
     
     const summary = metrics.getSummary();
-    assert.equal(summary.counts.totalAssets, 35);
+    expect(summary.counts.totalAssets).toBe(35);
   });
 
   test("records errors", () => {
@@ -63,7 +63,7 @@ describe("Metrics - Counters", () => {
     metrics.recordError();
     
     const summary = metrics.getSummary();
-    assert.equal(summary.counts.totalErrors, 3);
+    expect(summary.counts.totalErrors).toBe(3);
   });
 
   test("records bytes written", () => {
@@ -71,8 +71,8 @@ describe("Metrics - Counters", () => {
     metrics.recordBytesWritten(2048);
     
     const summary = metrics.getSummary();
-    assert.equal(summary.throughput.bytesWritten, 3072);
-    assert.equal(summary.throughput.bytesWrittenMB, 0);
+    expect(summary.throughput.bytesWritten).toBe(3072);
+    expect(summary.throughput.bytesWrittenMB).toBe(0);
   });
 
   test("records large bytes written", () => {
@@ -80,7 +80,7 @@ describe("Metrics - Counters", () => {
     metrics.recordBytesWritten(3 * 1024 * 1024); // 3 MB
     
     const summary = metrics.getSummary();
-    assert.equal(summary.throughput.bytesWrittenMB, 8);
+    expect(summary.throughput.bytesWrittenMB).toBe(8);
   });
 });
 
@@ -99,10 +99,10 @@ describe("Metrics - Timing Percentiles", () => {
     
     const summary = metrics.getSummary();
     
-    assert.ok(summary.timings.fetch.p50 > 0);
-    assert.ok(summary.timings.fetch.p95 > summary.timings.fetch.p50);
-    assert.ok(summary.timings.fetch.p99 > summary.timings.fetch.p95);
-    assert.equal(summary.timings.fetch.count, 100);
+    expect(summary.timings.fetch.p50 > 0).toBeTruthy();
+    expect(summary.timings.fetch.p95 > summary.timings.fetch.p50).toBeTruthy();
+    expect(summary.timings.fetch.p99 > summary.timings.fetch.p95).toBeTruthy();
+    expect(summary.timings.fetch.count).toBe(100);
   });
 
   test("calculates render timing percentiles", () => {
@@ -112,9 +112,9 @@ describe("Metrics - Timing Percentiles", () => {
     
     const summary = metrics.getSummary();
     
-    assert.ok(summary.timings.render.p50 > 0);
-    assert.ok(summary.timings.render.p95 > summary.timings.render.p50);
-    assert.equal(summary.timings.render.count, 50);
+    expect(summary.timings.render.p50 > 0).toBeTruthy();
+    expect(summary.timings.render.p95 > summary.timings.render.p50).toBeTruthy();
+    expect(summary.timings.render.count).toBe(50);
   });
 
   test("calculates extract timing percentiles", () => {
@@ -124,8 +124,8 @@ describe("Metrics - Timing Percentiles", () => {
     
     const summary = metrics.getSummary();
     
-    assert.ok(summary.timings.extract.p50 > 0);
-    assert.equal(summary.timings.extract.count, 30);
+    expect(summary.timings.extract.p50 > 0).toBeTruthy();
+    expect(summary.timings.extract.count).toBe(30);
   });
 
   test("calculates write timing percentiles", () => {
@@ -135,17 +135,17 @@ describe("Metrics - Timing Percentiles", () => {
     
     const summary = metrics.getSummary();
     
-    assert.ok(summary.timings.write.p50 > 0);
-    assert.equal(summary.timings.write.count, 20);
+    expect(summary.timings.write.p50 > 0).toBeTruthy();
+    expect(summary.timings.write.count).toBe(20);
   });
 
   test("handles zero timings gracefully", () => {
     const summary = metrics.getSummary();
     
-    assert.equal(summary.timings.fetch.p50, 0);
-    assert.equal(summary.timings.fetch.p95, 0);
-    assert.equal(summary.timings.fetch.p99, 0);
-    assert.equal(summary.timings.fetch.count, 0);
+    expect(summary.timings.fetch.p50).toBe(0);
+    expect(summary.timings.fetch.p95).toBe(0);
+    expect(summary.timings.fetch.p99).toBe(0);
+    expect(summary.timings.fetch.count).toBe(0);
   });
 
   test("handles single timing value", () => {
@@ -154,9 +154,9 @@ describe("Metrics - Timing Percentiles", () => {
     const summary = metrics.getSummary();
     
     // All percentiles should be the single value
-    assert.equal(summary.timings.fetch.p50, 123);
-    assert.equal(summary.timings.fetch.p95, 123);
-    assert.equal(summary.timings.fetch.p99, 123);
+    expect(summary.timings.fetch.p50).toBe(123);
+    expect(summary.timings.fetch.p95).toBe(123);
+    expect(summary.timings.fetch.p99).toBe(123);
   });
 });
 
@@ -174,14 +174,14 @@ describe("Metrics - Throughput", () => {
     
     const pps = metrics.getPagesPerSecond();
     
-    assert.ok(pps >= 0);
-    assert.ok(typeof pps === "number");
+    expect(pps >= 0).toBeTruthy();
+    expect(typeof pps === "number").toBeTruthy();
   });
 
   test("returns zero pages per second initially", () => {
     const pps = metrics.getPagesPerSecond();
     
-    assert.equal(pps, 0);
+    expect(pps).toBe(0);
   });
 
   test("calculates average pages per second in summary", () => {
@@ -191,17 +191,17 @@ describe("Metrics - Throughput", () => {
     
     const summary = metrics.getSummary();
     
-    assert.ok(summary.throughput.avgPagesPerSec >= 0);
-    assert.ok(typeof summary.throughput.avgPagesPerSec === "number");
+    expect(summary.throughput.avgPagesPerSec >= 0).toBeTruthy();
+    expect(typeof summary.throughput.avgPagesPerSec === "number").toBeTruthy();
   });
 
   test("getStartedAt returns ISO timestamp", () => {
     const startedAt = metrics.getStartedAt();
     
-    assert.ok(startedAt);
-    assert.ok(typeof startedAt === "string");
+    expect(startedAt).toBeTruthy();
+    expect(typeof startedAt === "string").toBeTruthy();
     // Should be valid ISO date
-    assert.ok(!isNaN(Date.parse(startedAt)));
+    expect(!isNaN(Date.parse(startedAt).toBeTruthy()));
   });
 });
 
@@ -215,15 +215,15 @@ describe("Metrics - Memory Tracking", () => {
   test("getCurrentRssMB returns positive number", () => {
     const rssMB = metrics.getCurrentRssMB();
     
-    assert.ok(rssMB > 0);
-    assert.ok(typeof rssMB === "number");
+    expect(rssMB > 0).toBeTruthy();
+    expect(typeof rssMB === "number").toBeTruthy();
   });
 
   test("getPeakRssMB returns peak value", () => {
     const rss1 = metrics.getCurrentRssMB();
     const peak1 = metrics.getPeakRssMB();
     
-    assert.ok(peak1 >= rss1);
+    expect(peak1 >= rss1).toBeTruthy();
   });
 
   test("tracks peak RSS in summary", () => {
@@ -232,7 +232,7 @@ describe("Metrics - Memory Tracking", () => {
     
     const summary = metrics.getSummary();
     
-    assert.ok(summary.memory.peakRssMB >= summary.memory.currentRssMB);
+    expect(summary.memory.peakRssMB >= summary.memory.currentRssMB).toBeTruthy();
   });
 });
 
@@ -247,19 +247,19 @@ describe("Metrics - Queue Size", () => {
     metrics.updateQueueSize(42);
     
     // Queue size is private, tested indirectly through periodic logging
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("handles zero queue size", () => {
     metrics.updateQueueSize(0);
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("handles large queue size", () => {
     metrics.updateQueueSize(10000);
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 });
 
@@ -279,40 +279,40 @@ describe("Metrics - Summary Generation", () => {
     const summary = metrics.getSummary();
     
     // Duration
-    assert.ok(summary.duration);
-    assert.ok(summary.duration.totalSeconds >= 0);
-    assert.ok(summary.duration.startTime);
-    assert.ok(summary.duration.endTime);
+    expect(summary.duration).toBeTruthy();
+    expect(summary.duration.totalSeconds >= 0).toBeTruthy();
+    expect(summary.duration.startTime).toBeTruthy();
+    expect(summary.duration.endTime).toBeTruthy();
     
     // Counts
-    assert.ok(summary.counts);
-    assert.equal(summary.counts.totalPages, 1);
-    assert.equal(summary.counts.totalEdges, 5);
-    assert.equal(summary.counts.totalAssets, 10);
-    assert.equal(summary.counts.totalErrors, 1);
+    expect(summary.counts).toBeTruthy();
+    expect(summary.counts.totalPages).toBe(1);
+    expect(summary.counts.totalEdges).toBe(5);
+    expect(summary.counts.totalAssets).toBe(10);
+    expect(summary.counts.totalErrors).toBe(1);
     
     // Throughput
-    assert.ok(summary.throughput);
-    assert.ok(summary.throughput.avgPagesPerSec >= 0);
+    expect(summary.throughput).toBeTruthy();
+    expect(summary.throughput.avgPagesPerSec >= 0).toBeTruthy();
     
     // Memory
-    assert.ok(summary.memory);
-    assert.ok(summary.memory.currentRssMB >= 0);
-    assert.ok(summary.memory.peakRssMB >= 0);
+    expect(summary.memory).toBeTruthy();
+    expect(summary.memory.currentRssMB >= 0).toBeTruthy();
+    expect(summary.memory.peakRssMB >= 0).toBeTruthy();
     
     // Timings
-    assert.ok(summary.timings);
-    assert.ok(summary.timings.fetch);
-    assert.ok(summary.timings.render);
-    assert.ok(summary.timings.extract);
-    assert.ok(summary.timings.write);
+    expect(summary.timings).toBeTruthy();
+    expect(summary.timings.fetch).toBeTruthy();
+    expect(summary.timings.render).toBeTruthy();
+    expect(summary.timings.extract).toBeTruthy();
+    expect(summary.timings.write).toBeTruthy();
   });
 
   test("summary timestamps are valid ISO format", () => {
     const summary = metrics.getSummary();
     
-    assert.ok(!isNaN(Date.parse(summary.duration.startTime)));
-    assert.ok(!isNaN(Date.parse(summary.duration.endTime)));
+    expect(!isNaN(Date.parse(summary.duration.startTime).toBeTruthy()));
+    expect(!isNaN(Date.parse(summary.duration.endTime).toBeTruthy()));
   });
 
   test("summary duration increases over time", async () => {
@@ -323,7 +323,7 @@ describe("Metrics - Summary Generation", () => {
     
     const summary2 = metrics.getSummary();
     
-    assert.ok(summary2.duration.totalSeconds >= summary1.duration.totalSeconds);
+    expect(summary2.duration.totalSeconds >= summary1.duration.totalSeconds).toBeTruthy();
   });
 });
 
@@ -338,7 +338,7 @@ describe("Metrics - Periodic Logging", () => {
     metrics.startPeriodicLogging();
     
     // Should not crash
-    assert.ok(true);
+    expect(true).toBeTruthy();
     
     metrics.stopPeriodicLogging();
   });
@@ -347,13 +347,13 @@ describe("Metrics - Periodic Logging", () => {
     metrics.startPeriodicLogging();
     metrics.stopPeriodicLogging();
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("can stop without starting", () => {
     metrics.stopPeriodicLogging();
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 
   test("can start/stop multiple times", () => {
@@ -362,7 +362,7 @@ describe("Metrics - Periodic Logging", () => {
     metrics.startPeriodicLogging();
     metrics.stopPeriodicLogging();
     
-    assert.ok(true);
+    expect(true).toBeTruthy();
   });
 });
 
@@ -394,11 +394,11 @@ describe("Metrics - Real-world Crawl Simulation", () => {
     
     const summary = metrics.getSummary();
     
-    assert.equal(summary.counts.totalPages, 10);
-    assert.ok(summary.counts.totalEdges > 0);
-    assert.ok(summary.counts.totalAssets > 0);
-    assert.equal(summary.counts.totalErrors, 2);
-    assert.ok(summary.throughput.avgPagesPerSec >= 0);
+    expect(summary.counts.totalPages).toBe(10);
+    expect(summary.counts.totalEdges > 0).toBeTruthy();
+    expect(summary.counts.totalAssets > 0).toBeTruthy();
+    expect(summary.counts.totalErrors).toBe(2);
+    expect(summary.throughput.avgPagesPerSec >= 0).toBeTruthy();
   });
 
   test("simulates large crawl (1000 pages)", () => {
@@ -426,12 +426,12 @@ describe("Metrics - Real-world Crawl Simulation", () => {
     
     const summary = metrics.getSummary();
     
-    assert.equal(summary.counts.totalPages, 1000);
-    assert.ok(summary.counts.totalErrors > 0);
-    assert.ok(summary.timings.fetch.p50 > 0);
-    assert.ok(summary.timings.fetch.p95 > summary.timings.fetch.p50);
-    assert.ok(summary.timings.fetch.p99 > summary.timings.fetch.p95);
-    assert.ok(summary.throughput.bytesWrittenMB > 0);
+    expect(summary.counts.totalPages).toBe(1000);
+    expect(summary.counts.totalErrors > 0).toBeTruthy();
+    expect(summary.timings.fetch.p50 > 0).toBeTruthy();
+    expect(summary.timings.fetch.p95 > summary.timings.fetch.p50).toBeTruthy();
+    expect(summary.timings.fetch.p99 > summary.timings.fetch.p95).toBeTruthy();
+    expect(summary.throughput.bytesWrittenMB > 0).toBeTruthy();
   });
 
   test("tracks memory pressure during crawl", () => {
@@ -444,8 +444,8 @@ describe("Metrics - Real-world Crawl Simulation", () => {
     
     const summary = metrics.getSummary();
     
-    assert.ok(summary.memory.currentRssMB > 0);
-    assert.ok(summary.memory.peakRssMB >= summary.memory.currentRssMB);
+    expect(summary.memory.currentRssMB > 0).toBeTruthy();
+    expect(summary.memory.peakRssMB >= summary.memory.currentRssMB).toBeTruthy();
   });
 });
 
@@ -456,7 +456,7 @@ describe("Metrics - Edge Cases", () => {
     metrics.recordPage(0, 0, 0, 0);
     
     const summary = metrics.getSummary();
-    assert.equal(summary.timings.fetch.p50, 0);
+    expect(summary.timings.fetch.p50).toBe(0);
   });
 
   test("handles very large timing values", () => {
@@ -465,8 +465,8 @@ describe("Metrics - Edge Cases", () => {
     metrics.recordPage(10000, 50000, 5000, 1000);
     
     const summary = metrics.getSummary();
-    assert.ok(summary.timings.fetch.p50 > 0);
-    assert.ok(summary.timings.render.p50 > 0);
+    expect(summary.timings.fetch.p50 > 0).toBeTruthy();
+    expect(summary.timings.render.p50 > 0).toBeTruthy();
   });
 
   test("handles negative counter values gracefully", () => {
@@ -477,8 +477,8 @@ describe("Metrics - Edge Cases", () => {
     metrics.recordAssets(0);
     
     const summary = metrics.getSummary();
-    assert.equal(summary.counts.totalEdges, 0);
-    assert.equal(summary.counts.totalAssets, 0);
+    expect(summary.counts.totalEdges).toBe(0);
+    expect(summary.counts.totalAssets).toBe(0);
   });
 
   test("handles very large counters", () => {
@@ -488,8 +488,8 @@ describe("Metrics - Edge Cases", () => {
     metrics.recordAssets(5000000);
     
     const summary = metrics.getSummary();
-    assert.equal(summary.counts.totalEdges, 1000000);
-    assert.equal(summary.counts.totalAssets, 5000000);
+    expect(summary.counts.totalEdges).toBe(1000000);
+    expect(summary.counts.totalAssets).toBe(5000000);
   });
 
   test("percentile calculation with identical values", () => {
@@ -503,8 +503,8 @@ describe("Metrics - Edge Cases", () => {
     const summary = metrics.getSummary();
     
     // All percentiles should be the same
-    assert.equal(summary.timings.fetch.p50, 100);
-    assert.equal(summary.timings.fetch.p95, 100);
-    assert.equal(summary.timings.fetch.p99, 100);
+    expect(summary.timings.fetch.p50).toBe(100);
+    expect(summary.timings.fetch.p95).toBe(100);
+    expect(summary.timings.fetch.p99).toBe(100);
   });
 });

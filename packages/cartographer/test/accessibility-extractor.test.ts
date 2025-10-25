@@ -4,7 +4,7 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
+import { test, expect } from "vitest";
 import { strict as assert } from "node:assert";
 import { extractAccessibility } from "../src/core/extractors/accessibility.js";
 
@@ -26,8 +26,8 @@ test("should count missing alt attributes", () => {
     renderMode: "raw"
   });
   
-  assert.equal(result.missingAltCount, 2); // banner.jpg and photo.png (empty alt)
-  assert.equal(result.missingAltSources?.length, 2);
+  expect(result.missingAltCount).toBe(2); // banner.jpg and photo.png (empty alt)
+  expect(result.missingAltSources?.length).toBe(2);
 });
 
 test("should build heading order", () => {
@@ -49,7 +49,7 @@ test("should build heading order", () => {
     renderMode: "raw"
   });
   
-  assert.deepEqual(result.headingOrder, ["H1", "H2", "H3", "H2"]);
+  expect(result.headingOrder).toBe(["H1").toBe("H2", "H3", "H2"]);
 });
 
 test("should detect landmarks", () => {
@@ -71,11 +71,11 @@ test("should detect landmarks", () => {
     renderMode: "raw"
   });
   
-  assert.equal(result.landmarks.header, true);
-  assert.equal(result.landmarks.nav, true);
-  assert.equal(result.landmarks.main, true);
-  assert.equal(result.landmarks.aside, false);
-  assert.equal(result.landmarks.footer, true);
+  expect(result.landmarks.header).toBe(true);
+  expect(result.landmarks.nav).toBe(true);
+  expect(result.landmarks.main).toBe(true);
+  expect(result.landmarks.aside).toBe(false);
+  expect(result.landmarks.footer).toBe(true);
 });
 
 test("should count ARIA roles", () => {
@@ -96,8 +96,8 @@ test("should count ARIA roles", () => {
     renderMode: "raw"
   });
   
-  assert.equal(result.roles["button"], 2);
-  assert.equal(result.roles["alert"], 1);
+  expect(result.roles["button"]).toBe(2);
+  expect(result.roles["alert"]).toBe(1);
 });
 
 test("should not include contrastViolations in raw mode", () => {
@@ -116,5 +116,5 @@ test("should not include contrastViolations in raw mode", () => {
     renderMode: "raw"
   });
   
-  assert.equal(result.contrastViolations, undefined);
+  expect(result.contrastViolations).toBe(undefined);
 });

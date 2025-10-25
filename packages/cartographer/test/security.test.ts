@@ -4,8 +4,8 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import {
   normalizeUrlEnhanced,
   isIDN,
@@ -17,28 +17,28 @@ import {
 
 test("normalizeUrlEnhanced - basic normalization", () => {
   const result = normalizeUrlEnhanced("https://Example.COM/Path?b=2&a=1#frag");
-  assert.strictEqual(result, "https://example.com/Path?a=1&b=2");
+  expect(result).toBe("https://example.com/Path?a=1&b=2");
 });
 
 test("normalizeUrlEnhanced - fragment removal", () => {
   const result = normalizeUrlEnhanced("https://example.com/page#section", {
     removeFragment: true
   });
-  assert.ok(!result.includes("#section"));
+  expect(!result.includes("#section").toBeTruthy());
 });
 
 test("normalizeUrlEnhanced - query param sorting", () => {
   const result = normalizeUrlEnhanced("https://example.com/?z=3&a=1&m=2", {
     sortQueryParams: true
   });
-  assert.strictEqual(result, "https://example.com/?a=1&m=2&z=3");
+  expect(result).toBe("https://example.com/?a=1&m=2&z=3");
 });
 
 test("normalizeUrlEnhanced - scheme upgrade", () => {
   const result = normalizeUrlEnhanced("http://example.com/page", {
     upgradeScheme: true
   });
-  assert.strictEqual(result, "https://example.com/page");
+  expect(result).toBe("https://example.com/page");
 });
 
 test("normalizeUrlEnhanced - punycode conversion", () => {
@@ -46,26 +46,26 @@ test("normalizeUrlEnhanced - punycode conversion", () => {
   const result = normalizeUrlEnhanced("https://münchen.de/path", {
     punycodeDomains: true
   });
-  assert.ok(result.includes("xn--"));
+  expect(result.includes("xn--").toBeTruthy());
 });
 
 test("normalizeUrlEnhanced - trailing slash normalization", () => {
   const result = normalizeUrlEnhanced("https://example.com/blog", {
     normalizeTrailingSlash: true
   });
-  assert.strictEqual(result, "https://example.com/blog/");
+  expect(result).toBe("https://example.com/blog/");
 });
 
 test("normalizeUrlEnhanced - lowercase path", () => {
   const result = normalizeUrlEnhanced("https://example.com/Path/TO/Page", {
     lowercasePath: true
   });
-  assert.strictEqual(result, "https://example.com/path/to/page");
+  expect(result).toBe("https://example.com/path/to/page");
 });
 
 test("normalizeUrlEnhanced - preserve path case by default", () => {
   const result = normalizeUrlEnhanced("https://example.com/CaseSensitive");
-  assert.strictEqual(result, "https://example.com/CaseSensitive");
+  expect(result).toBe("https://example.com/CaseSensitive");
 });
 
 test("normalizeUrlEnhanced - combined options", () => {
@@ -76,188 +76,188 @@ test("normalizeUrlEnhanced - combined options", () => {
     lowercaseDomain: true,
     lowercasePath: false
   });
-  assert.strictEqual(result, "https://example.com/Path?a=1&c=3");
+  expect(result).toBe("https://example.com/Path?a=1&c=3");
 });
 
 test("isIDN - detects non-ASCII domains", () => {
-  assert.strictEqual(isIDN("münchen.de"), true);
-  assert.strictEqual(isIDN("example.com"), false);
-  assert.strictEqual(isIDN("xn--mnchen-3ya.de"), false); // Already punycode
+  expect(isIDN("münchen.de")).toBe(true);
+  expect(isIDN("example.com")).toBe(false);
+  expect(isIDN("xn--mnchen-3ya.de")).toBe(false); // Already punycode
 });
 
 test("isIDN - detects various unicode scripts", () => {
-  assert.strictEqual(isIDN("中国.com"), true); // Chinese
-  assert.strictEqual(isIDN("日本.jp"), true); // Japanese
-  assert.strictEqual(isIDN("한국.kr"), true); // Korean
-  assert.strictEqual(isIDN("مصر.com"), true); // Arabic
-  assert.strictEqual(isIDN("россия.ru"), true); // Cyrillic
+  expect(isIDN("中国.com")).toBe(true); // Chinese
+  expect(isIDN("日本.jp")).toBe(true); // Japanese
+  expect(isIDN("한국.kr")).toBe(true); // Korean
+  expect(isIDN("مصر.com")).toBe(true); // Arabic
+  expect(isIDN("россия.ru")).toBe(true); // Cyrillic
 });
 
 test("punycodeToUnicode - converts punycode to Unicode", () => {
   const result = punycodeToUnicode("xn--mnchen-3ya.de");
-  assert.strictEqual(result, "münchen.de");
+  expect(result).toBe("münchen.de");
 });
 
 test("unicodeToPunycode - converts Unicode to punycode", () => {
   const result = unicodeToPunycode("münchen.de");
-  assert.strictEqual(result, "xn--mnchen-3ya.de");
+  expect(result).toBe("xn--mnchen-3ya.de");
 });
 
 test("unicodeToPunycode - roundtrip conversion", () => {
   const original = "москва.ru"; // Russian
   const punycode = unicodeToPunycode(original);
   const decoded = punycodeToUnicode(punycode);
-  assert.strictEqual(decoded, original);
+  expect(decoded).toBe(original);
 });
 
 test("isPrivateIP - detects localhost", () => {
-  assert.strictEqual(isPrivateIP("http://localhost/path"), true);
-  assert.strictEqual(isPrivateIP("https://localhost:8080/"), true);
+  expect(isPrivateIP("http://localhost/path")).toBe(true);
+  expect(isPrivateIP("https://localhost:8080/")).toBe(true);
 });
 
 test("isPrivateIP - detects 127.0.0.0/8 loopback", () => {
-  assert.strictEqual(isPrivateIP("http://127.0.0.1/"), true);
-  assert.strictEqual(isPrivateIP("http://127.1.2.3/"), true);
-  assert.strictEqual(isPrivateIP("http://127.255.255.255/"), true);
+  expect(isPrivateIP("http://127.0.0.1/")).toBe(true);
+  expect(isPrivateIP("http://127.1.2.3/")).toBe(true);
+  expect(isPrivateIP("http://127.255.255.255/")).toBe(true);
 });
 
 test("isPrivateIP - detects 10.0.0.0/8 private range", () => {
-  assert.strictEqual(isPrivateIP("http://10.0.0.1/"), true);
-  assert.strictEqual(isPrivateIP("http://10.255.255.255/"), true);
-  assert.strictEqual(isPrivateIP("http://10.1.2.3/path"), true);
+  expect(isPrivateIP("http://10.0.0.1/")).toBe(true);
+  expect(isPrivateIP("http://10.255.255.255/")).toBe(true);
+  expect(isPrivateIP("http://10.1.2.3/path")).toBe(true);
 });
 
 test("isPrivateIP - detects 172.16.0.0/12 private range", () => {
-  assert.strictEqual(isPrivateIP("http://172.16.0.1/"), true);
-  assert.strictEqual(isPrivateIP("http://172.31.255.255/"), true);
-  assert.strictEqual(isPrivateIP("http://172.20.0.1/"), true);
+  expect(isPrivateIP("http://172.16.0.1/")).toBe(true);
+  expect(isPrivateIP("http://172.31.255.255/")).toBe(true);
+  expect(isPrivateIP("http://172.20.0.1/")).toBe(true);
 });
 
 test("isPrivateIP - detects 192.168.0.0/16 private range", () => {
-  assert.strictEqual(isPrivateIP("http://192.168.0.1/"), true);
-  assert.strictEqual(isPrivateIP("http://192.168.1.1/"), true);
-  assert.strictEqual(isPrivateIP("http://192.168.255.255/"), true);
+  expect(isPrivateIP("http://192.168.0.1/")).toBe(true);
+  expect(isPrivateIP("http://192.168.1.1/")).toBe(true);
+  expect(isPrivateIP("http://192.168.255.255/")).toBe(true);
 });
 
 test("isPrivateIP - detects 169.254.0.0/16 link-local", () => {
-  assert.strictEqual(isPrivateIP("http://169.254.0.1/"), true);
-  assert.strictEqual(isPrivateIP("http://169.254.169.254/"), true); // AWS metadata
+  expect(isPrivateIP("http://169.254.0.1/")).toBe(true);
+  expect(isPrivateIP("http://169.254.169.254/")).toBe(true); // AWS metadata
 });
 
 test("isPrivateIP - detects IPv6 private ranges", () => {
-  assert.strictEqual(isPrivateIP("http://[::1]/"), true); // Loopback
-  assert.strictEqual(isPrivateIP("http://[fe80::1]/"), true); // Link-local
-  assert.strictEqual(isPrivateIP("http://[fc00::1]/"), true); // Unique local
-  assert.strictEqual(isPrivateIP("http://[fd00::1]/"), true); // Unique local
+  expect(isPrivateIP("http://[::1]/")).toBe(true); // Loopback
+  expect(isPrivateIP("http://[fe80::1]/")).toBe(true); // Link-local
+  expect(isPrivateIP("http://[fc00::1]/")).toBe(true); // Unique local
+  expect(isPrivateIP("http://[fd00::1]/")).toBe(true); // Unique local
 });
 
 test("isPrivateIP - allows public IPs", () => {
-  assert.strictEqual(isPrivateIP("http://8.8.8.8/"), false); // Google DNS
-  assert.strictEqual(isPrivateIP("http://1.1.1.1/"), false); // Cloudflare DNS
-  assert.strictEqual(isPrivateIP("http://93.184.216.34/"), false); // example.com
-  assert.strictEqual(isPrivateIP("https://example.com/"), false);
+  expect(isPrivateIP("http://8.8.8.8/")).toBe(false); // Google DNS
+  expect(isPrivateIP("http://1.1.1.1/")).toBe(false); // Cloudflare DNS
+  expect(isPrivateIP("http://93.184.216.34/")).toBe(false); // example.com
+  expect(isPrivateIP("https://example.com/")).toBe(false);
 });
 
 test("isPrivateIP - edge cases", () => {
-  assert.strictEqual(isPrivateIP("http://0.0.0.0/"), true); // Invalid/default route
-  assert.strictEqual(isPrivateIP("http://255.255.255.255/"), true); // Broadcast
-  assert.strictEqual(isPrivateIP("invalid-url"), false); // Invalid URL returns false
+  expect(isPrivateIP("http://0.0.0.0/")).toBe(true); // Invalid/default route
+  expect(isPrivateIP("http://255.255.255.255/")).toBe(true); // Broadcast
+  expect(isPrivateIP("invalid-url")).toBe(false); // Invalid URL returns false
 });
 
 test("isHomographAttack - detects Cyrillic lookalikes", () => {
   // "аррӏе.com" uses Cyrillic 'а', 'р', 'ӏ' that look like Latin 'a', 'p', 'l'
-  assert.strictEqual(isHomographAttack("https://аррӏе.com"), true);
+  expect(isHomographAttack("https://аррӏе.com")).toBe(true);
 });
 
 test("isHomographAttack - detects Greek lookalikes", () => {
   // Greek characters that resemble Latin
-  assert.strictEqual(isHomographAttack("https://αpple.com"), true); // Greek alpha
-  assert.strictEqual(isHomographAttack("https://gοοgle.com"), true); // Greek omicron
+  expect(isHomographAttack("https://αpple.com")).toBe(true); // Greek alpha
+  expect(isHomographAttack("https://gοοgle.com")).toBe(true); // Greek omicron
 });
 
 test("isHomographAttack - detects mixed script attacks", () => {
   // Mix of Latin and Cyrillic (suspicious)
-  assert.strictEqual(isHomographAttack("https://gооgle.com"), true); // Cyrillic 'о'
-  assert.strictEqual(isHomographAttack("https://microsоft.com"), true); // Cyrillic 'о'
+  expect(isHomographAttack("https://gооgle.com")).toBe(true); // Cyrillic 'о'
+  expect(isHomographAttack("https://microsоft.com")).toBe(true); // Cyrillic 'о'
 });
 
 test("isHomographAttack - allows legitimate Latin domains", () => {
-  assert.strictEqual(isHomographAttack("https://apple.com"), false);
-  assert.strictEqual(isHomographAttack("https://google.com"), false);
-  assert.strictEqual(isHomographAttack("https://microsoft.com"), false);
-  assert.strictEqual(isHomographAttack("https://example.com"), false);
+  expect(isHomographAttack("https://apple.com")).toBe(false);
+  expect(isHomographAttack("https://google.com")).toBe(false);
+  expect(isHomographAttack("https://microsoft.com")).toBe(false);
+  expect(isHomographAttack("https://example.com")).toBe(false);
 });
 
 test("isHomographAttack - allows legitimate Unicode domains", () => {
   // Legitimate non-Latin domains (all same script)
-  assert.strictEqual(isHomographAttack("https://münchen.de"), false); // German umlaut
-  assert.strictEqual(isHomographAttack("https://café.fr"), false); // French accent
+  expect(isHomographAttack("https://münchen.de")).toBe(false); // German umlaut
+  expect(isHomographAttack("https://café.fr")).toBe(false); // French accent
 });
 
 test("normalizeUrlEnhanced - handles invalid URLs gracefully", () => {
   const result = normalizeUrlEnhanced("not-a-valid-url");
-  assert.strictEqual(result, "not-a-valid-url"); // Returns lowercase original
+  expect(result).toBe("not-a-valid-url"); // Returns lowercase original
 });
 
 test("normalizeUrlEnhanced - preserves port numbers", () => {
   const result = normalizeUrlEnhanced("https://example.com:8443/path");
-  assert.ok(result.includes(":8443"));
+  expect(result.includes(":8443").toBeTruthy());
 });
 
 test("normalizeUrlEnhanced - handles empty query params", () => {
   const result = normalizeUrlEnhanced("https://example.com/path?");
-  assert.strictEqual(result, "https://example.com/path");
+  expect(result).toBe("https://example.com/path");
 });
 
 test("normalizeUrlEnhanced - handles duplicate query params", () => {
   const result = normalizeUrlEnhanced("https://example.com/?a=1&a=2");
-  assert.ok(result.includes("a=1"));
-  assert.ok(result.includes("a=2"));
+  expect(result.includes("a=1").toBeTruthy());
+  expect(result.includes("a=2").toBeTruthy());
 });
 
 test("normalizeUrlEnhanced - handles encoded characters", () => {
   const result = normalizeUrlEnhanced("https://example.com/path%20with%20spaces");
-  assert.ok(result.includes("%20"));
+  expect(result.includes("%20").toBeTruthy());
 });
 
 test("isPrivateIP - handles URLs with authentication", () => {
-  assert.strictEqual(isPrivateIP("http://user:pass@127.0.0.1/"), true);
-  assert.strictEqual(isPrivateIP("http://user:pass@example.com/"), false);
+  expect(isPrivateIP("http://user:pass@127.0.0.1/")).toBe(true);
+  expect(isPrivateIP("http://user:pass@example.com/")).toBe(false);
 });
 
 test("normalizeUrlEnhanced - handles subdomains", () => {
   const result = normalizeUrlEnhanced("https://subdomain.Example.COM/path");
-  assert.strictEqual(result, "https://subdomain.example.com/path");
+  expect(result).toBe("https://subdomain.example.com/path");
 });
 
 test("normalizeUrlEnhanced - handles www prefix", () => {
   const result = normalizeUrlEnhanced("https://www.example.com/path");
-  assert.ok(result.includes("www.example.com"));
+  expect(result.includes("www.example.com").toBeTruthy());
 });
 
 test("unicodeToPunycode - handles domains with hyphens", () => {
   const result = unicodeToPunycode("my-domain.com");
-  assert.strictEqual(result, "my-domain.com"); // No conversion needed
+  expect(result).toBe("my-domain.com"); // No conversion needed
 });
 
 test("isPrivateIP - handles IPv6 with zone ID", () => {
-  assert.strictEqual(isPrivateIP("http://[fe80::1%eth0]/"), true);
+  expect(isPrivateIP("http://[fe80::1%eth0]/")).toBe(true);
 });
 
 test("normalizeUrlEnhanced - handles data URLs", () => {
   const dataUrl = "data:text/html,<h1>Hello</h1>";
   const result = normalizeUrlEnhanced(dataUrl);
-  assert.ok(result.startsWith("data:"));
+  expect(result.startsWith("data:").toBeTruthy());
 });
 
 test("normalizeUrlEnhanced - handles blob URLs", () => {
   const blobUrl = "blob:https://example.com/550e8400-e29b-41d4-a716-446655440000";
   const result = normalizeUrlEnhanced(blobUrl);
-  assert.ok(result.startsWith("blob:"));
+  expect(result.startsWith("blob:").toBeTruthy());
 });
 
 test("isPrivateIP - handles file URLs", () => {
   const result = isPrivateIP("file:///path/to/file.html");
   // file:// URLs have no hostname, should return false
-  assert.strictEqual(result, false);
+  expect(result).toBe(false);
 });

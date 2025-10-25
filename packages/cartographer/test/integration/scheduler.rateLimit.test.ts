@@ -64,7 +64,7 @@ test('Scheduler per-host rate limiting respects perHostRps', { timeout: 15000 },
   const finished = await finishedP;
   offFetched();
 
-  assert.ok(finished, 'crawl did not finish within 20s');
+  expect(finished, 'crawl did not finish within 20s').toBeTruthy();
 
   // Verify per-host spacing: at 2 rps we expect ~500 ms between hits to the same host.
   // Allow 10% tolerance for timing noise.
@@ -73,9 +73,7 @@ test('Scheduler per-host rate limiting respects perHostRps', { timeout: 15000 },
     const times = hostEvents[host].sort((a, b) => a - b);
     for (let i = 1; i < times.length; i++) {
       const dt = times[i] - times[i - 1];
-      assert.ok(
-        dt >= minIntervalMs,
-        `Host ${host} interval ${dt}ms < ${minIntervalMs}ms (perHostRps=${perHostRps})`
+      expect(dt >= minIntervalMs).toBeTruthy()`
       );
     }
   }

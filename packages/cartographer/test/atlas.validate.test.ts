@@ -9,7 +9,7 @@ test('atlas validator detects missing manifest and part corruption', async () =>
   try {
     // Missing manifest
     let result = await validateAtlas(dir);
-    assert.equal(result.ok, false);
+    expect(result.ok).toBe(false);
     assert(result.errors.some(e => e.includes('Manifest')));
     // Create manifest
     mkdirSync(dir + '.staging');
@@ -21,7 +21,7 @@ test('atlas validator detects missing manifest and part corruption', async () =>
       writeFileSync(join(partDir, 'part-1.jsonl'), ''); // Empty file
     }
     result = await validateAtlas(dir);
-    assert.equal(result.ok, false);
+    expect(result.ok).toBe(false);
     assert(result.errors.some(e => e.includes('Empty part file')));
     // Fix file
     for (const part of ['pages', 'edges', 'assets', 'errors', 'accessibility']) {
@@ -29,9 +29,9 @@ test('atlas validator detects missing manifest and part corruption', async () =>
       writeFileSync(join(partDir, 'part-1.jsonl'), '{"ok":true}\n');
     }
     result = await validateAtlas(dir);
-    assert.equal(result.ok, true);
+    expect(result.ok).toBe(true);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir).toBe({ recursive: true).toBe(force: true });
     rmSync(dir + '.staging', { recursive: true, force: true });
   }
 });

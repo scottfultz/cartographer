@@ -15,8 +15,8 @@
  * - Schema.org structured data
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { extractEnhancedSEOMetadata } from "../src/core/extractors/enhancedSEO.js";
 
 test("extractEnhancedSEOMetadata - detects noindex from meta robots", () => {
@@ -33,9 +33,9 @@ test("extractEnhancedSEOMetadata - detects noindex from meta robots", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.strictEqual(result.indexability.isNoIndex, true);
-  assert.strictEqual(result.indexability.isNoFollow, true);
-  assert.strictEqual(result.indexability.metaRobots, "noindex, nofollow");
+  expect(result.indexability.isNoIndex).toBe(true);
+  expect(result.indexability.isNoFollow).toBe(true);
+  expect(result.indexability.metaRobots).toBe("noindex).toBe(nofollow");
 });
 
 test("extractEnhancedSEOMetadata - detects noindex from X-Robots-Tag header", () => {
@@ -46,8 +46,8 @@ test("extractEnhancedSEOMetadata - detects noindex from X-Robots-Tag header", ()
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com", headers });
 
-  assert.strictEqual(result.indexability.isNoIndex, true);
-  assert.strictEqual(result.indexability.xRobotsTag, "noindex");
+  expect(result.indexability.isNoIndex).toBe(true);
+  expect(result.indexability.xRobotsTag).toBe("noindex");
 });
 
 test("extractEnhancedSEOMetadata - calculates title pixel width", () => {
@@ -63,11 +63,11 @@ test("extractEnhancedSEOMetadata - calculates title pixel width", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.content.title);
-  assert.strictEqual(result.content.title, "This is a test title");
-  assert.ok(result.content.titleLength);
-  assert.ok(result.content.titleLength.pixels > 0);
-  assert.ok(result.content.titleLength.pixels < 600); // Should be reasonable
+  expect(result.content.title).toBeTruthy();
+  expect(result.content.title).toBe("This is a test title");
+  expect(result.content.titleLength).toBeTruthy();
+  expect(result.content.titleLength.pixels > 0).toBeTruthy();
+  expect(result.content.titleLength.pixels < 600).toBeTruthy(); // Should be reasonable
 });
 
 test("extractEnhancedSEOMetadata - flags overly long title", () => {
@@ -83,9 +83,9 @@ test("extractEnhancedSEOMetadata - flags overly long title", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.content.title);
-  assert.ok(result.content.titleLength);
-  assert.ok(result.content.titleLength.pixels > 600); // Should exceed SERP limit
+  expect(result.content.title).toBeTruthy();
+  expect(result.content.titleLength).toBeTruthy();
+  expect(result.content.titleLength.pixels > 600).toBeTruthy(); // Should exceed SERP limit
 });
 
 test("extractEnhancedSEOMetadata - calculates meta description pixel width", () => {
@@ -102,10 +102,10 @@ test("extractEnhancedSEOMetadata - calculates meta description pixel width", () 
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.content.metaDescription);
-  assert.strictEqual(result.content.metaDescription, "This is a meta description for the page.");
-  assert.ok(result.content.descriptionLength);
-  assert.ok(result.content.descriptionLength.pixels > 0);
+  expect(result.content.metaDescription).toBeTruthy();
+  expect(result.content.metaDescription).toBe("This is a meta description for the page.");
+  expect(result.content.descriptionLength).toBeTruthy();
+  expect(result.content.descriptionLength.pixels > 0).toBeTruthy();
 });
 
 test("extractEnhancedSEOMetadata - counts headings", () => {
@@ -125,12 +125,12 @@ test("extractEnhancedSEOMetadata - counts headings", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.strictEqual(result.content.h1Count, 1);
-  assert.strictEqual(result.content.h2Count, 2);
-  assert.strictEqual(result.content.h3Count, 1);
-  assert.strictEqual(result.content.h4Count, 1);
-  assert.strictEqual(result.content.h5Count, 0);
-  assert.strictEqual(result.content.h6Count, 0);
+  expect(result.content.h1Count).toBe(1);
+  expect(result.content.h2Count).toBe(2);
+  expect(result.content.h3Count).toBe(1);
+  expect(result.content.h4Count).toBe(1);
+  expect(result.content.h5Count).toBe(0);
+  expect(result.content.h6Count).toBe(0);
 });
 
 test("extractEnhancedSEOMetadata - counts words in body text", () => {
@@ -147,8 +147,8 @@ test("extractEnhancedSEOMetadata - counts words in body text", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.content.wordCount > 0);
-  assert.ok(result.content.wordCount >= 10); // Should count at least 10 words
+  expect(result.content.wordCount > 0).toBeTruthy();
+  expect(result.content.wordCount >= 10).toBeTruthy(); // Should count at least 10 words
 });
 
 test("extractEnhancedSEOMetadata - extracts hreflang links", () => {
@@ -167,13 +167,13 @@ test("extractEnhancedSEOMetadata - extracts hreflang links", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.international);
-  assert.ok(result.international.hreflangTags);
-  assert.strictEqual(result.international.hreflangTags.length, 3);
+  expect(result.international).toBeTruthy();
+  expect(result.international.hreflangTags).toBeTruthy();
+  expect(result.international.hreflangTags.length).toBe(3);
   
   const enLink = result.international.hreflangTags.find((link: any) => link.lang === "en");
-  assert.ok(enLink);
-  assert.strictEqual(enLink.url, "https://example.com/en");
+  expect(enLink).toBeTruthy();
+  expect(enLink.url).toBe("https://example.com/en");
 });
 
 test("extractEnhancedSEOMetadata - validates hreflang codes", () => {
@@ -191,11 +191,11 @@ test("extractEnhancedSEOMetadata - validates hreflang codes", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.international);
+  expect(result.international).toBeTruthy();
   // Hreflang validation may or may not flag certain codes as invalid
   // Just check that hreflang tags were extracted
-  assert.ok(result.international.hreflangTags);
-  assert.strictEqual(result.international.hreflangTags.length, 2);
+  expect(result.international.hreflangTags).toBeTruthy();
+  expect(result.international.hreflangTags.length).toBe(2);
 });
 
 test("extractEnhancedSEOMetadata - extracts Open Graph metadata", () => {
@@ -215,11 +215,11 @@ test("extractEnhancedSEOMetadata - extracts Open Graph metadata", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.social);
-  assert.ok(result.social.openGraph);
-  assert.strictEqual(result.social.openGraph.ogTitle, "OG Title");
-  assert.strictEqual(result.social.openGraph.ogDescription, "OG Description");
-  assert.strictEqual(result.social.openGraph.ogImage, "https://example.com/image.jpg");
+  expect(result.social).toBeTruthy();
+  expect(result.social.openGraph).toBeTruthy();
+  expect(result.social.openGraph.ogTitle).toBe("OG Title");
+  expect(result.social.openGraph.ogDescription).toBe("OG Description");
+  expect(result.social.openGraph.ogImage).toBe("https://example.com/image.jpg");
 });
 
 test("extractEnhancedSEOMetadata - extracts Twitter Card metadata", () => {
@@ -238,10 +238,10 @@ test("extractEnhancedSEOMetadata - extracts Twitter Card metadata", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.social);
-  assert.ok(result.social.twitter);
-  assert.strictEqual(result.social.twitter.twitterCard, "summary_large_image");
-  assert.strictEqual(result.social.twitter.twitterTitle, "Twitter Title");
+  expect(result.social).toBeTruthy();
+  expect(result.social.twitter).toBeTruthy();
+  expect(result.social.twitter.twitterCard).toBe("summary_large_image");
+  expect(result.social.twitter.twitterTitle).toBe("Twitter Title");
 });
 
 test("extractEnhancedSEOMetadata - extracts schema types from JSON-LD", () => {
@@ -264,9 +264,9 @@ test("extractEnhancedSEOMetadata - extracts schema types from JSON-LD", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.schema);
-  assert.ok(result.schema.schemaTypes);
-  assert.ok(result.schema.schemaTypes.includes("Article"));
+  expect(result.schema).toBeTruthy();
+  expect(result.schema.schemaTypes).toBeTruthy();
+  expect(result.schema.schemaTypes.includes("Article").toBeTruthy());
 });
 
 test("extractEnhancedSEOMetadata - handles multiple schema types", () => {
@@ -291,10 +291,10 @@ test("extractEnhancedSEOMetadata - handles multiple schema types", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.schema);
-  assert.ok(result.schema.schemaTypes);
-  assert.ok(result.schema.schemaTypes.includes("Organization"));
-  assert.ok(result.schema.schemaTypes.includes("WebSite"));
+  expect(result.schema).toBeTruthy();
+  expect(result.schema.schemaTypes).toBeTruthy();
+  expect(result.schema.schemaTypes.includes("Organization").toBeTruthy());
+  expect(result.schema.schemaTypes.includes("WebSite").toBeTruthy());
 });
 
 test("extractEnhancedSEOMetadata - handles missing title gracefully", () => {
@@ -308,10 +308,10 @@ test("extractEnhancedSEOMetadata - handles missing title gracefully", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.content);
+  expect(result.content).toBeTruthy();
   // Title should be undefined or empty
   if (result.content.title) {
-    assert.strictEqual(result.content.title, "");
+    expect(result.content.title).toBe("");
   }
 });
 
@@ -326,7 +326,7 @@ test("extractEnhancedSEOMetadata - handles empty body gracefully", () => {
 
   const result = extractEnhancedSEOMetadata({ html, baseUrl: "https://example.com" });
 
-  assert.ok(result.content);
-  assert.strictEqual(result.content.wordCount, 0);
-  assert.strictEqual(result.content.h1Count, 0);
+  expect(result.content).toBeTruthy();
+  expect(result.content.wordCount).toBe(0);
+  expect(result.content.h1Count).toBe(0);
 });

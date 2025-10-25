@@ -4,16 +4,16 @@
  * Proprietary and confidential.
  */
 
-import { test } from "node:test";
+import { test, expect } from "vitest";
 import { strict as assert } from "node:assert";
 import { existsSync } from "fs";
 
 test("crawl small site", async () => {
   // TODO: Implement actual crawl test
-  assert.ok(true, "Test placeholder");
+  expect(true, "Test placeholder").toBeTruthy();
 });
 
 test("manifest is valid", async () => {
   // TODO: Validate manifest.json structure
-  assert.ok(true, "Test placeholder");
+  expect(true, "Test placeholder").toBeTruthy();
 });

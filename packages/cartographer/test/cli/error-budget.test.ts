@@ -5,7 +5,7 @@
  */
 
 import { describe, it } from "node:test";
-import assert from "node:assert";
+// Migrated to vitest expect()
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs";
@@ -43,10 +43,10 @@ describe("Error Budget Enforcement", () => {
     }
     
     // Verify exit code is 2 (error budget exceeded)
-    assert.strictEqual(exitCode, 2, "Exit code should be 2 when error budget is exceeded");
+    expect(exitCode).toBe(2);
     
     // Verify JSON summary was written
-    assert.ok(stdout.trim().length > 0, "stdout should contain JSON summary");
+    expect(stdout.trim().toBeTruthy().length > 0).toBe("stdout should contain JSON summary");
     
     const json = JSON.parse(stdout.trim());
     
@@ -54,18 +54,18 @@ describe("Error Budget Enforcement", () => {
     const hasErrorBudgetNote = json.notes.some((note: string) => 
       note.includes("error budget exceeded") || note.includes("Terminated")
     );
-    assert.ok(hasErrorBudgetNote, "Summary notes should mention error budget exceeded");
+    expect(hasErrorBudgetNote, "Summary notes should mention error budget exceeded").toBeTruthy();
     
     // Verify .atls file exists (partial data)
-    assert.ok(fs.existsSync(atlsPath), ".atls file should exist even with partial data");
+    expect(fs.existsSync(atlsPath).toBeTruthy()).toBe(".atls file should exist even with partial data");
     
     // Verify the archive can be opened
     const atlas = await openAtlas(atlsPath);
-    assert.ok(atlas.manifest, "Manifest should be readable");
-    assert.ok(atlas.summary, "Summary should be readable");
+    expect(atlas.manifest, "Manifest should be readable").toBeTruthy();
+    expect(atlas.summary, "Summary should be readable").toBeTruthy();
     
     // Verify error count is > 0
-    assert.ok(atlas.summary.totalErrors > 0, "Should have recorded errors");
+    expect(atlas.summary.totalErrors > 0, "Should have recorded errors").toBeTruthy();
     
     console.log(`✓ Error budget test passed: ${atlas.summary.totalErrors} errors recorded, exit code ${exitCode}`);
   });
@@ -97,17 +97,17 @@ describe("Error Budget Enforcement", () => {
     }
     
     // Verify exit code is 0 (success)
-    assert.strictEqual(exitCode, 0, "Exit code should be 0 when crawl succeeds");
+    expect(exitCode).toBe(0);
     
     // Verify JSON summary
     const json = JSON.parse(stdout.trim());
-    assert.ok(json.summary.pages > 0, "Should have crawled some pages");
+    expect(json.summary.pages > 0, "Should have crawled some pages").toBeTruthy();
     
     // Verify notes do NOT contain error budget exceeded
     const hasErrorBudgetNote = json.notes.some((note: string) => 
       note.includes("error budget exceeded")
     );
-    assert.ok(!hasErrorBudgetNote, "Summary notes should not mention error budget exceeded");
+    expect(!hasErrorBudgetNote, "Summary notes should not mention error budget exceeded").toBeTruthy();
     
     console.log(`✓ Success test passed: ${json.summary.pages} pages crawled, exit code ${exitCode}`);
   });

@@ -14,8 +14,8 @@
  * - Error handling
  */
 
-import { test } from "node:test";
-import assert from "node:assert";
+import { test, expect } from "vitest";
+// Migrated to vitest expect()
 import { detectTechStack, extractScriptUrls, detectTechnologies } from "../src/core/extractors/wappalyzer.js";
 
 test("extractScriptUrls - extracts script src URLs from HTML", () => {
@@ -34,17 +34,17 @@ test("extractScriptUrls - extracts script src URLs from HTML", () => {
 
   const scripts = extractScriptUrls(html);
   
-  assert.strictEqual(scripts.length, 3);
-  assert.ok(scripts.includes("https://cdn.example.com/react.js"));
-  assert.ok(scripts.includes("/js/app.js"));
-  assert.ok(scripts.includes("https://analytics.google.com/ga.js"));
+  expect(scripts.length).toBe(3);
+  expect(scripts.includes("https://cdn.example.com/react.js").toBeTruthy());
+  expect(scripts.includes("/js/app.js").toBeTruthy());
+  expect(scripts.includes("https://analytics.google.com/ga.js").toBeTruthy());
 });
 
 test("extractScriptUrls - handles empty HTML", () => {
   const html = "<html><body></body></html>";
   const scripts = extractScriptUrls(html);
   
-  assert.strictEqual(scripts.length, 0);
+  expect(scripts.length).toBe(0);
 });
 
 test("extractScriptUrls - handles malformed HTML", () => {
@@ -52,7 +52,7 @@ test("extractScriptUrls - handles malformed HTML", () => {
   const scripts = extractScriptUrls(html);
   
   // Should still extract valid scripts
-  assert.ok(scripts.length >= 1);
+  expect(scripts.length >= 1).toBeTruthy();
 });
 
 test("detectTechStack - returns array of technology names", async () => {
@@ -78,10 +78,10 @@ test("detectTechStack - returns array of technology names", async () => {
     }
   });
 
-  assert.ok(Array.isArray(result));
+  expect(Array.isArray(result).toBeTruthy());
   // Result should be an array of strings
   if (result.length > 0) {
-    assert.strictEqual(typeof result[0], "string");
+    expect(typeof result[0]).toBe("string");
   }
 });
 
@@ -92,7 +92,7 @@ test("detectTechStack - handles empty HTML", async () => {
     headers: {}
   });
 
-  assert.ok(Array.isArray(result));
+  expect(Array.isArray(result).toBeTruthy());
   // Empty or minimal HTML might still detect some technologies (like HTTP headers)
 });
 
@@ -115,17 +115,17 @@ test("detectTechnologies - returns detailed technology info", async () => {
     }
   });
 
-  assert.ok(result.technologies);
-  assert.ok(Array.isArray(result.technologies));
-  assert.ok(typeof result.detectionTime === "number");
-  assert.ok(result.detectionTime >= 0);
+  expect(result.technologies).toBeTruthy();
+  expect(Array.isArray(result.technologies).toBeTruthy());
+  expect(typeof result.detectionTime === "number").toBeTruthy();
+  expect(result.detectionTime >= 0).toBeTruthy();
 
   // Check technology structure if any detected
   if (result.technologies.length > 0) {
     const tech = result.technologies[0];
-    assert.ok(tech.name);
-    assert.ok(Array.isArray(tech.categories));
-    assert.ok(typeof tech.confidence === "number");
+    expect(tech.name).toBeTruthy();
+    expect(Array.isArray(tech.categories).toBeTruthy());
+    expect(typeof tech.confidence === "number").toBeTruthy();
   }
 });
 
@@ -149,8 +149,8 @@ test("detectTechnologies - includes script URLs for better detection", async () 
     scripts
   });
 
-  assert.ok(result.technologies);
-  assert.ok(Array.isArray(result.technologies));
+  expect(result.technologies).toBeTruthy();
+  expect(Array.isArray(result.technologies).toBeTruthy());
 });
 
 test("detectTechStack - with HTTP headers for better detection", async () => {
@@ -166,7 +166,7 @@ test("detectTechStack - with HTTP headers for better detection", async () => {
     }
   });
 
-  assert.ok(Array.isArray(result));
+  expect(Array.isArray(result).toBeTruthy());
   // Should detect at least some technologies from headers
 });
 
@@ -179,7 +179,7 @@ test("detectTechnologies - measures detection time", async () => {
     headers: {}
   });
 
-  assert.ok(typeof result.detectionTime === "number");
-  assert.ok(result.detectionTime >= 0);
-  assert.ok(result.detectionTime < 10000); // Should complete in < 10 seconds
+  expect(typeof result.detectionTime === "number").toBeTruthy();
+  expect(result.detectionTime >= 0).toBeTruthy();
+  expect(result.detectionTime < 10000).toBeTruthy(); // Should complete in < 10 seconds
 });
