@@ -50,10 +50,15 @@ jobs:
         echo "Running tests with Vitest..."
         pnpm test --filter @cf/cartographer 2>&1 | tee tmp/test-output.txt || true
         
-        # Extract test counts from Vitest output
-        TOTAL=$(grep -oP 'Test Files.*\d+' tmp/test-output.txt | tail -1 | grep -oP '\d+' || echo "0")
-        PASSED=$(grep -oP '\d+ passed' tmp/test-output.txt | tail -1 | grep -oP '\d+' || echo "0")
-        FAILED=$(grep -oP '\d+ failed' tmp/test-output.txt | tail -1 | grep -oP '\d+' || echo "0")
+        # Extract test counts from Vitest output (Tests line, not Test Files)
+        PASSED=$(grep -oP 'Tests\s+\K\d+(?=\s+passed)' tmp/test-output.txt | tail -1 || echo "0")
+        FAILED=$(grep -oP 'Tests.*\K\d+(?=\s+failed)' tmp/test-output.txt | tail -1 || echo "0")
+        TOTAL=$((PASSED + FAILED))
+        
+        # Ensure variables are not empty
+        PASSED=${PASSED:-0}
+        FAILED=${FAILED:-0}
+        TOTAL=${TOTAL:-0}
         
         echo "TEST_TOTAL=$TOTAL" >> $GITHUB_ENV
         echo "TEST_PASSED=$PASSED" >> $GITHUB_ENV
@@ -61,9 +66,9 @@ jobs:
         
         echo "Tests: $PASSED passed, $FAILED failed out of $TOTAL total"
         
-        # Exit with error if tests failed (but allow up to 6 known failures)
-        if [ "$FAILED" -gt "6" ]; then
-          echo "::error::$FAILED tests failed (expected max 6)"
+        # Exit with error if tests failed
+        if [ "$FAILED" -gt "0" ]; then
+          echo "::error::$FAILED tests failed"
           exit 1
         fi
     
@@ -101,10 +106,9 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
         echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-        echo "| Total Tests | 570 |" >> $GITHUB_STEP_SUMMARY
-        echo "| ✅ Passed | ${TEST_PASSED:-564} |" >> $GITHUB_STEP_SUMMARY
-        echo "| ❌ Failed | ${TEST_FAILED:-6} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Pass Rate | 98.9% |" >> $GITHUB_STEP_SUMMARY
+        echo "| Total Tests | ${TEST_TOTAL:-N/A} |" >> $GITHUB_STEP_SUMMARY
+        echo "| ✅ Passed | ${TEST_PASSED:-N/A} |" >> $GITHUB_STEP_SUMMARY
+        echo "| ❌ Failed | ${TEST_FAILED:-N/A} |" >> $GITHUB_STEP_SUMMARY
         echo "| Build Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "📦 [Download Test Artifacts](../actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
