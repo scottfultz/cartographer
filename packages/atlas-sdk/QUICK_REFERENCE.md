@@ -87,6 +87,58 @@ for await (const page of select('./crawl.atls', {
 }
 ```
 
+## Archive Validation
+
+### Validate Archive
+```typescript
+import { validate } from '@caifrazier/atlas-sdk';
+
+const result = await validate('./crawl.atls', {
+  checkIntegrity: true,      // Check edges reference valid pages (default: true)
+  checkBrokenLinks: true,    // Check for internal 404s (default: true)
+  checkManifest: true,       // Verify manifest counts (default: true)
+  maxIssues: 1000,           // Stop after N issues (default: 1000)
+  errorsOnly: false,         // Only report errors, skip warnings (default: false)
+});
+
+console.log(`Valid: ${result.valid}`);
+console.log(`Errors: ${result.stats.errorsFound}`);
+console.log(`Warnings: ${result.stats.warningsFound}`);
+
+// Review issues
+for (const issue of result.issues) {
+  console.log(`[${issue.severity}] ${issue.code}: ${issue.message}`);
+}
+```
+
+### Validation Checks
+
+**Schema Compliance:**
+- ✅ All required fields present
+- ✅ Field types correct
+- ✅ Values within valid ranges
+
+**Referential Integrity:**
+- ✅ Edges reference existing pages
+- ✅ Assets reference existing pages
+- ✅ All URLs are well-formed
+
+**Manifest Consistency:**
+- ✅ Record counts match actual data
+- ✅ Required manifest fields present
+- ✅ Format version valid
+
+**Link Quality:**
+- ⚠️ Internal links to 404 pages (warning)
+- ⚠️ Internal links to 5xx errors (warning)
+
+### Exit Codes
+```typescript
+if (!result.valid) {
+  process.exit(1); // Exit with error if validation failed
+}
+```
+
 ## Common Patterns
 
 ### Count by Status Code
@@ -174,4 +226,5 @@ See `examples/` directory for complete working code:
 - `top-sections.mjs` - Section analysis
 - `missing-alt.mjs` - Accessibility audit
 - `status-report.mjs` - Status code breakdown
+- `validate-archive.ts` - Archive validation with detailed reporting
 - `test.mjs` - API test suite

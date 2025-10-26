@@ -17,6 +17,7 @@ import type {
 } from "./types.js";
 
 export * from "./types.js";
+export * from "./validate.js";
 
 // Re-export low-level functions for engine use
 export { readManifest, readSummary, iterateParts } from "./reader.js";
