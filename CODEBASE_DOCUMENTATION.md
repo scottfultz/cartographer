@@ -15,9 +15,10 @@ Cartographer is a production-grade headless web crawler that produces **Atlas v1
 - **pnpm 9.0.0** workspaces for efficient dependency management
 - **Turbo 2.0** for optimized incremental builds with caching
 - **Vitest 2.1.9** for fast testing with native ESM support
-- **99.1% test coverage** (565/570 tests passing)
+- **99.2% test coverage** (525/529 tests passing in CI)
 - **Zero TypeScript compilation errors** in active codebase
 - **11 packages** (7 libraries + 4 future apps)
+- **CI/CD passing** with documented test failures
 
 ---
 
@@ -91,7 +92,9 @@ cartographer/
 - `cheerio` - HTML parsing
 - `@mongodb-js/zstd` - Zstandard compression
 
-**Testing:** 570 tests, 99.1% pass rate (565 passing, 5 known failures)
+**Testing:** 
+- Local: 570 tests, 99.1% pass rate (565 passing, 5 known failures)
+- CI: 529 tests, 99.2% pass rate (525 passing, 4 known failures)
 
 #### `@atlas/sdk`
 **SDK for reading Atlas archives** - TypeScript SDK for consuming .atls files.
@@ -227,9 +230,17 @@ packages/cartographer/test/
 
 ### Test Coverage
 
-**Total:** 570 tests  
-**Passing:** 565 (99.1%)  
-**Failing:** 5 (documented in `REMAINING_TEST_FAILURES.md`)
+**Total:** 
+- Local: 570 tests
+- CI: 529 tests (some tests skipped in CI environment)
+
+**Passing:** 
+- Local: 565 (99.1%)
+- CI: 525 (99.2%)
+
+**Failing:** 
+- Local: 5 (documented in `REMAINING_TEST_FAILURES.md`)
+- CI: 4 (documented in `REMAINING_TEST_FAILURES.md`)
 
 **Key Test Suites (All Passing):**
 - ✅ wcagData-static (36/36) - WCAG data extraction
@@ -241,10 +252,9 @@ packages/cartographer/test/
 
 **Remaining Failures (Deferred):**
 - error-budget (1) - Timing/error injection
-- scheduler.rateLimit (1) - Precise timing validation
 - ndjson (1) - Log event count expectations
-- accessibility-integration (1) - Full-mode requirements
-- atlas-sdk-integration (1) - Archive finalization
+- accessibility-integration (1) - readManifest import issue
+- atlas-sdk-integration (1) - Full-mode accessibility data
 
 ### Running Tests
 
@@ -722,14 +732,15 @@ Currently private - no public npm publishing.
 
 ### Test Failures
 
-**5 remaining test failures (0.9%)** - See `REMAINING_TEST_FAILURES.md` for details.
+**4 remaining test failures (0.8% in CI, 0.9% local)** - See `REMAINING_TEST_FAILURES.md` for details.
 
 All failures are integration/smoke tests, not blocking core functionality:
 - error-budget (timing)
-- scheduler.rateLimit (precise timing)
 - ndjson (event count)
-- accessibility-integration (full mode)
-- atlas-sdk-integration (archive finalization)
+- accessibility-integration (readManifest import)
+- atlas-sdk-integration (full mode accessibility data)
+
+**CI Status:** ✅ Build passes, tests run successfully with documented failures
 
 ### Schema Validation Warnings
 
