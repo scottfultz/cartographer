@@ -48,6 +48,16 @@ export async function startJob(partialConfig: Partial<EngineConfig>): Promise<nu
   log("info", `Output: ${config.outAtls}`);
   log("info", `Mode: ${config.render.mode}, RPS: ${config.http.rps}, Concurrency: ${config.render.concurrency}`);
   
+  // Log robots.txt policy explicitly for compliance auditing
+  if (config.robots.overrideUsed) {
+    log("warn", `⚠️  robots.txt OVERRIDE ENABLED - All robots.txt directives will be IGNORED`);
+    log("warn", `⚠️  Only use on sites you administer. Respect terms of service.`);
+  } else if (config.robots.respect) {
+    log("info", `✅ robots.txt RESPECT ENABLED - All robots.txt directives will be honored`);
+  } else {
+    log("warn", `⚠️  robots.txt respect DISABLED - Crawling without robots.txt checks`);
+  }
+  
   // Initialize Atlas writer with staging directory (use existing crawlId if resuming)
   const writer = new AtlasWriter(config.outAtls, config, resumeCrawlId);
   await writer.init();

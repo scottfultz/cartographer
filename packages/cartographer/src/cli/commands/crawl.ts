@@ -47,6 +47,7 @@ export const crawlCommand: CommandModule = {
     .option("stealth", { type: "boolean", default: false, describe: "Enable stealth mode to hide automation signals (requires playwright-extra)" })
     .option("timeout", { type: "number", default: 30000, describe: "Page load timeout in milliseconds (default: 30000)" })
     .option("validateArchive", { type: "boolean", default: true, describe: "Validate .atls archive after creation (QA check)" })
+    .option("force", { type: "boolean", default: false, describe: "Overwrite existing .atls file if it exists (default: false for safety)" })
     .option("noScreenshots", { type: "boolean", default: false, describe: "Disable screenshot capture in full mode (screenshots enabled by default)" })
     .option("screenshotQuality", { type: "number", default: 80, describe: "JPEG quality for screenshots (1-100, default: 80)" })
     .option("screenshotFormat", { type: "string", choices: ["jpeg", "png"], default: "jpeg", describe: "Screenshot format (default: jpeg)" })
@@ -75,6 +76,7 @@ export const crawlCommand: CommandModule = {
       persistSession: z.boolean(),
       stealth: z.boolean(),
       validateArchive: z.boolean(),
+      force: z.boolean(),
       noScreenshots: z.boolean(),
       screenshotQuality: z.number().min(1).max(100),
       screenshotFormat: z.enum(["jpeg", "png"]),
@@ -87,6 +89,13 @@ export const crawlCommand: CommandModule = {
       seedUrl: cfg.seeds[0],
       mode: cfg.mode
     });
+
+    // Safety check: prevent overwriting existing .atls unless --force
+    if (!cfg.force && fs.existsSync(outAtls)) {
+      console.error(`[ERROR] Output file already exists: ${outAtls}`);
+      console.error(`[ERROR] Use --force to overwrite, or specify a different --out path.`);
+      process.exit(4); // Exit code 4: IO/Write error
+    }
 
     const userAgent = cfg.userAgent || DEFAULT_CONFIG.http?.userAgent || "CartographerBot/1.0 (+contact:continuum)";
     const manifestNotes: string[] = [];

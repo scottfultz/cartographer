@@ -38,11 +38,25 @@ export class RobotsCache {
     // If robots override is enabled, always allow
     if (cfg.robots.overrideUsed) {
       log("warn", `Robots override: allowing ${url}`);
+      log("info", JSON.stringify({
+        event: "robots_decision",
+        url,
+        decision: "allowed",
+        reason: "robots_override_enabled",
+        userAgent: cfg.http.userAgent
+      }));
       return { allow: true, ua: cfg.http.userAgent };
     }
 
     // If respect is disabled, allow
     if (!cfg.robots.respect) {
+      log("info", JSON.stringify({
+        event: "robots_decision",
+        url,
+        decision: "allowed",
+        reason: "robots_respect_disabled",
+        userAgent: cfg.http.userAgent
+      }));
       return { allow: true, ua: cfg.http.userAgent };
     }
 
@@ -55,11 +69,31 @@ export class RobotsCache {
     
     if (!robotsTxt) {
       // No robots.txt found, allow by default
+      log("info", JSON.stringify({
+        event: "robots_decision",
+        url,
+        origin,
+        decision: "allowed",
+        reason: "no_robots_txt",
+        userAgent: cfg.http.userAgent
+      }));
       return { allow: true, ua: cfg.http.userAgent };
     }
 
     // Parse and check rules
     const result = this.checkRules(robotsTxt, path, cfg.http.userAgent);
+    
+    // Log the robots.txt decision for compliance auditing
+    log("info", JSON.stringify({
+      event: "robots_decision",
+      url,
+      origin,
+      decision: result.allow ? "allowed" : "denied",
+      reason: result.allow ? "robots_allowed" : "robots_denied",
+      userAgent: result.ua,
+      path
+    }));
+    
     return result;
   }
 
