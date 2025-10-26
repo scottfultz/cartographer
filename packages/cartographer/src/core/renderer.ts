@@ -400,6 +400,106 @@ async function renderWithPlaywright(
       return document.documentElement.outerHTML as string;
     });
     
+    // ===== CAPTURE SCREENSHOTS IMMEDIATELY (before any early returns) =====
+    // This ensures screenshots are captured even if page times out or has challenges
+    const screenshots: { desktop?: Buffer; mobile?: Buffer } = {};
+    
+    if (cfg.render.mode === "full" && cfg.media?.screenshots?.enabled) {
+      const screenshotFormat = cfg.media.screenshots.format || 'jpeg';
+      const screenshotQuality = cfg.media.screenshots.quality || 80;
+      
+      try {
+        // Desktop screenshot (current viewport is already 1280×720)
+        if (cfg.media.screenshots.desktop) {
+          log('debug', `[Renderer] Capturing desktop screenshot for ${url}`);
+          screenshots.desktop = await page.screenshot({
+            type: screenshotFormat,
+            quality: screenshotFormat === 'jpeg' ? screenshotQuality : undefined,
+            fullPage: false // Above-the-fold only
+          });
+        }
+        
+        // Mobile screenshot (switch viewport)
+        if (cfg.media.screenshots.mobile) {
+          log('debug', `[Renderer] Capturing mobile screenshot for ${url}`);
+          await page.setViewportSize({ width: 375, height: 667 });
+          await page.waitForTimeout(500); // Allow reflow
+          
+          screenshots.mobile = await page.screenshot({
+            type: screenshotFormat,
+            quality: screenshotFormat === 'jpeg' ? screenshotQuality : undefined,
+            fullPage: false // Above-the-fold only
+          });
+        }
+        
+        log('debug', `[Renderer] Screenshot capture complete for ${url} (desktop: ${!!screenshots.desktop}, mobile: ${!!screenshots.mobile})`);
+      } catch (screenshotError: any) {
+        log('warn', `[Renderer] Failed to capture screenshots for ${url}: ${screenshotError.message}`);
+        // Don't fail the crawl if screenshots fail - just log and continue
+      }
+    } else if (cfg.media?.screenshots?.enabled && cfg.render.mode !== "full") {
+      log('debug', `[Renderer] Screenshot capture skipped (mode=${cfg.render.mode}, requires full mode)`);
+    }
+    
+    // ===== CAPTURE FAVICON IMMEDIATELY (before any early returns) =====
+    let favicon: { url: string; data: Buffer; mimeType: string } | undefined;
+    
+    if (cfg.render.mode === "full" && cfg.media?.favicons?.enabled) {
+      try {
+        log('debug', `[Renderer] Collecting favicon for ${url}`);
+        
+        // Extract favicon URL from page (DOM APIs available in browser context)
+        const faviconUrl = await page.evaluate(() => {
+          // Look for various favicon link tags
+          const selectors = [
+            'link[rel="icon"]',
+            'link[rel="shortcut icon"]',
+            'link[rel="apple-touch-icon"]',
+            'link[rel="apple-touch-icon-precomposed"]'
+          ];
+          
+          for (const selector of selectors) {
+            // @ts-ignore - DOM APIs available in browser context
+            const link = document.querySelector(selector);
+            if (link?.href) {
+              return link.href;
+            }
+          }
+          
+          // Fallback to /favicon.ico
+          // @ts-ignore - window available in browser context
+          return new URL('/favicon.ico', window.location.origin).href;
+        });
+        
+        if (faviconUrl) {
+          // Download favicon
+          const response = await page.context().request.get(faviconUrl, {
+            timeout: 5000,
+            failOnStatusCode: false
+          });
+          
+          if (response.ok()) {
+            const data = await response.body();
+            const contentType = response.headers()['content-type'] || 'image/x-icon';
+            
+            favicon = {
+              url: faviconUrl,
+              data,
+              mimeType: contentType
+            };
+            
+            log('debug', `[Renderer] Favicon collected: ${faviconUrl} (${data.length} bytes, ${contentType})`);
+          } else {
+            log('debug', `[Renderer] Favicon not found or failed to download: ${faviconUrl} (status ${response.status()})`);
+          }
+        }
+      } catch (faviconError: any) {
+        log('debug', `[Renderer] Failed to collect favicon for ${url}: ${faviconError.message}`);
+        // Don't fail the crawl if favicon collection fails
+      }
+    }
+    // ===== END EARLY MEDIA CAPTURE =====
+    
     // Detect challenge page
     const statusCode = await page.evaluate(() => {
       // @ts-expect-error - Running in browser context
@@ -464,6 +564,8 @@ async function renderWithPlaywright(
             domHash,
             performance: perfMetrics,
             challengeDetected: false, // Resolved successfully
+            screenshots: Object.keys(screenshots).length > 0 ? screenshots : undefined,
+            favicon,
             networkMetrics
           };
           
@@ -488,6 +590,8 @@ async function renderWithPlaywright(
             performance: perfMetrics,
             challengeDetected: true,
             challengePageCaptured: true, // Flag for consumers: this is challenge page, not real content
+            screenshots: Object.keys(screenshots).length > 0 ? screenshots : undefined,
+            favicon,
             networkMetrics
           };
         }
@@ -512,6 +616,8 @@ async function renderWithPlaywright(
           performance: perfMetrics,
           challengeDetected: false, // Don't set flag - likely false positive
           challengePageCaptured: undefined, // Not a challenge, just slow
+          screenshots: Object.keys(screenshots).length > 0 ? screenshots : undefined,
+          favicon,
           networkMetrics
         };
       }
@@ -520,45 +626,9 @@ async function renderWithPlaywright(
     const domHash = sha256Hex(outerHTML);
     log('debug', `[Renderer] DOM evaluation successful for ${url}`);
 
-    // Capture screenshots if enabled (full mode only, above-the-fold)
-    const screenshots: { desktop?: Buffer; mobile?: Buffer } = {};
-    
-    if (cfg.render.mode === "full" && cfg.media?.screenshots?.enabled) {
-      const screenshotFormat = cfg.media.screenshots.format || 'jpeg';
-      const screenshotQuality = cfg.media.screenshots.quality || 80;
-      
-      try {
-        // Desktop screenshot (current viewport is already 1280×720)
-        if (cfg.media.screenshots.desktop) {
-          log('debug', `[Renderer] Capturing desktop screenshot for ${url}`);
-          screenshots.desktop = await page.screenshot({
-            type: screenshotFormat,
-            quality: screenshotFormat === 'jpeg' ? screenshotQuality : undefined,
-            fullPage: false // Above-the-fold only
-          });
-        }
-        
-        // Mobile screenshot (switch viewport)
-        if (cfg.media.screenshots.mobile) {
-          log('debug', `[Renderer] Capturing mobile screenshot for ${url}`);
-          await page.setViewportSize({ width: 375, height: 667 });
-          await page.waitForTimeout(500); // Allow reflow
-          
-          screenshots.mobile = await page.screenshot({
-            type: screenshotFormat,
-            quality: screenshotFormat === 'jpeg' ? screenshotQuality : undefined,
-            fullPage: false // Above-the-fold only
-          });
-        }
-        
-        log('debug', `[Renderer] Screenshot capture complete for ${url} (desktop: ${!!screenshots.desktop}, mobile: ${!!screenshots.mobile})`);
-      } catch (screenshotError: any) {
-        log('warn', `[Renderer] Failed to capture screenshots for ${url}: ${screenshotError.message}`);
-        // Don't fail the crawl if screenshots fail - just log and continue
-      }
-    } else if (cfg.media?.screenshots?.enabled && cfg.render.mode !== "full") {
-      log('debug', `[Renderer] Screenshot capture skipped (mode=${cfg.render.mode}, requires full mode)`);
-    }
+    // NOTE: Screenshots and favicons are now captured EARLY (right after DOM extraction)
+    // to ensure they're captured even if page times out or has challenges.
+    // See lines 405-498 for screenshot/favicon capture logic.
     
     // Collect runtime-only WCAG data if in full mode and accessibility enabled
     let runtimeWCAGData: any = undefined;
@@ -637,63 +707,9 @@ async function renderWithPlaywright(
       }
     }
     
-    // Collect favicon if enabled (full mode only)
-    let favicon: { url: string; data: Buffer; mimeType: string } | undefined;
-    
-    if (cfg.render.mode === "full" && cfg.media?.favicons?.enabled) {
-      try {
-        log('debug', `[Renderer] Collecting favicon for ${url}`);
-        
-        // Extract favicon URL from page (DOM APIs available in browser context)
-        const faviconUrl = await page.evaluate(() => {
-          // Look for various favicon link tags
-          const selectors = [
-            'link[rel="icon"]',
-            'link[rel="shortcut icon"]',
-            'link[rel="apple-touch-icon"]',
-            'link[rel="apple-touch-icon-precomposed"]'
-          ];
-          
-          for (const selector of selectors) {
-            // @ts-ignore - DOM APIs available in browser context
-            const link = document.querySelector(selector);
-            if (link?.href) {
-              return link.href;
-            }
-          }
-          
-          // Fallback to /favicon.ico
-          // @ts-ignore - window available in browser context
-          return new URL('/favicon.ico', window.location.origin).href;
-        });
-        
-        if (faviconUrl) {
-          // Download favicon
-          const response = await page.context().request.get(faviconUrl, {
-            timeout: 5000,
-            failOnStatusCode: false
-          });
-          
-          if (response.ok()) {
-            const data = await response.body();
-            const contentType = response.headers()['content-type'] || 'image/x-icon';
-            
-            favicon = {
-              url: faviconUrl,
-              data,
-              mimeType: contentType
-            };
-            
-            log('debug', `[Renderer] Favicon collected: ${faviconUrl} (${data.length} bytes, ${contentType})`);
-          } else {
-            log('debug', `[Renderer] Favicon not found or failed to download: ${faviconUrl} (status ${response.status()})`);
-          }
-        }
-      } catch (faviconError: any) {
-        log('debug', `[Renderer] Failed to collect favicon for ${url}: ${faviconError.message}`);
-        // Don't fail the crawl if favicon collection fails
-      }
-    }
+    // NOTE: Favicon collection is now done EARLY (right after DOM extraction)
+    // to ensure it's captured even if page times out or has challenges.
+    // See lines 445-498 for favicon capture logic.
 
     // Stop network collector and get metrics
     networkCollector.stop();

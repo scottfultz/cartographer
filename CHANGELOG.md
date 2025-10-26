@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🐛 Fixed
 
+#### Media Collection for Timeout Pages
+- **Fixed missing screenshots/favicons on pages with navigation timeouts** (October 26, 2025)
+  - **Root Cause:** Screenshot capture occurred AFTER early return paths in renderer
+  - **Fix:** Moved media capture to occur immediately after DOM extraction (before challenge detection)
+  - **Impact:** WordPress + Cloudflare sites now have 100% media coverage regardless of page load timing
+  - **Affected Files:** `packages/cartographer/src/core/renderer.ts` (~100 lines refactored)
+  - **Verification:** biaofolympia.com (timeout site) now captures all screenshots
+  - **Details:** See `MEDIA_COLLECTION_BUG_FIX_SUMMARY.md` for complete analysis
+
 #### Critical Data Loss Bug
 - **Fixed missing technologies/openGraph/twitterCard fields in archives** (October 25, 2025)
   - **Root Cause:** Scheduler only wrote boolean flags instead of actual data objects
