@@ -9,8 +9,8 @@
 A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** archive files. Cartographer Engine writes structured, compressed archives consumed by the Continuum application.
 
 **Owner:** Cai Frazier  
-**Status:** Release Candidate  
-**Version:** 1.0.0-rc.1
+**Status:** Beta  
+**Version:** 1.0.0-beta.1
 
 ### Current Stability
 

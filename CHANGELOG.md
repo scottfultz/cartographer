@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0-rc.1] - 2025-10-25
+## [1.0.0-beta.1] - 2025-10-25
 
-### 🎉 Release Candidate 1
+### 🎉 Beta Release 1
 
-**Status:** Production-ready release candidate for 1.0.0
+**Status:** Beta release for testing and feedback
 
 **⚠️ Breaking Changes:** See the **[Migration Guide](docs/MIGRATION.md)** for upgrade instructions.
 

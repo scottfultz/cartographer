@@ -1,6 +1,6 @@
 {
   "name": "@atlas/spec",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "description": "Atlas v1.0 specification, JSON Schemas, TypeScript types, and validators",
   "type": "module",
   "author": "Cai Frazier",

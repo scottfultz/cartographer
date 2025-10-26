@@ -1,6 +1,6 @@
 {
   "name": "@cf/cartographer",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "description": "Production-grade headless web crawler producing Atlas v1.0 (.atls) archives",
   "type": "module",
   "author": "Cai Frazier",
