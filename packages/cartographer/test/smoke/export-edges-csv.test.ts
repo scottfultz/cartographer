@@ -10,7 +10,8 @@ import { existsSync } from "fs";
 import { readFile, rm } from "fs/promises";
 import { execSync } from "child_process";
 
-test("export edges CSV", async () => {
+// Run sequentially after crawl-fixture.test.ts creates example.atls
+test.sequential("export edges CSV", async () => {
   // Ensure example.atls exists
   expect(existsSync("./tmp/example.atls")).toBeTruthy();
   

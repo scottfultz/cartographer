@@ -12,7 +12,8 @@ import { execSync } from "child_process";
 import { open } from "yauzl";
 import { openAtlas } from "@atlas/sdk";
 
-test("crawl small site", async () => {
+// Run sequentially to ensure example.atls exists for export tests
+test.sequential("crawl small site", async () => {
   // Ensure tmp directory exists
   await mkdir("./tmp", { recursive: true });
   

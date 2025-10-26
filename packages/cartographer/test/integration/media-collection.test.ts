@@ -50,7 +50,7 @@ afterAll(async () => {
   }
 });
 
-describe("Media Collection - Raw Mode", { timeout: 60000 }, () => {
+describe("Media Collection - Raw Mode", { timeout: 60000, sequential: true }, () => {
   
   it("should NOT have media field in raw mode (HTTP only, no rendering)", async () => {
     await fs.mkdir("./tmp", { recursive: true });
@@ -70,10 +70,25 @@ describe("Media Collection - Raw Mode", { timeout: 60000 }, () => {
         maxBytesPerPage: 10485760
       },
       http: { rps: 2, userAgent: "CartographerTest/1.0" },
+      discovery: { followExternal: false, blockList: [], paramPolicy: 'keep' as any },
     });
 
     const cart = new Cartographer();
-    await cart.start(config);
+    
+    try {
+      await cart.start(config);
+    } catch (error) {
+      console.error("❌ Cartographer failed:", error);
+      throw error;
+    }
+
+    // Verify archive was created
+    try {
+      await fs.access(testArchives.raw);
+      console.log("✓ Archive created:", testArchives.raw);
+    } catch {
+      throw new Error(`Archive not created: ${testArchives.raw}`);
+    }
 
     // Verify manifest
     const atlas = await openAtlas(testArchives.raw);
@@ -100,7 +115,7 @@ describe("Media Collection - Raw Mode", { timeout: 60000 }, () => {
   });
 });
 
-describe("Media Collection - Prerender Mode", { timeout: 60000 }, () => {
+describe("Media Collection - Prerender Mode", { timeout: 60000, sequential: true }, () => {
   
   it("should NOT have media field in prerender mode (rendering but no screenshots)", async () => {
     await fs.mkdir("./tmp", { recursive: true });
@@ -120,10 +135,25 @@ describe("Media Collection - Prerender Mode", { timeout: 60000 }, () => {
         maxBytesPerPage: 10485760
       },
       http: { rps: 2, userAgent: "CartographerTest/1.0" },
+      discovery: { followExternal: false, blockList: [], paramPolicy: 'keep' as any },
     });
 
     const cart = new Cartographer();
-    await cart.start(config);
+    
+    try {
+      await cart.start(config);
+    } catch (error) {
+      console.error("❌ Cartographer failed:", error);
+      throw error;
+    }
+
+    // Verify archive was created
+    try {
+      await fs.access(testArchives.prerender);
+      console.log("✓ Archive created:", testArchives.prerender);
+    } catch {
+      throw new Error(`Archive not created: ${testArchives.prerender}`);
+    }
 
     // Verify manifest
     const atlas = await openAtlas(testArchives.prerender);
@@ -150,7 +180,7 @@ describe("Media Collection - Prerender Mode", { timeout: 60000 }, () => {
   });
 });
 
-describe("Media Collection - Full Mode (CRITICAL)", { timeout: 60000 }, () => {
+describe("Media Collection - Full Mode (CRITICAL)", { timeout: 60000, sequential: true }, () => {
   
   it("should have media field with screenshots and favicon in full mode", async () => {
     await fs.mkdir("./tmp", { recursive: true });
@@ -170,6 +200,7 @@ describe("Media Collection - Full Mode (CRITICAL)", { timeout: 60000 }, () => {
         maxBytesPerPage: 10485760
       },
       http: { rps: 2, userAgent: "CartographerTest/1.0" },
+      discovery: { followExternal: false, blockList: [], paramPolicy: 'keep' as any },
       media: {
         screenshots: {
           enabled: true,
@@ -185,7 +216,21 @@ describe("Media Collection - Full Mode (CRITICAL)", { timeout: 60000 }, () => {
     });
 
     const cart = new Cartographer();
-    await cart.start(config);
+    
+    try {
+      await cart.start(config);
+    } catch (error) {
+      console.error("❌ Cartographer failed:", error);
+      throw error;
+    }
+
+    // Verify archive was created
+    try {
+      await fs.access(testArchives.full);
+      console.log("✓ Archive created:", testArchives.full);
+    } catch {
+      throw new Error(`Archive not created: ${testArchives.full}`);
+    }
 
     // Verify manifest
     const atlas = await openAtlas(testArchives.full);
@@ -263,7 +308,7 @@ describe("Media Collection - Full Mode (CRITICAL)", { timeout: 60000 }, () => {
   });
 });
 
-describe("Media Collection - Multi-Page Full Mode", { timeout: 120000 }, () => {
+describe("Media Collection - Multi-Page Full Mode", { timeout: 120000, sequential: true }, () => {
   
   it("should collect media for all pages in full mode crawl", async () => {
     await fs.mkdir("./tmp", { recursive: true });
@@ -285,6 +330,7 @@ describe("Media Collection - Multi-Page Full Mode", { timeout: 120000 }, () => {
         maxBytesPerPage: 10485760
       },
       http: { rps: 2, userAgent: "CartographerTest/1.0" },
+      discovery: { followExternal: false, blockList: [], paramPolicy: 'keep' as any },
       media: {
         screenshots: {
           enabled: true,
@@ -300,7 +346,21 @@ describe("Media Collection - Multi-Page Full Mode", { timeout: 120000 }, () => {
     });
 
     const cart = new Cartographer();
-    await cart.start(config);
+    
+    try {
+      await cart.start(config);
+    } catch (error) {
+      console.error("❌ Cartographer failed:", error);
+      throw error;
+    }
+
+    // Verify archive was created
+    try {
+      await fs.access(multiPageArchive);
+      console.log("✓ Archive created:", multiPageArchive);
+    } catch {
+      throw new Error(`Archive not created: ${multiPageArchive}`);
+    }
 
     const atlas = await openAtlas(multiPageArchive);
     const manifest = atlas.manifest;
@@ -344,7 +404,7 @@ describe("Media Collection - Multi-Page Full Mode", { timeout: 120000 }, () => {
   });
 });
 
-describe("Media Collection - Size Validation", { timeout: 60000 }, () => {
+describe("Media Collection - Size Validation", { timeout: 60000, sequential: true }, () => {
   
   it("should have reasonable screenshot sizes (not empty, not excessive)", async () => {
     await fs.mkdir("./tmp", { recursive: true });
@@ -364,6 +424,7 @@ describe("Media Collection - Size Validation", { timeout: 60000 }, () => {
         maxBytesPerPage: 10485760
       },
       http: { rps: 2, userAgent: "CartographerTest/1.0" },
+      discovery: { followExternal: false, blockList: [], paramPolicy: 'keep' as any },
       media: {
         screenshots: {
           enabled: true,
@@ -379,7 +440,21 @@ describe("Media Collection - Size Validation", { timeout: 60000 }, () => {
     });
 
     const cart = new Cartographer();
-    await cart.start(config);
+    
+    try {
+      await cart.start(config);
+    } catch (error) {
+      console.error("❌ Cartographer failed:", error);
+      throw error;
+    }
+
+    // Verify archive was created
+    try {
+      await fs.access(testArchives.full);
+      console.log("✓ Archive created:", testArchives.full);
+    } catch {
+      throw new Error(`Archive not created: ${testArchives.full}`);
+    }
 
     const atlas = await openAtlas(testArchives.full);
 
