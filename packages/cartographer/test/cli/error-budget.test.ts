@@ -28,7 +28,7 @@ describe("Error Budget Enforcement", () => {
     // Use an invalid URL that will generate errors, plus a valid seed
     // The invalid URLs will cause fetch failures
     // Use multiple invalid domains to ensure we hit errors quickly
-    const cmd = `node ${cliPath} crawl --seeds https://invalid-xyz-12345.test https://another-invalid-xyz.test --out ${atlsPath} --mode raw --errorBudget 1 --json --quiet --maxPages 10`;
+    const cmd = `node ${cliPath} crawl --seeds https://invalid-xyz-12345.test https://another-invalid-xyz.test --out ${atlsPath} --mode raw --maxErrors 1 --json --quiet --maxPages 10`;
     
     let stdout = "";
     let exitCode = 0;
@@ -60,9 +60,9 @@ describe("Error Budget Enforcement", () => {
     
     const json = JSON.parse(stdout.trim());
     
-    // Verify notes contain error budget exceeded message
+    // Verify notes contain max errors exceeded message
     const hasErrorBudgetNote = json.notes.some((note: string) => 
-      note.includes("error budget exceeded") || note.includes("Terminated")
+      note.includes("max errors exceeded") || note.includes("Terminated")
     );
     expect(hasErrorBudgetNote).toBeTruthy();
     
@@ -91,8 +91,8 @@ describe("Error Budget Enforcement", () => {
       fs.rmSync(successAtlsPath + ".staging", { recursive: true, force: true });
     }
     
-    // Use a valid URL with high error budget
-    const cmd = `node ${cliPath} crawl --seeds https://example.com --out ${successAtlsPath} --mode raw --errorBudget 100 --maxPages 3 --json --quiet`;
+    // Use a valid URL with high maxErrors limit
+    const cmd = `node ${cliPath} crawl --seeds https://example.com --out ${successAtlsPath} --mode raw --maxErrors 100 --maxPages 3 --json --quiet`;
     
     let stdout = "";
     let exitCode = 0;
@@ -113,9 +113,9 @@ describe("Error Budget Enforcement", () => {
     const json = JSON.parse(stdout.trim());
     expect(json.summary.pages > 0).toBeTruthy();
     
-    // Verify notes do NOT contain error budget exceeded
+    // Verify notes do NOT contain max errors exceeded
     const hasErrorBudgetNote = json.notes.some((note: string) => 
-      note.includes("error budget exceeded")
+      note.includes("max errors exceeded")
     );
     expect(!hasErrorBudgetNote).toBeTruthy();
     

@@ -441,7 +441,7 @@ export interface EngineConfig {
   cli?: {
     quiet?: boolean; // Suppress periodic metrics output
     json?: boolean; // Emit JSON summary to stdout
-    errorBudget?: number; // Max errors before aborting (0 = unlimited)
+    maxErrors?: number; // Max errors before aborting (-1 = unlimited, 0 = abort immediately, N = abort after N errors)
     logFile?: string; // Path to NDJSON log file
     logLevel?: "info" | "warn" | "error" | "debug"; // Minimum log level
     persistSession?: boolean; // Persist browser sessions per origin to bypass bot detection

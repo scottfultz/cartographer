@@ -425,11 +425,11 @@ export class Scheduler {
           });
           processed = true;
           
-          // Check error budget after each page
-          const errorBudget = this.config.cli?.errorBudget ?? 0;
-          if (errorBudget > 0 && this.errorCount > errorBudget) {
+          // Check max errors after each page (-1 = unlimited, 0 = abort immediately, N = abort after N)
+          const maxErrors = this.config.cli?.maxErrors ?? -1;
+          if (maxErrors >= 0 && this.errorCount > maxErrors) {
             this.errorBudgetExceeded = true;
-            log("warn", `❌ Error budget exceeded (${this.errorCount}/${errorBudget}). Aborting crawl.`);
+            log("warn", `❌ Max errors exceeded (${this.errorCount}/${maxErrors}). Aborting crawl.`);
             // Clear all host queues to exit loop
             this.hostQueues.clear();
             break;
@@ -526,7 +526,7 @@ export class Scheduler {
       notes: [
         `Checkpoint interval: ${this.config.checkpoint?.interval || 500} pages`,
         `Graceful shutdown: ${this.gracefulShutdown}`,
-        ...(this.errorBudgetExceeded ? ["Terminated: error budget exceeded"] : [])
+        ...(this.errorBudgetExceeded ? ["Terminated: max errors exceeded"] : [])
       ]
     } as any));
 

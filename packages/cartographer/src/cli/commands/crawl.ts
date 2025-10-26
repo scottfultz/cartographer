@@ -40,7 +40,7 @@ export const crawlCommand: CommandModule = {
     .option("checkpointInterval", { type: "number", default: 500, describe: "Write checkpoint every N pages" })
     .option("quiet", { type: "boolean", default: false, describe: "Suppress periodic metrics (errors still shown)" })
     .option("json", { type: "boolean", default: false, describe: "Emit final crawl summary as JSON to stdout" })
-    .option("errorBudget", { type: "number", default: 0, describe: "Max errors before aborting (0 = unlimited)" })
+    .option("maxErrors", { type: "number", default: -1, describe: "Max errors before aborting (-1 = unlimited, 0 = abort immediately)" })
     .option("logFile", { type: "string", default: "logs/crawl-<crawlId>.jsonl", describe: "Path for NDJSON log file" })
     .option("logLevel", { type: "string", choices: ["info","warn","error","debug"], default: "info", describe: "Minimum log level" })
     .option("persistSession", { type: "boolean", default: false, describe: "Persist browser sessions per origin to bypass bot detection" })
@@ -70,7 +70,7 @@ export const crawlCommand: CommandModule = {
       checkpointInterval: z.number().positive(),
       quiet: z.boolean(),
       json: z.boolean(),
-      errorBudget: z.number().nonnegative(),
+      maxErrors: z.number().int(),
       logFile: z.string(),
       logLevel: z.enum(["info","warn","error","debug"]),
       persistSession: z.boolean(),
@@ -168,7 +168,7 @@ export const crawlCommand: CommandModule = {
       cli: {
         quiet: cfg.quiet,
         json: cfg.json,
-        errorBudget: cfg.errorBudget,
+        maxErrors: cfg.maxErrors,
         logFile: cfg.logFile,
         logLevel: cfg.logLevel,
         persistSession: cfg.persistSession,

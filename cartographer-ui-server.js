@@ -160,7 +160,7 @@ const server = http.createServer((req, res) => {
                     cli: {
                          quiet: true,
                          json: false,
-                         errorBudget: safeParseInt(params.errorBudget, DEFAULT_CONFIG.cli?.errorBudget || 0),
+                         maxErrors: safeParseInt(params.maxErrors, DEFAULT_CONFIG.cli?.maxErrors || -1),
                          logLevel: 'debug',
                          logFile: params.logFile || DEFAULT_CONFIG.cli?.logFile || `logs/crawl-<crawlId>.jsonl`
                     },

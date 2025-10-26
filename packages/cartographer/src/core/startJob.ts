@@ -174,7 +174,7 @@ export async function startJob(partialConfig: Partial<EngineConfig>): Promise<nu
         notes: [
           `Checkpoint interval: ${config.checkpoint?.interval || 500} pages`,
           `Graceful shutdown: ${schedulerResult.gracefulShutdown || false}`,
-          ...(schedulerResult.errorBudgetExceeded ? ["Terminated: error budget exceeded"] : [])
+          ...(schedulerResult.errorBudgetExceeded ? ["Terminated: max errors exceeded"] : [])
         ]
       };
       
