@@ -43,7 +43,37 @@ A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** arc
 
 ---
 
-## 📦 Monorepo Structure
+## � 10-Minute Quickstart
+
+Want to see Cartographer in action? Run the built-in demo that crawls a test site and validates the output:
+
+```bash
+pnpm demo:quickstart
+```
+
+**What it does:**
+- Starts a local test server serving a small static site
+- Crawls 3-4 pages with `prerender` mode
+- Validates the generated `.atls` archive
+- Reports page counts, edges, and assets
+
+**Expected Output:**
+```
+📈 Archive Statistics:
+   Pages:  4 (expected: 3-4)
+   Edges:  9 (expected: 4-10)
+   Assets: 4 (expected: 3-8)
+   Errors: 0
+
+✅ All validations passed!
+🎉 Demo completed successfully!
+```
+
+**Next Steps:** Check out `demo-quickstart.atls` in `packages/cartographer/`. See the full CLI documentation below to crawl real sites.
+
+---
+
+## �📦 Monorepo Structure
 
 Cartographer is organized as a pnpm + Turbo monorepo with shared workspace packages:
 
