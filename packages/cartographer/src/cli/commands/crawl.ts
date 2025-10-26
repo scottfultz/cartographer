@@ -34,7 +34,7 @@ export const crawlCommand: CommandModule = {
     .option("allowUrls", { type: "array", describe: "URL patterns to allow (glob or regex). Only matching URLs will be crawled." })
     .option("denyUrls", { type: "array", describe: "URL patterns to deny (glob or regex). Matching URLs will be skipped." })
   .option("maxPages", { type: "number", default: 0 })
-  .option("maxDepth", { type: "number", default: -1, describe: "Maximum crawl depth (-1 = unlimited, 0 = seeds only)" })
+  .option("maxDepth", { type: "number", default: 1, describe: "Maximum crawl depth (1 = seeds + 1 hop, -1 = unlimited, 0 = seeds only). Default: 1 for safety." })
   .option("maxBytesPerPage", { type: "number", default: 50000000, describe: "Maximum bytes to load per page (default: 50MB)" })
     .option("resume", { type: "string", describe: "Resume from staging directory" })
     .option("checkpointInterval", { type: "number", default: 500, describe: "Write checkpoint every N pages" })
