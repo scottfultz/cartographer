@@ -24,6 +24,10 @@ const schemaMap: SchemaMapping[] = [
   { name: 'capabilities.v1', schema: schemas.AtlasCapabilitiesV1Schema },
   { name: 'provenance.v1', schema: schemas.ProvenanceRecordV1Schema },
   { name: 'pages.v1', schema: schemas.PageRecordV1Schema },
+  { name: 'responses.v1', schema: schemas.ResponseRecordV1Schema },
+  { name: 'resources.v1', schema: schemas.ResourceRecordV1Schema },
+  { name: 'dom_snapshot.v1', schema: schemas.DOMSnapshotRecordV1Schema },
+  { name: 'acc_tree.v1', schema: schemas.AccTreeRecordV1Schema },
 ];
 
 /**
