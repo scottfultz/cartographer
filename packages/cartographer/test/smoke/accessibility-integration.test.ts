@@ -22,9 +22,9 @@ test("crawl with accessibility should write accessibility stream and enrich mani
     await rm(OUT_FILE + ".staging", { recursive: true });
   }
   
-  // Crawl with accessibility enabled (default)
+  // Crawl with accessibility enabled (need full mode for accessibility data)
   execSync(
-    `node dist/cli/index.js crawl --seeds https://example.com --out ${OUT_FILE} --max-pages 3 --mode raw`,
+    `node dist/cli/index.js crawl --seeds https://example.com --out ${OUT_FILE} --max-pages 3 --mode full`,
     { encoding: "utf-8", stdio: "inherit" }
   );
   

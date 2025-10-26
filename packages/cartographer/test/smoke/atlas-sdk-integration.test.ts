@@ -20,9 +20,9 @@ test("Atlas SDK can read engine output", async () => {
     await rm(OUT_FILE + ".staging", { recursive: true });
   }
   
-  // Create a test .atls file
+  // Create a test .atls file (use full mode to get accessibility data)
   execSync(
-  `node dist/cli/index.js crawl --seeds https://caifrazier.com --out ${OUT_FILE} --max-pages 3 --mode raw`,
+  `node dist/cli/index.js crawl --seeds https://caifrazier.com --out ${OUT_FILE} --max-pages 3 --mode full`,
     { encoding: "utf-8", stdio: "inherit" }
   );
   

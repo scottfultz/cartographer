@@ -27,7 +27,8 @@ describe("Error Budget Enforcement", () => {
     
     // Use an invalid URL that will generate errors, plus a valid seed
     // The invalid URLs will cause fetch failures
-    const cmd = `node ${cliPath} crawl --seeds https://invalid-domain-xyz-12345.example --out ${atlsPath} --mode raw --errorBudget 1 --json --quiet --maxPages 10`;
+    // Use multiple invalid domains to ensure we hit errors quickly
+    const cmd = `node ${cliPath} crawl --seeds https://invalid-xyz-12345.test https://another-invalid-xyz.test --out ${atlsPath} --mode raw --errorBudget 1 --json --quiet --maxPages 10`;
     
     let stdout = "";
     let exitCode = 0;
