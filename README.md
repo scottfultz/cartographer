@@ -379,6 +379,10 @@ node packages/cartographer/dist/cli/index.js crawl [options]
 - `--allowUrls <patterns...>` - URL patterns to allow (glob or regex, see below)
 - `--denyUrls <patterns...>` - URL patterns to deny (glob or regex, see below)
 - `--quiet` - Suppress periodic metrics
+- `--verbose` - Enable detailed logging (overrides --quiet)
+- `--minimal` - Ultra-compact output (no decorations or colors)
+- `--noColor` - Disable ANSI colors (useful for CI/CD)
+- `--chime` - Audio notification on completion
 - `--json` - Emit JSON summary to stdout
 - `--logFile <path>` - NDJSON log file (default: logs/crawl-<crawlId>.jsonl)
 - `--logLevel <info|warn|error|debug>` - Minimum log level (default: info)

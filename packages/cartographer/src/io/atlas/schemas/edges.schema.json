@@ -30,6 +30,8 @@
       "type": "string",
       "enum": ["raw", "prerender", "full"]
     },
-    "httpStatusAtTo": { "type": "integer" }
+    "httpStatusAtTo": { "type": "integer" },
+    "sponsored": { "type": ["boolean", "null"] },
+    "ugc": { "type": ["boolean", "null"] }
   }
 }

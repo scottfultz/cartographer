@@ -928,6 +928,9 @@ export class Scheduler {
       
       // Extract enhanced SEO metadata (full and prerender modes)
       let enhancedSEO;
+      let openGraph: Record<string, string | undefined> | undefined;
+      let twitterCard: Record<string, string | undefined> | undefined;
+      
       if (renderResult.modeUsed === "full" || renderResult.modeUsed === "prerender") {
         try {
           log('debug', `[Scheduler] Extracting enhanced SEO metadata from ${item.url}`);
@@ -937,6 +940,10 @@ export class Scheduler {
             headers: fetchResult.headers,
             bodyText: textSample
           });
+          
+          // Store OpenGraph and Twitter Card data for top-level PageRecord fields
+          openGraph = seoData.social.openGraph;
+          twitterCard = seoData.social.twitter;
           
           // Transform to PageRecord format
           enhancedSEO = {
@@ -1011,6 +1018,11 @@ export class Scheduler {
         metaDescription: pageFacts.metaDescription,
         h1: pageFacts.h1,
         headings: pageFacts.headings,
+        
+        // Social metadata (top-level fields for easy access)
+        openGraph,
+        twitterCard,
+        
         canonicalHref: pageFacts.canonicalHref,
         canonicalResolved: pageFacts.canonicalResolved, // <-- THIS IS THE FIX
         canonical: pageFacts.canonicalResolved, // Backwards compat
@@ -1052,6 +1064,7 @@ export class Scheduler {
         
         // Tech stack
         techStack,
+        technologies: techStack?.map(name => ({ name })), // Convert string[] to Technology[]
         
         // Mobile & Viewport
         viewportMeta,

@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+#### Critical Data Loss Bug
+- **Fixed missing technologies/openGraph/twitterCard fields in archives** (October 25, 2025)
+  - **Root Cause:** Scheduler only wrote boolean flags instead of actual data objects
+  - **Fix:** Added top-level fields to PageRecord and wrote full objects from extractors
+  - **Impact:** All archives now properly contain extracted metadata
+  - **Verification:** Integration test `archive-field-completeness.test.ts` prevents regression
+  - **Details:** See `docs/ARCHIVE_DATA_QUALITY_ISSUES.md` for complete analysis
+
+#### Schema Validation Warnings
+- **Eliminated 24,000+ schema validation warnings** (October 25, 2025)
+  - Updated `pages.schema.json` with all missing fields (technologies, openGraph, twitterCard, media, etc.)
+  - Updated `edges.schema.json` with new fields (sponsored, ugc)
+  - Updated `accessibility.schema.json` with new fields (lang, focusOrder, formControls, wcagData)
+  - Validation now passes cleanly: "Validation PASSED ✓"
+
+#### Test Suite Corrections
+- **Fixed JSON output test field names** to match actual CLI structure
+  - Changed `summary.total*` to `summary.{pages,edges,assets,errors}`
+  - Changed `performance` to `perf`
+  - Updated timing field names to match `startJob.ts` output
+
+### ✨ Added
+
+#### Enhanced CLI Output
+- **Beautiful ASCII art headers** with left-justified Future font
+- **Traffic light color scheme** for better readability:
+  - 🟢 Green: Info messages and success states
+  - 🟡 Yellow: Warnings and performance metrics
+  - 🔴 Red: Errors and critical issues
+- **Top and bottom decorative borders** with blank lines
+- **Working chime notification** with visual indicator on completion
+- **New CLI flags:**
+  - `--verbose`: Enable detailed logging (overrides --quiet)
+  - `--minimal`: Ultra-compact output (no decorations)
+  - `--noColor`: Disable ANSI colors for CI/CD
+  - `--chime`: Audio notification on completion
+
+#### Test Coverage
+- **Comprehensive media collection tests** (`media-collection.test.ts`)
+  - Validates screenshot capture (desktop + mobile) in full mode
+  - Validates favicon collection in full mode
+  - Verifies no media in raw/prerender modes (expected behavior)
+  - Multi-page crawl validation
+  - Screenshot size validation (10KB-500KB range)
+- **Enhanced field completeness tests**
+  - Network data validation (status codes, timing)
+  - DOM data validation (link counts, hashes)
+  - SEO essentials validation (title, meta description)
+
+### 📚 Documentation
+
+#### Archive Analysis Reports
+- **BIAOFOLYMPIA_CRAWL_REPORT.md** - Full production crawl analysis (27 pages, 0 errors)
+- **MEDIA_COLLECTION_TESTS_SUMMARY.md** - Test suite implementation status
+- **ARCHIVE_COLLECTION_MODES.md** - Documentation of raw/prerender/full mode behavior
+
+---
+
 ## [1.0.0-beta.1] - 2025-10-25
 
 ### 🎉 Beta Release 1

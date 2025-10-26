@@ -20,6 +20,15 @@ export type EdgeLocation = "nav" | "header" | "footer" | "aside" | "main" | "oth
 export type ParamPolicy = "sample" | "strip" | "keep";
 
 /**
+ * Detected technology/tool on a page
+ */
+export interface Technology {
+  name: string;
+  version?: string;
+  categories?: string[];
+}
+
+/**
  * PageRecord - Complete page crawl data
  */
 export interface PageRecord {
@@ -40,6 +49,11 @@ export interface PageRecord {
   metaDescription?: string;
   h1?: string;
   headings: { level: number; text: string }[];
+  
+  // Social metadata (top-level fields for easy access)
+  openGraph?: Record<string, string | undefined>; // OpenGraph metadata (og:title, og:description, etc.)
+  twitterCard?: Record<string, string | undefined>; // Twitter Card metadata (twitter:card, twitter:title, etc.)
+  technologies?: Technology[]; // Detected technologies (alternative field name to techStack)
   
   // Canonical and robots
   canonicalHref?: string; // Verbatim from href attribute
@@ -597,13 +611,13 @@ export interface AtlasSummary {
   stats: {
     totalPages: number;
     totalEdges: number;
-    totalAssets: number;
-    totalErrors: number;
+    totalAssets: number; // Asset metadata records (not downloaded files)
+    totalErrors: number; // Crawl errors: failed fetches, render crashes, timeouts (not data quality issues)
     totalAccessibilityRecords?: number; // Optional for backward compatibility
-    totalConsoleRecords?: number; // Full mode only
-    totalStyleRecords?: number; // Full mode only
+    totalConsoleRecords?: number; // Browser console logs (full mode only)
+    totalStyleRecords?: number; // CSS records (full mode only)
     statusCodes: Record<number, number>;
-    renderModes: Record<RenderMode, number>;
+    renderModes: Record<RenderMode, number>; // Count by mode: raw/prerender/full
   };
   
   // Performance metrics

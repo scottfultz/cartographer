@@ -113,18 +113,27 @@ export function log(level: LogLevel, message: string): void {
       const seconds = String(now.getSeconds()).padStart(2, '0');
       const timestamp = `${hours}:${minutes}:${seconds}`;
       
+      // Traffic light color scheme: green (debug/info), yellow (warn), red (error)
       const prefix = {
-        debug: pc.gray("[DEBUG]"),
-        info: pc.blue("[INFO]"),
+        debug: pc.green("[DEBUG]"),
+        info: pc.green("[INFO]"),
         warn: pc.yellow("[WARN]"),
         error: pc.red("[ERROR]")
       }[level];
       
-      // Always write to stderr (except in json mode for non-errors)
-      const output = `[${timestamp}] ${prefix} ${message}`;
-      if (jsonMode && level !== "error") {
-        process.stderr.write(output + '\n');
+      // NEW FORMAT: [LEVEL] [timestamp] message
+      // HIGH IMPORTANCE (warn/error): No indent, wrapped by empty lines
+      // ORDINARY (debug/info): Indent by 4 spaces
+      let output = `${prefix} [${timestamp}] ${message}`;
+      
+      if (level === "warn" || level === "error") {
+        // High importance: no indent, wrapped by empty lines
+        console.error("");
+        console.error(output);
+        console.error("");
       } else {
+        // Ordinary: indent by 4 spaces
+        output = '    ' + output;
         console.error(output);
       }
     }

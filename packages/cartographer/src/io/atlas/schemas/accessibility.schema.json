@@ -65,6 +65,28 @@
       "items": { "type": "string" },
       "maxItems": 50,
       "description": "Sample of ARIA-related issues detected"
+    },
+    "lang": {
+      "type": ["string", "null"],
+      "description": "Language attribute from html element"
+    },
+    "focusOrder": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Tab order of focusable elements"
+    },
+    "formControls": {
+      "type": ["object", "null"],
+      "additionalProperties": true,
+      "description": "Form control analysis"
+    },
+    "wcagData": {
+      "type": ["object", "null"],
+      "additionalProperties": true,
+      "description": "Runtime WCAG audit data from full mode"
     }
   },
   "additionalProperties": false

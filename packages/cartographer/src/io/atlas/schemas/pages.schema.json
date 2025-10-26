@@ -31,8 +31,8 @@
     "fetchedAt": { "type": "string", "format": "date-time" },
     "rawHtmlHash": { "type": "string" },
     "domHash": { "type": "string" },
-  "title": { "type": "string" },
-  "metaDescription": { "type": ["string", "null"] },
+    "title": { "type": "string" },
+    "metaDescription": { "type": ["string", "null"] },
       "section": { "type": "string" },
       "contentType": { "type": ["string", "null"] },
       "redirectChain": {
@@ -104,6 +104,116 @@
       "type": "string",
       "enum": ["raw", "prerender", "full"]
     },
-    "error": { "type": "string" }
+    "error": { "type": "string" },
+    "faviconUrl": { "type": ["string", "null"] },
+    "techStack": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "technologies": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "version": { "type": ["string", "null"] },
+          "categories": {
+            "type": ["array", "null"],
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      }
+    },
+    "openGraph": {
+      "type": ["object", "null"],
+      "properties": {
+        "ogTitle": { "type": ["string", "null"] },
+        "ogDescription": { "type": ["string", "null"] },
+        "ogImage": { "type": ["string", "null"] },
+        "ogUrl": { "type": ["string", "null"] },
+        "ogType": { "type": ["string", "null"] },
+        "ogSiteName": { "type": ["string", "null"] },
+        "ogLocale": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "twitterCard": {
+      "type": ["object", "null"],
+      "properties": {
+        "twitterCard": { "type": ["string", "null"] },
+        "twitterSite": { "type": ["string", "null"] },
+        "twitterCreator": { "type": ["string", "null"] },
+        "twitterTitle": { "type": ["string", "null"] },
+        "twitterDescription": { "type": ["string", "null"] },
+        "twitterImage": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "structuredData": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "viewportMeta": {
+      "type": ["object", "null"],
+      "properties": {
+        "width": { "type": ["string", "number", "null"] },
+        "initialScale": { "type": ["string", "number", "null"] },
+        "minimumScale": { "type": ["string", "number", "null"] },
+        "maximumScale": { "type": ["string", "number", "null"] },
+        "userScalable": { "type": ["string", "boolean", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "enhancedSEO": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "seo": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "performance": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "network": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "resourceCounts": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "compression": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "subresourceIntegrity": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "media": {
+      "type": ["object", "null"],
+      "properties": {
+        "screenshots": {
+          "type": ["object", "null"],
+          "properties": {
+            "desktop": { "type": ["string", "null"] },
+            "mobile": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "favicon": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "screenshotFile": { "type": ["string", "null"] },
+    "viewportFile": { "type": ["string", "null"] },
+    "challengePageCaptured": { "type": ["boolean", "null"] }
   }
 }

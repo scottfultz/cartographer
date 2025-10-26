@@ -16,6 +16,8 @@ import { startJob } from "../../core/startJob.js";
 import { z } from "zod";
 import { DEFAULT_CONFIG } from "../../core/config.js";
 import { resolveOutputPath } from "../../utils/filenameGenerator.js";
+import { PrettyLogger } from "../../utils/prettyLog.js";
+import type { OutputMode } from "../../utils/prettyLog.js";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -51,7 +53,11 @@ export const crawlCommand: CommandModule = {
     .option("noScreenshots", { type: "boolean", default: false, describe: "Disable screenshot capture in full mode (screenshots enabled by default)" })
     .option("screenshotQuality", { type: "number", default: 80, describe: "JPEG quality for screenshots (1-100, default: 80)" })
     .option("screenshotFormat", { type: "string", choices: ["jpeg", "png"], default: "jpeg", describe: "Screenshot format (default: jpeg)" })
-    .option("noFavicons", { type: "boolean", default: false, describe: "Disable favicon collection in full mode (favicons enabled by default)" }),
+    .option("noFavicons", { type: "boolean", default: false, describe: "Disable favicon collection in full mode (favicons enabled by default)" })
+    .option("verbose", { type: "boolean", default: false, describe: "Enable verbose output with detailed extraction data" })
+    .option("minimal", { type: "boolean", default: false, describe: "Minimal output: only errors and final summary" })
+    .option("noColor", { type: "boolean", default: false, describe: "Disable colored output" })
+    .option("chime", { type: "boolean", default: false, describe: "Play a sound when crawl completes" }),
   handler: async (argv) => {
     const schema = z.object({
       seeds: z.array(z.string().url()).min(1),
@@ -80,7 +86,11 @@ export const crawlCommand: CommandModule = {
       noScreenshots: z.boolean(),
       screenshotQuality: z.number().min(1).max(100),
       screenshotFormat: z.enum(["jpeg", "png"]),
-      noFavicons: z.boolean()
+      noFavicons: z.boolean(),
+      verbose: z.boolean(),
+      minimal: z.boolean(),
+      noColor: z.boolean(),
+      chime: z.boolean()
     });
     const cfg = schema.parse(argv);
 
@@ -190,6 +200,31 @@ export const crawlCommand: CommandModule = {
     function outStd(msg: string) { if (!asJson && !quiet) process.stdout.write(msg + '\n'); }
     function outErr(msg: string) { if (!asJson) process.stderr.write(msg + '\n'); }
 
+    // Initialize pretty logger
+    let outputMode: OutputMode = "compact";
+    if (cfg.minimal) outputMode = "minimal";
+    if (cfg.verbose) outputMode = "verbose";
+    
+    const prettyLogger = new PrettyLogger({
+      mode: outputMode,
+      colors: !cfg.noColor && process.stderr.isTTY,
+      chime: cfg.chime
+    });
+
+    // Show banner unless in json/quiet/minimal mode
+    if (!asJson && !quiet && !cfg.minimal) {
+      prettyLogger.logBanner({
+        seeds: crawlConfig.seeds,
+        mode: crawlConfig.render.mode,
+        stealth: crawlConfig.cli?.stealth || false,
+        concurrency: crawlConfig.render.concurrency,
+        rps: crawlConfig.http.rps,
+        maxPages: crawlConfig.maxPages,
+        maxDepth: crawlConfig.maxDepth,
+        outAtls: crawlConfig.outAtls
+      });
+    }
+
     cart.on("crawl.heartbeat", (ev) => {
       if (!asJson && !quiet && process.stderr.isTTY && ev.type === "crawl.heartbeat") {
         const t = Math.floor((Date.now() - new Date(ev.progress.startedAt).getTime()) / 1000);
@@ -216,6 +251,21 @@ export const crawlCommand: CommandModule = {
               notes: ev.notes
             }, null, 2) + '\n'
           );
+        } else if (!quiet && !cfg.minimal) {
+          // Show pretty summary
+          const durationSec = Math.floor((ev.summary?.durationMs || 0) / 1000);
+          prettyLogger.logSummary({
+            durationSec,
+            pages: ev.summary?.pages || 0,
+            edges: ev.summary?.edges || 0,
+            assets: ev.summary?.assets || 0,
+            errors: ev.summary?.errors || 0,
+            errorBudget: cfg.maxErrors > 0 ? cfg.maxErrors : 100,
+            pagesPerSec: ev.perf?.avgPagesPerSec || 0,
+            peakRssMB: ev.perf?.peakRssMB || 0,
+            avgRssMB: ev.perf?.peakRssMB || 0, // Use peak for now, avg not in event
+            outAtls: ev.manifestPath
+          });
         } else {
           outStd(`Finished ${ev.crawlId} manifest=${ev.manifestPath} incomplete=${ev.incomplete}`);
         }
