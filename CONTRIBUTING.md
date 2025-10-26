@@ -399,7 +399,147 @@ npm run lint
 
 ---
 
-## 📞 Getting Help
+## � Release Process
+
+### Versioning Strategy
+
+We follow [Semantic Versioning](https://semver.org/):
+
+- **MAJOR** (1.0.0 → 2.0.0) - Breaking changes
+- **MINOR** (1.0.0 → 1.1.0) - New features (backward compatible)
+- **PATCH** (1.0.0 → 1.0.1) - Bug fixes (backward compatible)
+
+**Pre-release versions:**
+- `1.0.0-rc.1` - Release Candidate
+- `1.0.0-beta.1` - Beta release
+- `1.0.0-alpha.1` - Alpha release
+
+### Release Checklist
+
+1. **Update version in `package.json`:**
+   ```bash
+   npm version minor -m "chore: bump version to %s"
+   ```
+
+2. **Update CHANGELOG.md:**
+   - Add new version section with date
+   - List all changes under: Added, Changed, Fixed, Breaking Changes
+   - Link to GitHub compare view
+
+3. **Verify all tests pass:**
+   ```bash
+   npm test
+   npm run lint
+   ```
+
+4. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
+5. **Tag the release:**
+   ```bash
+   git tag -a v1.0.0 -m "Release version 1.0.0"
+   git push origin v1.0.0
+   ```
+
+6. **Create GitHub Release:**
+   - Go to [Releases page](https://github.com/scottfultz/cartographer/releases)
+   - Click "Draft a new release"
+   - Select the tag
+   - Copy CHANGELOG entries to release notes
+   - Attach build artifacts if needed
+
+### Breaking Change Policy
+
+**Breaking changes require:**
+- Major version bump
+- Clear migration guide in CHANGELOG.md
+- Deprecation warnings in previous version (if possible)
+- Update to docs/MIGRATION.md
+
+**Examples of breaking changes:**
+- Renamed CLI flags (e.g., `--errorBudget` → `--maxErrors`)
+- Changed manifest structure
+- Removed public API methods
+- Changed default behavior significantly
+
+### Changelog Maintenance
+
+Update `CHANGELOG.md` with **every** PR:
+
+```markdown
+## [Unreleased]
+
+### Added
+- New feature description (#123)
+
+### Changed
+- Modified behavior (#124)
+
+### Fixed
+- Bug fix description (#125)
+
+### Breaking Changes
+- Renamed `--oldFlag` to `--newFlag` (#126)
+```
+
+**Before release**, move `[Unreleased]` to `[1.0.0] - 2025-10-25`.
+
+---
+
+## 🔄 Version Bumping Workflow
+
+### For Minor/Patch Releases
+
+```bash
+# 1. Ensure main is up to date
+git checkout main
+git pull origin main
+
+# 2. Run full test suite
+npm test
+
+# 3. Update version (creates git tag)
+npm version patch -m "chore: release v%s"
+
+# 4. Update CHANGELOG.md (move Unreleased to version)
+# Edit CHANGELOG.md manually
+
+# 5. Commit changelog
+git add CHANGELOG.md
+git commit -m "docs: update CHANGELOG for v1.0.1"
+
+# 6. Push with tags
+git push origin main --tags
+
+# 7. Create GitHub Release from tag
+```
+
+### For Major Releases (Breaking Changes)
+
+```bash
+# 1. Create release branch
+git checkout -b release/2.0.0
+
+# 2. Update CHANGELOG with migration guide
+# Include breaking changes and upgrade instructions
+
+# 3. Update docs/MIGRATION.md
+# Document all breaking changes
+
+# 4. Bump major version
+npm version major -m "chore: release v%s"
+
+# 5. Open PR to main
+# Require extra review for breaking changes
+
+# 6. After merge, tag and release as above
+```
+
+---
+
+## �📞 Getting Help
 
 ### Internal Communication
 
