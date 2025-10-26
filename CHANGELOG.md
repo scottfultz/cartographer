@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-rc.1] - 2025-10-25
+
+### 🎉 Release Candidate 1
+
+**Status:** Production-ready release candidate for 1.0.0
+
+### ✨ Added
+
+#### Core Infrastructure
+- **Atlas v1.0 Archive Format** - Structured ZIP archives with JSONL + Zstandard compression
+- **Atlas Format Specification** - Complete I-D style specification document (569 lines)
+- **SDK Validation Function** - `validate()` for schema compliance and referential integrity
+- **Golden Corpus Fixtures** - Test archives for edge cases (single-page, errors-only, deep-nesting)
+
+#### Observability & Monitoring
+- **Enhanced Observability Events** (`crawl.observability`) - Emitted every 5 seconds with:
+  - Queue depth and in-flight count
+  - Per-host queue sizes (diagnose bottlenecks)
+  - Throttled hosts list
+  - Current RPS and memory usage (RSS MB)
+- **Robots.txt Decision Logging** - All robots.txt checks logged to NDJSON for compliance auditing
+
+#### Safety & Quality
+- **Overwrite Protection** - `--force` flag required to overwrite existing `.atls` files (exit code 4)
+- **Max Errors Enforcement** - Fixed critical bug where `--maxErrors` was never checked
+  - Now correctly aborts after N errors with exit code 2
+  - Emits note to manifest on error budget exceeded
+
+#### Documentation & Community
+- **Atlas Format Specification** - Complete format documentation with schemas, examples, security considerations
+- **Code of Conduct** - Contributor Covenant v2.1 for community standards
+- **Enhanced CONTRIBUTING.md** - Release process, changelog maintenance, versioning policy
+- **SDK Validation Examples** - `validate-archive.ts` with detailed issue reporting
+- **Quickstart Demo** - `demo-quickstart.js` for rapid onboarding
+
+### 🔄 Changed
+
+#### Breaking Changes
+- **Renamed `--errorBudget` to `--maxErrors`** with clearer semantics:
+  - Old: `--errorBudget 0` meant unlimited (confusing)
+  - New: `--maxErrors -1` means unlimited (explicit)
+  - New: `--maxErrors 0` aborts immediately
+  - New: `--maxErrors N` aborts after N errors
+- **Default `--max-depth` changed from `-1` to `1`** for safer defaults
+  - Old: Unlimited depth (risky for new users)
+  - New: Homepage + direct links only
+  - Use `--max-depth -1` to restore unlimited behavior
+
+#### Status Updates
+- **README Status** - Changed from "Production Ready" to "Release Candidate 1.0.0-rc.1" for honest status declaration
+
+### 🐛 Fixed
+
+#### Critical Bugs
+- **Error Budget Enforcement** - Error budget was configured everywhere but never actually checked
+  - Added check after each page: `if (maxErrors >= 0 && this.errorCount > maxErrors)`
+  - Now correctly emits note to manifest and exits with code 2
+  - Added integration tests to verify enforcement
+
+### 📚 Documentation
+- Added Responsible Crawling section with ethics, rate limiting, legal compliance
+- Enhanced README with observability metrics documentation
+- Updated all examples to use `--maxErrors` instead of `--errorBudget`
+- Linked Atlas specification from README Architecture section
+
+### 🧪 Testing
+- SDK validation: 9 passing tests
+- Golden corpus fixtures: 3 curated test archives
+- All fixtures validated with SDK `validate()` function
+
+---
+
 ## [Unreleased]
 
 ### 🐛 Fixed
