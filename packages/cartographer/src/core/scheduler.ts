@@ -66,6 +66,7 @@ export class Scheduler {
   private errorCount = 0;
   private errorBudgetExceeded = false;
   private inFlightCount = 0; // Track concurrent page processing
+  private heartbeatCounter = 0; // Count heartbeats for observability emissions
   private rpsLimiter: ReturnType<typeof pLimit>;
   private memoryPaused = false;
   private checkpointInterval: number;
@@ -115,6 +116,66 @@ export class Scheduler {
       startedAt: this.metrics.getStartedAt(),
       updatedAt: new Date().toISOString()
     };
+  }
+
+  /** Emit detailed observability event with operational metrics */
+  private emitObservabilityEvent(crawlId: string): void {
+    // Build per-host queue sizes
+    const perHostQueues: Record<string, number> = {};
+    for (const [host, queue] of this.hostQueues.entries()) {
+      perHostQueues[host] = queue.length;
+    }
+
+    // Find throttled hosts (hosts with queued items but no tokens)
+    const throttledHosts: string[] = [];
+    for (const [host, queue] of this.hostQueues.entries()) {
+      if (queue.length > 0) {
+        // A host is considered throttled if it has items queued
+        // (We don't have direct access to token buckets here, so this is a proxy)
+        throttledHosts.push(host);
+      }
+    }
+
+    // Calculate total queue depth across all hosts
+    const totalQueueDepth = Array.from(this.hostQueues.values()).reduce(
+      (sum, queue) => sum + queue.length,
+      0
+    );
+
+    const observabilityData = {
+      type: "crawl.observability",
+      queueDepth: totalQueueDepth,
+      inFlightCount: this.inFlightCount,
+      completedCount: this.pageCount,
+      errorCount: this.errorCount,
+      perHostQueues,
+      throttledHosts,
+      currentRps: this.metrics.getPagesPerSecond(),
+      memoryRssMB: this.metrics.getCurrentRssMB(),
+      seq: 0,
+      timestamp: new Date().toISOString()
+    };
+
+    // Emit as event bus event
+    bus.emit(withCrawlId(crawlId, observabilityData as any));
+    
+    // Also log to NDJSON
+    logEvent({
+      ts: new Date().toISOString(),
+      level: "info",
+      event: "crawl.observability",
+      crawlId,
+      queueDepth: totalQueueDepth,
+      inFlightCount: this.inFlightCount,
+      completedCount: this.pageCount,
+      errorCount: this.errorCount,
+      hostsActive: this.hostQueues.size,
+      throttledHostsCount: throttledHosts.length,
+      currentRps: this.metrics.getPagesPerSecond(),
+      memoryRssMB: this.metrics.getCurrentRssMB()
+    });
+    
+    log('debug', `[Observability] Queue: ${totalQueueDepth}, InFlight: ${this.inFlightCount}, Completed: ${this.pageCount}, Errors: ${this.errorCount}, Hosts: ${this.hostQueues.size}, RSS: ${this.metrics.getCurrentRssMB()}MB`);
   }
 
   /** Get manifest path */
@@ -317,6 +378,12 @@ export class Scheduler {
         type: "crawl.heartbeat",
         progress: this.getProgress()
       } as any)); // Type assertion for union
+      
+      // Emit detailed observability event every 5 seconds
+      this.heartbeatCounter++;
+      if (this.heartbeatCounter % 5 === 0) {
+        this.emitObservabilityEvent(crawlId);
+      }
     }, 1000);
 
     // Emit crawl.started event

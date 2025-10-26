@@ -484,6 +484,7 @@ export type CrawlEvent =
   | { type: "error.occurred"; crawlId: string; error: ErrorRecord; seq: number; timestamp: string }
   | { type: "checkpoint.saved"; crawlId: string; path: string; seq: number; timestamp: string }
   | { type: "crawl.heartbeat"; crawlId: string; progress: CrawlProgress; seq: number; timestamp: string }
+  | { type: "crawl.observability"; crawlId: string; queueDepth: number; inFlightCount: number; completedCount: number; errorCount: number; perHostQueues: Record<string, number>; throttledHosts: string[]; currentRps: number; memoryRssMB: number; seq: number; timestamp: string }
   | { type: "crawl.backpressure"; crawlId: string; host: string; reason: string; hostsWithTokens: string[]; hostsDeferred: string[]; tokens?: number; queued?: number; seq?: number; timestamp?: string }
   | { type: "crawl.shutdown"; crawlId: string; reason: "cancel"|"error"; seq: number; timestamp: string }
   | { type: "crawl.finished"; crawlId: string; manifestPath: string; incomplete: boolean; summary?: { pages: number; edges: number; assets: number; errors: number; durationMs: number }; perf?: { avgPagesPerSec: number; peakRssMB: number }; notes?: string[]; seq: number; timestamp: string };
