@@ -9,7 +9,7 @@ import { test, expect } from "vitest";
 import { existsSync } from "fs";
 import { rm } from "fs/promises";
 import { execSync } from "child_process";
-import { readManifest, iterateParts } from "../../src/io/readers/atlsReader.js";
+import { readManifest, iterateParts } from "@atlas/sdk";
 
 const OUT_FILE = "tmp/accessibility-test.atls";
 
