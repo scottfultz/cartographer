@@ -1,0 +1,89 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for Cartographer
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe your idea below.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What limitation are you facing?
+      placeholder: "I'm frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this to work? Describe the desired behavior.
+      placeholder: "I would like Cartographer to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What workarounds or alternative solutions have you considered?
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of Cartographer does this relate to?
+      options:
+        - CLI Interface
+        - Core Crawler Engine
+        - Atlas Archive Format
+        - Atlas SDK
+        - Export/CSV Generation
+        - Logging/Observability
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve workflow
+        - High - Blocking critical use case
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case / Examples
+      description: |
+        Provide concrete examples or use cases that would benefit from this feature.
+        If applicable, show CLI commands or code snippets.
+      placeholder: |
+        Example usage:
+        ```bash
+        cartographer crawl --seeds https://example.com --new-feature ...
+        ```
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to implement this feature and submit a PR
+          required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or related issues/PRs.

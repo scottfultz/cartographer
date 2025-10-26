@@ -1,0 +1,24 @@
+name: Configuration
+description: Choose a template for your issue
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Welcome! 👋
+        
+        Thank you for using Cartographer! Before opening an issue:
+        
+        1. **Search existing issues** - Your issue may already be reported
+        2. **Check documentation** - See [README.md](https://github.com/scottfultz/cartographer/blob/main/README.md) and [docs/](https://github.com/scottfultz/cartographer/tree/main/docs)
+        3. **Security vulnerabilities** - Report privately to cai@caifrazier.com (see [SECURITY.md](https://github.com/scottfultz/cartographer/blob/main/SECURITY.md))
+        
+        ---
+        
+        ### Issue Types
+        
+        - **🐛 Bug Report** - Something isn't working as expected
+        - **✨ Feature Request** - Suggest a new feature or enhancement
+        - **📚 Documentation** - Improve or clarify documentation
+        - **❓ Question** - Ask for help or clarification (consider Discussions instead)
+        
+        Choose the appropriate template on the right →
