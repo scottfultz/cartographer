@@ -424,6 +424,16 @@ export class Scheduler {
             });
           });
           processed = true;
+          
+          // Check error budget after each page
+          const errorBudget = this.config.cli?.errorBudget ?? 0;
+          if (errorBudget > 0 && this.errorCount > errorBudget) {
+            this.errorBudgetExceeded = true;
+            log("warn", `❌ Error budget exceeded (${this.errorCount}/${errorBudget}). Aborting crawl.`);
+            // Clear all host queues to exit loop
+            this.hostQueues.clear();
+            break;
+          }
         } else {
           // Emit backpressure event for host
           bus.emit(withCrawlId(crawlId, {
@@ -435,6 +445,12 @@ export class Scheduler {
           } as any));
         }
       }
+      
+      // Check if error budget was exceeded (break out of main loop)
+      if (this.errorBudgetExceeded) {
+        break;
+      }
+      
       if (!processed) {
         // If no hosts could process, wait 100ms before next round
         await new Promise(res => setTimeout(res, 100));
@@ -458,16 +474,19 @@ export class Scheduler {
     
     // Determine completion reason
     let completionReason: "finished" | "capped" | "error_budget" | "manual" = "finished";
-    // Check if we hit maxPages limit (whether we processed exactly maxPages or stopped early with remaining queue)
-    if (this.config.maxPages > 0 && this.pageCount >= this.config.maxPages) {
+    
+    // Priority order: error budget > manual > capped > finished
+    if (this.errorBudgetExceeded) {
+      completionReason = "error_budget";
+    } else if (this.gracefulShutdown) {
+      completionReason = "manual";
+    } else if (this.config.maxPages > 0 && this.pageCount >= this.config.maxPages) {
       completionReason = "capped";
     } else if (this.config.maxPages > 0 && this.visited.size >= this.config.maxPages) {
       // Also mark as capped if visited count reached maxPages (accounts for edge cases)
       completionReason = "capped";
-    } else if (this.gracefulShutdown) {
-      completionReason = "manual";
     }
-    // Note: error_budget would be set earlier if errorBudget was exceeded
+    
     this.writer.setCompletionReason(completionReason);
     
     // Set provenance information on writer for manifest
@@ -492,7 +511,7 @@ export class Scheduler {
   bus.emit(withCrawlId(crawlId, {
       type: "crawl.finished",
       manifestPath: this.writer.getManifestPath(),
-      incomplete: this.gracefulShutdown,
+      incomplete: this.gracefulShutdown || this.errorBudgetExceeded,
       summary: {
         pages: summary.stats.totalPages,
         edges: summary.stats.totalEdges,
