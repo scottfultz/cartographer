@@ -67,6 +67,7 @@ The `manifest.json` file describes the archive contents and provenance.
 ```json
 {
   "atlasVersion": "1.0",
+  "formatVersion": "1.0.0",
   "specVersion": "1.0.0",
   "schemaVersion": "1.0.0",
   "incomplete": false,
@@ -149,8 +150,9 @@ The `manifest.json` file describes the archive contents and provenance.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `atlasVersion` | string | ✅ | Format version (e.g., "1.0") |
-| `specVersion` | string | ✅ | Specification version |
+| `atlasVersion` | string | ✅ | Major format version (e.g., "1.0") |
+| `formatVersion` | string | ✅ | Semantic version for compatibility (e.g., "1.0.0") |
+| `specVersion` | string | ✅ | Specification document version |
 | `incomplete` | boolean | ❌ | True if crawl was interrupted |
 | `owner.name` | string | ✅ | Archive owner attribution |
 | `consumers` | string[] | ✅ | Intended consumer applications |

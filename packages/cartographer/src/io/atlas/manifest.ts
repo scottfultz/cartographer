@@ -138,6 +138,7 @@ export async function buildManifest(opts: {
 
   return {
     atlasVersion: "1.0",
+    formatVersion: "1.0.0", // Explicit format version for compatibility checks
     specVersion,
     schemaVersion,
     incomplete: true, // Set to true at crawl start, flip to false after finalization

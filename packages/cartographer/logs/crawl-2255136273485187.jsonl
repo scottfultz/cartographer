@@ -1,0 +1,7 @@
+{"ts":"2025-10-26T02:51:32.655Z","level":"info","event":"crawl.started","crawlId":"2255136273485187","seeds":["http://127.0.0.1:52044/"],"mode":"prerender","paramPolicy":"sample","rps":10}
+{"ts":"2025-10-26T02:51:33.688Z","level":"info","event":"crawl.pageProcessed","crawlId":"2255136273485187","url":"http://127.0.0.1:52044/","depth":0,"status":200,"fetchMs":7,"renderMs":723,"extractMs":100,"writeMs":1,"rssMB":247}
+{"ts":"2025-10-26T02:51:34.409Z","level":"info","event":"crawl.pageProcessed","crawlId":"2255136273485187","url":"http://127.0.0.1:52044/about.html","depth":1,"status":200,"fetchMs":4,"renderMs":567,"extractMs":147,"writeMs":0,"rssMB":257}
+{"ts":"2025-10-26T02:51:35.062Z","level":"info","event":"crawl.pageProcessed","crawlId":"2255136273485187","url":"http://127.0.0.1:52044/products.html","depth":2,"status":200,"fetchMs":3,"renderMs":574,"extractMs":73,"writeMs":0,"rssMB":263}
+{"ts":"2025-10-26T02:51:35.650Z","level":"info","event":"crawl.pageProcessed","crawlId":"2255136273485187","url":"http://127.0.0.1:52044/products.html?color=red","depth":3,"status":404,"fetchMs":3,"renderMs":566,"extractMs":17,"writeMs":0,"rssMB":265}
+{"ts":"2025-10-26T02:51:35.651Z","level":"info","event":"crawl.checkpoint","crawlId":"2255136273485187","pageCount":4,"edges":9,"assets":4,"errors":0,"rssMB":265}
+{"ts":"2025-10-26T02:51:35.890Z","level":"info","event":"crawl.finished","crawlId":"2255136273485187","durationMs":3242,"pages":4,"edges":9,"assets":4,"errors":0,"atls":"/Users/scottfultz/Projects/Cartographer/packages/cartographer/tmp/demo-quickstart.atls"}

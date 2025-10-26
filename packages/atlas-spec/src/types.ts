@@ -494,6 +494,7 @@ export type CrawlEvent =
  */
 export interface AtlasManifest {
   atlasVersion: string; // "1.0"
+  formatVersion: string; // "1.0.0" - Explicit format version for compatibility checks
   specVersion?: string;
   schemaVersion?: string;
   incomplete?: boolean;

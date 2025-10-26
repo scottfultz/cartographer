@@ -268,6 +268,25 @@ function validateManifestSchema(
     });
   }
   
+  if (!manifest.formatVersion) {
+    addIssue({
+      severity: "warning",
+      code: "MANIFEST_MISSING_FORMAT_VERSION",
+      message: "Manifest missing formatVersion field (pre-1.0.0-rc.1 archive)",
+    });
+  } else {
+    // Check format version compatibility
+    const [major] = manifest.formatVersion.split('.').map(Number);
+    if (major > 1) {
+      addIssue({
+        severity: "error",
+        code: "MANIFEST_UNSUPPORTED_FORMAT_VERSION",
+        message: `Unsupported format version: ${manifest.formatVersion} (SDK supports 1.x.x only)`,
+        details: { formatVersion: manifest.formatVersion },
+      });
+    }
+  }
+  
   if (!manifest.owner?.name) {
     addIssue({
       severity: "warning",
