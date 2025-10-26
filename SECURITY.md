@@ -2,11 +2,59 @@
 
 ## Overview
 
-Cartographer Engine is a headless web crawler that interacts with untrusted web content. This document outlines our security posture, threat model, and mitigation strategies.
+Cartographer Engine is a headless web crawler that interacts with untrusted web content. This document outlines our security posture, threat model, mitigation strategies, and vulnerability disclosure process.
 
 **Owner:** Cai Frazier  
 **Last Updated:** 2025-10-25  
 **Version:** 1.0.0
+
+---
+
+## Supported Versions
+
+We release security updates for the following versions:
+
+| Version | Supported | Status |
+| ------- | --------- | ------ |
+| 1.0.0-rc.x | ✅ | Release Candidate |
+| < 1.0.0 | ❌ | Pre-release (unsupported) |
+
+---
+
+## Reporting a Vulnerability
+
+### Disclosure Process
+
+**Please DO NOT report security vulnerabilities through public GitHub issues.**
+
+Report security issues via email to: **[cai@caifrazier.com](mailto:cai@caifrazier.com)**
+
+Include:
+1. Description of the vulnerability
+2. Impact and severity assessment
+3. Affected versions
+4. Reproduction steps
+5. Proof of concept (if applicable)
+6. Suggested fix (optional)
+
+### Response Timeline
+
+- **Initial Response:** Within 48 hours (2 business days)
+- **Validation:** Within 1 week
+- **Status Updates:** Every 2 weeks until resolved
+- **Fix Timeline:**
+  - Critical: 7 days
+  - High: 14 days
+  - Medium: 30 days
+  - Low: 60 days
+
+### Coordinated Disclosure
+
+We follow coordinated disclosure with a standard 90-day embargo period. We'll work with you to:
+- Validate and reproduce the issue
+- Develop and test a fix
+- Coordinate disclosure timing
+- Credit you in the security advisory (unless you prefer anonymity)
 
 ---
 
