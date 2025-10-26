@@ -110,15 +110,15 @@ test("Integration - collectWCAGData includes Phase 1 static data", () => {
   
   // Phase 1 static features
   expect(result.ariaLiveRegions).toBeTruthy();
-  expect(result.ariaLiveRegions.count).toBe(3);
+  expect(result.ariaLiveRegions?.count).toBe(3);
   
   expect(result.focusOrderAnalysis).toBeTruthy();
-  expect(result.focusOrderAnalysis.customTabIndexCount).toBe(3);
-  expect(result.focusOrderAnalysis.positiveTabIndexElements.length).toBe(1);
+  expect(result.focusOrderAnalysis?.customTabIndexCount).toBe(3);
+  expect(result.focusOrderAnalysis?.positiveTabIndexElements.length).toBe(1);
   
   expect(result.formAutocomplete).toBeTruthy();
-  expect(result.formAutocomplete.totalForms).toBe(1);
-  expect(result.formAutocomplete.personalDataInputs.length).toBe(4);
+  expect(result.formAutocomplete?.totalForms).toBe(1);
+  expect(result.formAutocomplete?.personalDataInputs.length).toBe(4);
 });
 
 test("Integration - static analysis works with empty page", () => {
@@ -126,13 +126,13 @@ test("Integration - static analysis works with empty page", () => {
   const result = collectWCAGData($, "https://example.com");
   
   expect(result.ariaLiveRegions).toBeTruthy();
-  expect(result.ariaLiveRegions.count).toBe(0);
+  expect(result.ariaLiveRegions?.count).toBe(0);
   
   expect(result.focusOrderAnalysis).toBeTruthy();
-  expect(result.focusOrderAnalysis.customTabIndexCount).toBe(0);
+  expect(result.focusOrderAnalysis?.customTabIndexCount).toBe(0);
   
   expect(result.formAutocomplete).toBeTruthy();
-  expect(result.formAutocomplete.totalForms).toBe(0);
+  expect(result.formAutocomplete?.totalForms).toBe(0);
 });
 
 // =============================================================================
@@ -203,14 +203,14 @@ test("Integration - Phase 1 data structures are consistent", async () => {
   expect(mediaElements).toBeTruthy();
   
   // Data types should be correct
-  expect(typeof staticData.ariaLiveRegions.count).toBe('number');
-  expect(Array.isArray(staticData.ariaLiveRegions.regions)).toBeTruthy();
+  expect(typeof staticData.ariaLiveRegions?.count).toBe('number');
+  expect(Array.isArray(staticData.ariaLiveRegions?.regions)).toBeTruthy();
   
-  expect(typeof staticData.focusOrderAnalysis.customTabIndexCount).toBe('number');
-  expect(Array.isArray(staticData.focusOrderAnalysis.positiveTabIndexElements)).toBeTruthy();
+  expect(typeof staticData.focusOrderAnalysis?.customTabIndexCount).toBe('number');
+  expect(Array.isArray(staticData.focusOrderAnalysis?.positiveTabIndexElements)).toBeTruthy();
   
-  expect(typeof staticData.formAutocomplete.totalForms).toBe('number');
-  expect(Array.isArray(staticData.formAutocomplete.personalDataInputs)).toBeTruthy();
+  expect(typeof staticData.formAutocomplete?.totalForms).toBe('number');
+  expect(Array.isArray(staticData.formAutocomplete?.personalDataInputs)).toBeTruthy();
   
   expect(typeof keyboardTraps.hasPotentialTraps).toBe('boolean');
   expect(Array.isArray(keyboardTraps.suspiciousElements)).toBeTruthy();
@@ -270,9 +270,9 @@ test("Integration - form autocomplete identifies all expected patterns", async (
   const result = collectWCAGData($, "https://example.com");
   
   expect(result.formAutocomplete).toBeTruthy();
-  expect(result.formAutocomplete.personalDataInputs.length).toBe(7);
+  expect(result.formAutocomplete?.personalDataInputs.length).toBe(7);
   
-  const types = result.formAutocomplete.personalDataInputs.map(i => i.type);
+  const types = result.formAutocomplete?.personalDataInputs.map(i => i.type);
   expect(types.includes("email")).toBeTruthy();
   expect(types.includes("tel")).toBeTruthy();
   expect(types.includes("name")).toBeTruthy();
@@ -332,16 +332,16 @@ test("Integration - ARIA live regions with various configurations", () => {
   const result = collectWCAGData($, "https://example.com");
   
   expect(result.ariaLiveRegions).toBeTruthy();
-  expect(result.ariaLiveRegions.count).toBe(6);
+  expect(result.ariaLiveRegions?.count).toBe(6);
   
   // Check explicit regions
-  const polite = result.ariaLiveRegions.regions.find(r => r.live === 'polite' && !r.atomic);
+  const polite = result.ariaLiveRegions?.regions.find(r => r.live === 'polite' && !r.atomic);
   expect(polite).toBeTruthy();
   
-  const assertive = result.ariaLiveRegions.regions.find(r => r.live === 'assertive' && r.atomic);
+  const assertive = result.ariaLiveRegions?.regions.find(r => r.live === 'assertive' && r.atomic);
   expect(assertive).toBeTruthy();
   
-  const off = result.ariaLiveRegions.regions.find(r => r.live === 'off');
+  const off = result.ariaLiveRegions?.regions.find(r => r.live === 'off');
   expect(off).toBeTruthy();
 });
 
@@ -394,9 +394,9 @@ test("Integration - form autocomplete identifies all expected patterns", async (
   const result = collectWCAGData($, "https://example.com");
   
   expect(result.formAutocomplete).toBeTruthy();
-  expect(result.formAutocomplete.personalDataInputs.length).toBe(7);
+  expect(result.formAutocomplete?.personalDataInputs.length).toBe(7);
   
-  const types = result.formAutocomplete.personalDataInputs.map(i => i.type);
+  const types = result.formAutocomplete?.personalDataInputs.map(i => i.type);
   expect(types.includes("email")).toBeTruthy();
   expect(types.includes("tel")).toBeTruthy();
   expect(types.includes("name")).toBeTruthy();
@@ -456,15 +456,15 @@ test("Integration - ARIA live regions with various configurations", () => {
   const result = collectWCAGData($, "https://example.com");
   
   expect(result.ariaLiveRegions).toBeTruthy();
-  expect(result.ariaLiveRegions.count).toBe(6);
+  expect(result.ariaLiveRegions?.count).toBe(6);
   
   // Check explicit regions
-  const polite = result.ariaLiveRegions.regions.find(r => r.live === 'polite' && !r.atomic);
+  const polite = result.ariaLiveRegions?.regions.find(r => r.live === 'polite' && !r.atomic);
   expect(polite).toBeTruthy();
   
-  const assertive = result.ariaLiveRegions.regions.find(r => r.live === 'assertive' && r.atomic);
+  const assertive = result.ariaLiveRegions?.regions.find(r => r.live === 'assertive' && r.atomic);
   expect(assertive).toBeTruthy();
   
-  const off = result.ariaLiveRegions.regions.find(r => r.live === 'off');
+  const off = result.ariaLiveRegions?.regions.find(r => r.live === 'off');
   expect(off).toBeTruthy();
 });

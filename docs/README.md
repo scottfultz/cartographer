@@ -2,15 +2,18 @@
 
 **Cartographer Engine Documentation Hub**
 
+**Last Updated:** October 25, 2025  
+**Monorepo Status:** Migration Complete ✅
+
 ---
 
 ## Getting Started
 
 New to Cartographer? Start here:
 
-1. **[README.md](../README.md)** - Overview, CLI reference, and examples
-2. **[GETTING_STARTED.md](../GETTING_STARTED.md)** - Quick start guide with common use cases
-3. **[FEATURES.md](../FEATURES.md)** - Complete feature list and implementation status
+1. **[../README.md](../README.md)** - Overview, CLI reference, and monorepo structure
+2. **[../CODEBASE_DOCUMENTATION.md](../CODEBASE_DOCUMENTATION.md)** - Comprehensive technical documentation
+3. **[../REMAINING_TEST_FAILURES.md](../REMAINING_TEST_FAILURES.md)** - Known test issues (5 failures, 99.1% pass rate)
 
 ---
 
@@ -18,13 +21,20 @@ New to Cartographer? Start here:
 
 Contributing to Cartographer? Read these:
 
-- **[DEVELOPER_GUIDE.md](../DEVELOPER_GUIDE.md)** - Codebase architecture, patterns, and conventions
-- **[MISSION.md](../MISSION.md)** - Project vision, principles, and roadmap
-- **[.github/copilot-instructions.md](../.github/copilot-instructions.md)** - AI agent development guidelines
+- **[../CODEBASE_DOCUMENTATION.md](../CODEBASE_DOCUMENTATION.md)** - Architecture, testing, development workflow
+- **[../.github/copilot-instructions.md](../.github/copilot-instructions.md)** - AI agent development guidelines
+- **[../packages/atlas-sdk/README.md](../packages/atlas-sdk/README.md)** - Atlas SDK API documentation
+- **[../packages/atlas-spec/README.md](../packages/atlas-spec/README.md)** - Type definitions reference
 
 ---
 
 ## Technical References
+
+### Core Documentation
+
+- **[CODEBASE_DOCUMENTATION.md](../CODEBASE_DOCUMENTATION.md)** - Complete technical reference
+- **[REMAINING_TEST_FAILURES.md](../REMAINING_TEST_FAILURES.md)** - Test status and known issues
+- **[packages/atlas-sdk/QUICK_REFERENCE.md](../packages/atlas-sdk/QUICK_REFERENCE.md)** - SDK quick reference
 
 ### Testing
 

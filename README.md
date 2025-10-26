@@ -37,54 +37,71 @@ A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** arc
 
 ## 📦 Monorepo Structure
 
-Cartographer is organized as a pnpm monorepo with shared workspace packages:
+Cartographer is organized as a pnpm + Turbo monorepo with shared workspace packages:
 
 ```
 cartographer/
 ├── packages/
 │   ├── cartographer/         # Main crawler engine
 │   │   ├── src/              # TypeScript source code
-│   │   ├── test/             # Vitest test suites (351 tests)
+│   │   ├── test/             # Vitest test suites (570 tests)
 │   │   └── dist/             # Compiled JavaScript
 │   ├── atlas-spec/           # @atlas/spec - Type definitions
 │   │   └── src/types.ts      # Shared Atlas v1.0 types
 │   ├── atlas-sdk/            # @atlas/sdk - Reading .atls files
 │   │   ├── src/              # SDK implementation
 │   │   └── examples/         # Usage examples
-│   └── url-tools/            # @cf/url-tools - URL utilities
-│       └── src/              # Shared URL/domain logic
+│   ├── url-tools/            # @cf/url-tools - URL utilities
+│   │   └── src/              # Shared URL/domain logic
+│   ├── design-system/        # UI components (future)
+│   ├── devkit/              # Development utilities
+│   └── waypoint/            # Additional tooling
 ├── scripts/                  # Build and utility scripts
-└── pnpm-workspace.yaml       # Workspace configuration
+├── turbo.json               # Turbo task pipeline configuration
+└── pnpm-workspace.yaml      # Workspace configuration
 ```
 
 ### Workspace Packages
 
 | Package | Description | Used By |
 |---------|-------------|---------|
+| **@cf/cartographer** | Main crawler engine with CLI | Production crawls |
 | **@atlas/spec** | TypeScript types for Atlas v1.0 format | Engine, SDK, tests |
 | **@atlas/sdk** | Read and query .atls archives | Tests, external tools |
 | **@cf/url-tools** | URL parsing, normalization, validation | Engine |
+| **@cf/devkit** | Development utilities and tooling | Build scripts |
+| **@cf/design-system** | UI components (future integration) | Future UI |
+| **@cf/waypoint** | Additional tooling and utilities | Various |
 
 ### Package Manager
 
-This project uses **pnpm** for workspace management. All dependencies are shared across packages, with automatic linking for internal packages.
+This project uses **pnpm 9.0.0** for workspace management. All dependencies are shared across packages, with automatic linking for internal packages.
 
 ```bash
 # Install all workspace dependencies
 pnpm install
 
-# Build all packages
+# Build all packages (uses Turbo)
 pnpm build
 
-# Run tests (uses Vitest)
+# Run tests across all packages (uses Vitest)
 pnpm test
 
 # Run tests for specific package
 pnpm test --filter=@cf/cartographer
 
-# Run commands in specific workspace
-pnpm --filter=@cf/cartographer run build
+# Lint all packages
+pnpm lint
+
+# Development mode with watch (specific package)
+cd packages/cartographer
+pnpm dev -- crawl --seeds https://example.com
 ```
+
+**Build System:**
+- **Turbo 2.0.0** - Caches builds and optimizes task scheduling
+- **TypeScript 5.6.3** - Compiles all workspace packages
+- **Vitest 2.1.9** - Fast unit testing with native ESM support
 
 ---
 
@@ -92,11 +109,13 @@ pnpm --filter=@cf/cartographer run build
 
 ### Test Coverage
 
-- **351 Test Cases** across 41 test suites - migrated to Vitest
+- **570 Test Cases** across 41 test suites (using Vitest)
+- **98.9% Pass Rate** - 564/570 tests passing
 - **Node.js 20 & 22** - Full CI matrix on both LTS versions
 - **Automated CI** - GitHub Actions with artifact preservation
 - **Test Artifacts** - All test runs preserved for 7 days with downloadable results
-- **93% Pass Rate** - 325/351 tests passing (remaining failures are pre-existing test logic issues)
+
+**Test Status:** 5 remaining failures are integration/smoke tests (error budget timing, rate limit validation, NDJSON event count, accessibility full-mode requirements, atlas-sdk archive finalization). See [REMAINING_TEST_FAILURES.md](REMAINING_TEST_FAILURES.md) for details.
 
 **View Live Results:** [GitHub Actions CI Runs](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml)
 
@@ -104,28 +123,29 @@ pnpm --filter=@cf/cartographer run build
 
 | Category | Tests | Coverage |
 |----------|-------|----------|
-| **Extractors** | 50+ | Links, assets, SEO, accessibility, tech stack |
+| **Extractors** | 68+ | Links, assets, SEO, accessibility, WCAG, runtime a11y |
 | **Integration** | 25+ | End-to-end crawl workflows |
 | **Atlas Format** | 30+ | Archive creation, validation, compression |
-| **CLI Commands** | 20+ | Crawl, export, validate, diff |
+| **CLI Commands** | 20+ | Crawl, export, validate, stress testing |
 | **Edge Cases** | 40+ | Checkpoints, rate limiting, error budgets |
 | **Performance** | 15+ | Network metrics, Lighthouse, benchmarks |
 | **Data Quality** | 30+ | Schema validation, integrity checks |
 | **Wappalyzer** | 9 | Technology detection |
 | **Enhanced SEO** | 15 | Metadata, indexability, hreflang |
 | **Enhanced Links** | 5 | Sponsored/UGC attributes |
+| **Logging** | 29 | NDJSON structured logging, state management |
 
 ### Running Tests
 
 ```bash
-# Run all tests (Vitest)
+# Run all tests across all packages (from root)
 pnpm test
 
 # Run tests for specific package
 pnpm test --filter=@cf/cartographer
 
 # Run specific test file
-pnpm test --filter=@cf/cartographer -- test/url.test.ts
+pnpm test --filter=@cf/cartographer -- test/extractors/wcagData.test.ts
 
 # Run tests in watch mode
 pnpm test --filter=@cf/cartographer -- --watch
@@ -133,8 +153,8 @@ pnpm test --filter=@cf/cartographer -- --watch
 # Generate coverage report
 pnpm test --filter=@cf/cartographer -- --coverage
 
-# Count tests and generate report
-node scripts/count-tests.js
+# Run tests with UI (Vitest UI)
+pnpm test --filter=@cf/cartographer -- --ui
 
 # Run performance benchmark
 node scripts/benchmark.js --pages=100
@@ -145,12 +165,18 @@ node scripts/benchmark.js --pages=100
 Our CI pipeline runs on every push and pull request:
 
 1. **Build & Test Matrix** - Node.js 20 and 22
-2. **Workspace Build** - All packages built with pnpm
-3. **Unit Tests** - ~351 tests with Vitest
-4. **Integration Tests** - Real crawl validation
-5. **Performance Benchmark** - Automated benchmarking with artifacts
-6. **Archive Validation** - Schema and integrity checks
-7. **Artifact Preservation** - Test results and benchmarks stored for 7 days
+2. **Workspace Setup** - pnpm install with frozen lockfile
+3. **Turbo Build** - All packages built with caching
+4. **Unit Tests** - 570 tests with Vitest
+5. **Integration Tests** - Real crawl validation
+6. **Performance Benchmark** - Automated benchmarking with artifacts
+7. **Archive Validation** - Schema and integrity checks
+8. **Artifact Preservation** - Test results and benchmarks stored for 7 days
+
+**Build System:**
+- **Turbo** - Incremental builds with intelligent caching
+- **pnpm workspaces** - Efficient dependency management
+- **Parallel execution** - Tests run concurrently across packages
 
 **CI Status:** [![CI](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml/badge.svg)](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml)
 
@@ -201,7 +227,7 @@ node scripts/benchmark.js --pages=500 --seeds=https://example.com --mode=full
 ### Prerequisites
 
 - **Node.js**: 20.0.0 or higher
-- **pnpm**: 8.0.0 or higher (for workspace management)
+- **pnpm**: 9.0.0 or higher (for workspace management)
 
 ```bash
 # Install pnpm globally if needed
@@ -218,20 +244,24 @@ cd cartographer
 # Install all workspace dependencies
 pnpm install
 
-# Build all packages
+# Build all packages (uses Turbo)
 pnpm build
 ```
 
 ### Basic Crawl
 
 ```bash
-# Crawl with auto-generated filename in ./export/
+# From the repository root
 node packages/cartographer/dist/cli/index.js crawl \
   --seeds https://example.com \
   --mode prerender \
   --maxPages 100
 
-# Output: ./export/example.com_20251024_153045_prerender.atls
+# Output: ./export/example.com_20251224_153045_prerender.atls
+
+# Or use the convenience alias (after build)
+cd packages/cartographer
+node dist/cli/index.js crawl --seeds https://example.com --maxPages 100
 ```
 
 ### Custom Configuration

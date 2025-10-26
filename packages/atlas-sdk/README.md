@@ -1,17 +1,33 @@
-# Atlas SDK
+# @atlas/sdk
 
 TypeScript SDK for reading Atlas v1.0 archives produced by Cartographer Engine.
 
+**Part of the Cartographer monorepo** - See [main README](../../README.md) for full documentation.
+
 ## Installation
 
+### Within Monorepo
+
+If you're working within the Cartographer monorepo, the SDK is already linked:
+
 ```bash
-npm install @caifrazier/atlas-sdk
+# Build all packages
+pnpm build
+
+# The SDK is automatically available to other workspace packages
+```
+
+### External Installation
+
+```bash
+# Not yet published - install from source
+npm install @atlas/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { openAtlas } from '@caifrazier/atlas-sdk';
+import { openAtlas } from '@atlas/sdk';
 
 const atlas = await openAtlas('./crawl.atls');
 

@@ -4,8 +4,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2022"],
-    "outDir": "./dist",
-  // removed rootDir
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -15,6 +13,11 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "test"]
+  "files": [],
+  "references": [
+    { "path": "./packages/cartographer" },
+    { "path": "./packages/atlas-sdk" },
+    { "path": "./packages/atlas-spec" },
+    { "path": "./packages/url-tools" }
+  ]
 }

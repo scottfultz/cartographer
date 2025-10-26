@@ -46,7 +46,7 @@ test("crawl with accessibility should write accessibility stream and enrich mani
   
   // Verify capabilities exists
   expect(manifest.capabilities).toBeTruthy();
-  assert(Array.isArray(manifest.capabilities.renderModes), "capabilities.renderModes should be array");
+  expect(Array.isArray(manifest.capabilities.renderModes)).toBe(true);
   expect(manifest.capabilities.robots).toBeTruthy();
   
   // Verify we can read accessibility records
@@ -58,12 +58,12 @@ test("crawl with accessibility should write accessibility stream and enrich mani
     // Validate structure
     expect(record.pageUrl).toBeTruthy();
     expect(typeof record.missingAltCount === "number").toBeTruthy();
-    assert(Array.isArray(record.headingOrder), "should have headingOrder array");
+    expect(Array.isArray(record.headingOrder)).toBe(true);
     expect(record.landmarks).toBeTruthy();
     expect(record.roles).toBeTruthy();
     
     // Raw mode shouldn't have contrastViolations
-    expect(record.contrastViolations, undefined).toBe("raw mode shouldn't have contrastViolations");
+    expect(record.contrastViolations).toBe(undefined);
   }
   
   expect(accessibilityCount > 0).toBeTruthy();
