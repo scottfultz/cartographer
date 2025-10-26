@@ -13,3 +13,6 @@
 
 // Export all types
 export * from './types.js';
+
+// Export Zod schemas and types
+export * from './schemas/index.js';
