@@ -5,11 +5,36 @@
   "type": "module",
   "author": "Cai Frazier",
   "license": "UNLICENSED",
+  "private": true,
+  "keywords": [
+    "crawler",
+    "web-crawler",
+    "headless",
+    "playwright",
+    "seo",
+    "accessibility",
+    "atlas"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scottfultz/cartographer.git",
+    "directory": "packages/cartographer"
+  },
+  "bugs": {
+    "url": "https://github.com/scottfultz/cartographer/issues"
+  },
+  "homepage": "https://github.com/scottfultz/cartographer#readme",
   "bin": {
     "cartographer": "./dist/cli/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -26,7 +51,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "clean": "rimraf dist dist-tests"
+    "clean": "rimraf dist dist-tests",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "publishConfig": {
+    "access": "restricted"
   },
   "dependencies": {
     "@atlas/sdk": "workspace:*",

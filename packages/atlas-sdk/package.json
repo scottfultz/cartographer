@@ -6,6 +6,24 @@
   "license": "UNLICENSED",
   "private": true,
   "type": "module",
+  "keywords": [
+    "atlas",
+    "crawler",
+    "seo",
+    "accessibility",
+    "sdk",
+    "archive",
+    "validation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scottfultz/cartographer.git",
+    "directory": "packages/atlas-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/scottfultz/cartographer/issues"
+  },
+  "homepage": "https://github.com/scottfultz/cartographer/tree/main/packages/atlas-sdk#readme",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -15,14 +33,21 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "QUICK_REFERENCE.md",
+    "examples"
   ],
   "scripts": {
     "build": "tsc -b",
     "dev": "tsc -b --watch",
     "test": "vitest run",
     "lint": "eslint .",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "publishConfig": {
+    "access": "restricted"
   },
   "dependencies": {
     "@atlas/spec": "workspace:*",
@@ -35,12 +60,5 @@
     "@types/node": "^20.0.0",
     "@types/yauzl": "^2.10.3",
     "typescript": "^5.6.3"
-  },
-  "keywords": [
-    "atlas",
-    "crawler",
-    "seo",
-    "accessibility",
-    "sdk"
-  ]
+  }
 }
