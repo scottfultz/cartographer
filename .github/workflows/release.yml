@@ -1,0 +1,115 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-rc.*'
+      - 'v*.*.*-beta.*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build packages
+        run: pnpm build
+      
+      - name: Run tests
+        run: pnpm test
+      
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          # Extract changelog section for this version
+          CHANGELOG=$(awk "/^## \[$VERSION\]/,/^## \[/{if(/^## \[/ && !/^## \[$VERSION\]/)exit;print}" CHANGELOG.md | sed '1d;$d')
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Determine if pre-release
+        id: prerelease
+        run: |
+          if [[ "${{ steps.version.outputs.VERSION }}" =~ (rc|beta|alpha) ]]; then
+            echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## Changes
+            
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ---
+            
+            ### Installation
+            
+            ```bash
+            # Clone repository
+            git clone https://github.com/scottfultz/cartographer.git -b ${{ github.ref_name }}
+            cd cartographer
+            
+            # Install dependencies
+            pnpm install
+            
+            # Build packages
+            pnpm build
+            ```
+            
+            ### Documentation
+            
+            - [README](https://github.com/scottfultz/cartographer/blob/${{ github.ref_name }}/README.md)
+            - [CHANGELOG](https://github.com/scottfultz/cartographer/blob/${{ github.ref_name }}/CHANGELOG.md)
+            - [Migration Guide](https://github.com/scottfultz/cartographer/blob/${{ github.ref_name }}/docs/MIGRATION.md)
+            - [Atlas Specification](https://github.com/scottfultz/cartographer/blob/${{ github.ref_name }}/packages/atlas-spec/SPECIFICATION.md)
+          draft: false
+          prerelease: ${{ steps.prerelease.outputs.IS_PRERELEASE }}
+      
+      # Uncomment when ready to publish to NPM
+      # - name: Publish to NPM
+      #   if: steps.prerelease.outputs.IS_PRERELEASE == 'false'
+      #   run: |
+      #     cd packages/cartographer
+      #     npm publish --access restricted
+      #     cd ../atlas-sdk
+      #     npm publish --access restricted
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
