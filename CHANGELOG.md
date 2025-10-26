@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Status:** Production-ready release candidate for 1.0.0
 
+**⚠️ Breaking Changes:** See the **[Migration Guide](docs/MIGRATION.md)** for upgrade instructions.
+
 ### ✨ Added
 
 #### Core Infrastructure

@@ -317,6 +317,13 @@ pnpm install
 pnpm build
 ```
 
+### Upgrading from Pre-1.0 Versions
+
+If you're upgrading from a version before 1.0.0-rc.1, see the **[Migration Guide](docs/MIGRATION.md)** for:
+- Breaking changes: `--errorBudget` → `--maxErrors`, `maxDepth: 3` → `maxDepth: 1`
+- Atlas format updates: New `formatVersion` field in manifests
+- CLI script migration examples
+
 ### Basic Crawl
 
 ```bash
