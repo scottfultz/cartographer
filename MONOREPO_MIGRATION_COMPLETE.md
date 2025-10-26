@@ -19,13 +19,14 @@ The Cartographer monorepo migration has been **successfully completed**. All cor
 **Objective:** Organize codebase into scalable pnpm + Turbo monorepo
 
 **Deliverables:**
-- ✅ Created 12-package structure (8 active, 4 future apps)
+- ✅ Created 11-package structure (7 libraries, 4 future apps)
 - ✅ Configured `pnpm-workspace.yaml` and `turbo.json`
 - ✅ Set up workspace dependencies with `workspace:*` protocol
 - ✅ Migrated core packages: @cf/cartographer, @atlas/sdk, @atlas/spec, @cf/url-tools
+- ✅ Archived legacy atlas-sdk-old package
 
 **Results:**
-- Build time: **1.55s** (11/12 cached with Turbo)
+- Build time: **1.65s** (10/11 cached with Turbo)
 - Clean separation of concerns
 - Ready for future Electron apps
 
@@ -133,8 +134,8 @@ The Cartographer monorepo migration has been **successfully completed**. All cor
 ### Code Quality
 - **TypeScript Errors:** 0 (in active code)
 - **Test Pass Rate:** 99.1% (565/570)
-- **Build Time:** 1.55s (cached)
-- **Packages:** 12 total (8 active, 4 future)
+- **Build Time:** 1.65s (cached)
+- **Packages:** 11 total (7 libraries, 4 future apps)
 
 ### Test Coverage
 - **Total Tests:** 570
@@ -223,8 +224,8 @@ All failures are timing-sensitive integration tests, not blocking production use
 
 | Criterion | Target | Actual | Status |
 |-----------|--------|--------|--------|
-| Package Structure | 12 packages | 12 packages | ✅ |
-| Build Time (cached) | < 3s | 1.55s | ✅ |
+| Package Structure | 11 packages | 11 packages | ✅ |
+| Build Time (cached) | < 3s | 1.65s | ✅ |
 | Test Pass Rate | > 95% | 99.1% | ✅ |
 | TypeScript Errors | 0 | 0 | ✅ |
 | Documentation | Complete | 800+ lines | ✅ |

@@ -17,6 +17,7 @@ Cartographer is a production-grade headless web crawler that produces **Atlas v1
 - **Vitest 2.1.9** for fast testing with native ESM support
 - **99.1% test coverage** (565/570 tests passing)
 - **Zero TypeScript compilation errors** in active codebase
+- **11 packages** (7 libraries + 4 future apps)
 
 ---
 
