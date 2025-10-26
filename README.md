@@ -963,6 +963,8 @@ example.atls (Zip Archive)
     └── 000.jsonl.zst
 ```
 
+**Full specification:** See [`packages/atlas-spec/SPECIFICATION.md`](packages/atlas-spec/SPECIFICATION.md) for complete format documentation including schemas, compression details, integrity hashing, and examples.
+
 ### Core Components
 
 - **`src/cli/`** - CLI entrypoints (`crawl`, `export`, `stress`, `validate`)
