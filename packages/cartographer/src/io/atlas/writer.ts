@@ -9,7 +9,8 @@ import { finished } from "stream/promises";
 import { createWriteStream } from "fs";
 import type { WriteStream } from "fs";
 import { fsync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { randomBytes } from "crypto";
 import archiver from "archiver";
 import type { EngineConfig, PageRecord, EdgeRecord, AssetRecord, ErrorRecord, AtlasManifest, AtlasSummary, ConsoleRecord, ComputedTextNodeRecord, RenderMode } from "../../core/types.js";
@@ -19,6 +20,9 @@ import { compressFile } from "./compressor.js";
 import { buildManifest } from "./manifest.js";
 import { log } from "../../utils/logging.js";
 import { validateAtlas } from "../validate/validator.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Streaming Atlas writer
@@ -564,7 +568,7 @@ export class AtlasWriter {
       ];
       for (const file of schemaFiles) {
         await copyFile(
-          join(process.cwd(), "src/io/atlas/schemas", file),
+          join(__dirname, "schemas", file),
           join(this.stagingDir, "schemas", file)
         );
       }
