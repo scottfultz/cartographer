@@ -62,24 +62,24 @@ describe("CLI JSON Output", () => {
       json = JSON.parse(stdout);
     }).not.toThrow();
 
-    // Verify required fields
+    // Verify required fields (actual structure: summary.{pages,edges,assets,errors}, perf, notes)
     expect(json).toHaveProperty("summary");
-    expect(json.summary).toHaveProperty("totalPages");
-    expect(json.summary).toHaveProperty("totalEdges");
-    expect(json.summary).toHaveProperty("totalAssets");
-    expect(json.summary).toHaveProperty("totalErrors");
+    expect(json.summary).toHaveProperty("pages");
+    expect(json.summary).toHaveProperty("edges");
+    expect(json.summary).toHaveProperty("assets");
+    expect(json.summary).toHaveProperty("errors");
+    expect(json.summary).toHaveProperty("durationMs");
 
-    expect(json).toHaveProperty("performance");
-    expect(json.performance).toHaveProperty("durationMs");
-    expect(json.performance).toHaveProperty("startedAt");
-    expect(json.performance).toHaveProperty("completedAt");
+    expect(json).toHaveProperty("perf");
+    expect(json.perf).toHaveProperty("avgPagesPerSec");
+    expect(json.perf).toHaveProperty("peakRssMB");
 
     expect(json).toHaveProperty("notes");
     expect(Array.isArray(json.notes)).toBe(true);
 
     // Check that numbers are valid
-    expect(typeof json.summary.totalPages).toBe("number");
-    expect(json.summary.totalPages).toBeGreaterThanOrEqual(0);
+    expect(typeof json.summary.pages).toBe("number");
+    expect(json.summary.pages).toBeGreaterThanOrEqual(0);
   }, 60000);
 
   it("should output only JSON to stdout (no other text)", async () => {
