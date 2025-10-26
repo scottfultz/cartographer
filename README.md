@@ -364,11 +364,11 @@ node packages/cartographer/dist/cli/index.js crawl [options]
 - `--out <path>` - Output .atls path (default: auto-generated in ./export/)
 - `--mode <raw|prerender|full>` - Render mode (default: prerender)
 - `--maxPages <N>` - Page limit, 0=unlimited (default: 0)
-- `--maxDepth <N>` - Depth limit, -1=unlimited (default: -1)
+- `--maxDepth <N>` - Depth limit, -1=unlimited (default: 1)
 - `--rps <N>` - Requests per second (default: 3)
 - `--concurrency <N>` - Browser tabs (default: 8)
 - `--respectRobots` - Honor robots.txt (default: true)
-- `--errorBudget <N>` - Max errors before abort (default: 0=unlimited)
+- `--maxErrors <N>` - Max errors before abort, -1=unlimited (default: -1)
 - `--allowUrls <patterns...>` - URL patterns to allow (glob or regex, see below)
 - `--denyUrls <patterns...>` - URL patterns to deny (glob or regex, see below)
 - `--quiet` - Suppress periodic metrics
@@ -583,21 +583,25 @@ if (statusCode === 429 || statusCode === 503) {
 }
 ```
 
-**Error Budget:**
+**Max Errors:**
 
 ```bash
 # Abort crawl after 100 errors
-node dist/cli/index.js crawl --seeds https://example.com --errorBudget 100
+node dist/cli/index.js crawl --seeds https://example.com --maxErrors 100
 
 # Unlimited errors (default)
-node dist/cli/index.js crawl --seeds https://example.com --errorBudget 0
+node dist/cli/index.js crawl --seeds https://example.com --maxErrors -1
+
+# Abort immediately on first error
+node dist/cli/index.js crawl --seeds https://example.com --maxErrors 0
 ```
 
-**Error Budget Behavior:**
-- **Threshold Enforcement** - Crawl aborts when error count exceeds budget
-- **Exit Code 2** - Indicates error budget exceeded
+**Max Errors Behavior:**
+- **Threshold Enforcement** - Crawl aborts when error count exceeds limit
+- **Exit Code 2** - Indicates max errors exceeded
 - **Error Types Counted** - `FETCH_FAILED`, `RENDER_FAILED`, `CHALLENGE_DETECTED`, `ROBOTS_BLOCKED`
 - **Manifest Annotation** - `finishReason: "error_budget"` in summary.json
+- **Semantics** - `-1` = unlimited, `0` = abort immediately, `N` = abort after N errors
 
 ---
 
@@ -708,7 +712,7 @@ Before running a large crawl, verify:
 - ✅ **Conservative RPS** - `--rps 3` or lower for external sites
 - ✅ **Custom User-Agent with contact** - `--userAgent "MyBot/1.0 (+mailto:bot@example.com)"`
 - ✅ **Reasonable concurrency** - `--concurrency 8` or lower
-- ✅ **Error budget set** - `--errorBudget 100` to abort on repeated failures
+- ✅ **Max errors set** - `--maxErrors 100` to abort on repeated failures
 - ✅ **Page limits defined** - `--maxPages` and `--maxDepth` to prevent runaway crawls
 - ✅ **Timeout configured** - `--timeout 30000` to avoid hanging on slow pages
 - ✅ **Log monitoring** - Review `--logFile` for blocked URLs and errors
@@ -724,7 +728,7 @@ node dist/cli/index.js crawl \
   --concurrency 4 \
   --respectRobots \
   --userAgent "CartographerBot/1.0 (+mailto:crawler@yourcompany.com)" \
-  --errorBudget 200 \
+  --maxErrors 200 \
   --timeout 30000 \
   --logFile ./logs/large-crawl.jsonl
 ```
@@ -766,7 +770,7 @@ echo "Crawled $PAGES pages"
 - `5` - Validation failed
 - `10` - Unknown error
 
-### Error Budget Enforcement
+### Max Errors Enforcement
 
 Stop the crawl gracefully after a maximum number of errors:
 
@@ -775,20 +779,22 @@ Stop the crawl gracefully after a maximum number of errors:
 node dist/cli/index.js crawl \
   --seeds https://bad.example \
   --out ./out/site.atls \
-  --errorBudget 25 \
-  || echo "Crawl failed after hitting error budget"
+  --maxErrors 25 \
+  || echo "Crawl failed after hitting max errors"
 
 # Check exit code
 if [ $? -eq 2 ]; then
-  echo "Error budget exceeded"
+  echo "Max errors exceeded"
   exit 1
 fi
 ```
 
 The crawl will:
 1. Count all ErrorRecords written
-2. Stop when `errorCount > errorBudget`
+2. Stop when `errorCount > maxErrors`
 3. Finalize partial .atls archive
+4. Add note to summary: "Terminated: max errors exceeded"
+5. Exit with code `2`
 4. Add note to summary: "Terminated: error budget exceeded"
 5. Exit with code `2`
 
@@ -810,11 +816,24 @@ cat ./logs/run.jsonl | jq 'select(.event == "crawl.error")'
 
 **Log events:**
 - `crawl.started` - Crawl initialization
+- `crawl.heartbeat` - Progress update (every 1 second)
+- `crawl.observability` - Detailed metrics for monitoring (every 5 seconds: queue depth, in-flight count, per-host queues, throttled hosts, RPS, memory RSS)
 - `crawl.pageProcessed` - Each page completed
 - `crawl.checkpoint` - Checkpoint saved
 - `crawl.error` - Error occurred
 - `crawl.backpressure` - Memory pressure pause/resume
+- `robots_decision` - robots.txt compliance decisions
 - `crawl.finished` - Crawl complete
+
+**Observability metrics** (emitted every 5 seconds):
+- `queueDepth` - Total URLs queued across all hosts
+- `inFlightCount` - Pages currently being processed
+- `completedCount` - Pages successfully crawled
+- `errorCount` - Errors encountered
+- `perHostQueues` - Queue size per host (for diagnosing bottlenecks)
+- `throttledHosts` - Hosts with queued items (rate-limited)
+- `currentRps` - Current pages per second
+- `memoryRssMB` - Resident set size in MB
 
 **Log path placeholder:**
 
@@ -837,7 +856,7 @@ node dist/cli/index.js crawl \
   --out ./artifacts/site.atls \
   --mode prerender \
   --maxPages 10000 \
-  --errorBudget 50 \
+  --maxErrors 50 \
   --quiet \
   --json \
   --logFile ./logs/crawl-<crawlId>.jsonl \
