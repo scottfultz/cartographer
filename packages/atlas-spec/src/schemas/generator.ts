@@ -28,6 +28,12 @@ const schemaMap: SchemaMapping[] = [
   { name: 'resources.v1', schema: schemas.ResourceRecordV1Schema },
   { name: 'dom_snapshot.v1', schema: schemas.DOMSnapshotRecordV1Schema },
   { name: 'acc_tree.v1', schema: schemas.AccTreeRecordV1Schema },
+  { name: 'render.v1', schema: schemas.RenderRecordV1Schema },
+  { name: 'links.v1', schema: schemas.LinkRecordV1Schema },
+  { name: 'sitemaps.v1', schema: schemas.SitemapRecordV1Schema },
+  { name: 'robots.v1', schema: schemas.RobotsRecordV1Schema },
+  { name: 'seo_signals.v1', schema: schemas.SEOSignalsRecordV1Schema },
+  { name: 'audit_results.v1', schema: schemas.AuditResultRecordV1Schema },
 ];
 
 /**

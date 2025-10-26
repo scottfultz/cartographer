@@ -25,6 +25,24 @@ export {
   TabOrderEntrySchema
 } from './acc_tree.schema.js';
 
+// Render dataset
+export { RenderRecordV1Schema, type RenderRecordV1 } from './render.schema.js';
+
+// Links dataset
+export { LinkRecordV1Schema, type LinkRecordV1 } from './links.schema.js';
+
+// Sitemaps dataset
+export { SitemapRecordV1Schema, type SitemapRecordV1 } from './sitemaps.schema.js';
+
+// Robots.txt dataset
+export { RobotsRecordV1Schema, type RobotsRecordV1 } from './robots.schema.js';
+
+// SEO Signals dataset
+export { SEOSignalsRecordV1Schema, type SEOSignalsRecordV1 } from './seo_signals.schema.js';
+
+// Audit Results dataset
+export { AuditResultRecordV1Schema, type AuditResultRecordV1 } from './audit_results.schema.js';
+
 // Manifest
 export { 
   AtlasManifestV1Schema, 

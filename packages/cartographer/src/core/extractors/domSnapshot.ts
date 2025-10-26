@@ -85,6 +85,7 @@ export async function captureDOMSnapshot(
       return null;
     }
     
+    // @ts-ignore - document exists in browser context
     return serializeNode(document.documentElement);
   });
   
