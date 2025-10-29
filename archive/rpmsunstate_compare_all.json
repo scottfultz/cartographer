@@ -1,0 +1,450 @@
+{
+  "atlsPath": "/Users/scottfultz/Projects/Cartographer/archive/rpmsunstate_full_5-1761708200.atls",
+  "total": 4,
+  "results": [
+    {
+      "target": "https://www.rpmsunstate.com/",
+      "atlas": {
+        "url": "https://www.rpmsunstate.com/",
+        "statusCode": 200,
+        "title": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+        "metaDescription": null,
+        "canonicalUrl": null,
+        "metaRobots": null,
+        "hreflangLinks": [],
+        "linkCounts": {
+          "total": null
+        },
+        "assetCounts": {
+          "stylesheets": null,
+          "scripts": null,
+          "images": null
+        },
+        "encoding": {
+          "encoding": "UTF-8",
+          "source": "header"
+        },
+        "wait_condition": null,
+        "timings": null
+      },
+      "live": {
+        "url": "https://www.rpmsunstate.com/",
+        "statusCode": 200,
+        "title": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+        "metaDescription": "Expert property management in Jacksonville, Orlando, and Palm Beach. RPM Sunstate offers full-service solutions to protect rentals and grow ROI.",
+        "canonicalUrl": "https://www.rpmsunstate.com/",
+        "metaRobots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+        "hreflangLinks": [],
+        "linkCounts": {
+          "total": 78
+        },
+        "assetCounts": {
+          "stylesheets": 18,
+          "scripts": 23,
+          "images": 21
+        },
+        "headers": {
+          "contentType": "text/html; charset=UTF-8",
+          "server": "cloudflare",
+          "contentLength": null
+        },
+        "htmlBytes": 312673
+      },
+      "diffs": [
+        {
+          "field": "statusCode",
+          "atlas": 200,
+          "live": 200,
+          "equal": true
+        },
+        {
+          "field": "title",
+          "atlas": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+          "live": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+          "equal": true
+        },
+        {
+          "field": "metaDescription",
+          "atlas": null,
+          "live": "Expert property management in Jacksonville, Orlando, and Palm Beach. RPM Sunstate offers full-service solutions to protect rentals and grow ROI.",
+          "equal": false
+        },
+        {
+          "field": "canonicalUrl",
+          "atlas": null,
+          "live": "https://www.rpmsunstate.com/",
+          "equal": false
+        },
+        {
+          "field": "metaRobots",
+          "atlas": null,
+          "live": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+          "equal": false
+        },
+        {
+          "field": "hreflangLinks",
+          "atlas": [],
+          "live": [],
+          "equal": true
+        },
+        {
+          "field": "linkCounts.total",
+          "atlas": null,
+          "live": 78,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.stylesheets",
+          "atlas": null,
+          "live": 18,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.scripts",
+          "atlas": null,
+          "live": 23,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.images",
+          "atlas": null,
+          "live": 21,
+          "equal": false
+        }
+      ]
+    },
+    {
+      "target": "https://www.rpmsunstate.com/houses-rent",
+      "atlas": {
+        "url": "https://www.rpmsunstate.com/houses-rent",
+        "statusCode": 200,
+        "title": "Central Florida Rental Homes | RPM Sunstate",
+        "metaDescription": null,
+        "canonicalUrl": null,
+        "metaRobots": null,
+        "hreflangLinks": [],
+        "linkCounts": {
+          "total": null
+        },
+        "assetCounts": {
+          "stylesheets": null,
+          "scripts": null,
+          "images": null
+        },
+        "encoding": {
+          "encoding": "UTF-8",
+          "source": "header"
+        },
+        "wait_condition": null,
+        "timings": null
+      },
+      "live": {
+        "url": "https://www.rpmsunstate.com/houses-rent",
+        "statusCode": 200,
+        "title": "Central Florida Rental Homes | RPM Sunstate",
+        "metaDescription": "Looking for rental homes in Central Florida? Explore available properties managed by RPM Sunstate and apply online today.",
+        "canonicalUrl": "https://www.rpmsunstate.com/houses-rent",
+        "metaRobots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+        "hreflangLinks": [],
+        "linkCounts": {
+          "total": 73
+        },
+        "assetCounts": {
+          "stylesheets": 18,
+          "scripts": 24,
+          "images": 19
+        },
+        "headers": {
+          "contentType": "text/html; charset=UTF-8",
+          "server": "cloudflare",
+          "contentLength": null
+        },
+        "htmlBytes": 274528
+      },
+      "diffs": [
+        {
+          "field": "statusCode",
+          "atlas": 200,
+          "live": 200,
+          "equal": true
+        },
+        {
+          "field": "title",
+          "atlas": "Central Florida Rental Homes | RPM Sunstate",
+          "live": "Central Florida Rental Homes | RPM Sunstate",
+          "equal": true
+        },
+        {
+          "field": "metaDescription",
+          "atlas": null,
+          "live": "Looking for rental homes in Central Florida? Explore available properties managed by RPM Sunstate and apply online today.",
+          "equal": false
+        },
+        {
+          "field": "canonicalUrl",
+          "atlas": null,
+          "live": "https://www.rpmsunstate.com/houses-rent",
+          "equal": false
+        },
+        {
+          "field": "metaRobots",
+          "atlas": null,
+          "live": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+          "equal": false
+        },
+        {
+          "field": "hreflangLinks",
+          "atlas": [],
+          "live": [],
+          "equal": true
+        },
+        {
+          "field": "linkCounts.total",
+          "atlas": null,
+          "live": 73,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.stylesheets",
+          "atlas": null,
+          "live": 18,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.scripts",
+          "atlas": null,
+          "live": 24,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.images",
+          "atlas": null,
+          "live": 19,
+          "equal": false
+        }
+      ]
+    },
+    {
+      "target": "https://www.rpmsunstate.com/tenants",
+      "atlas": {
+        "url": "https://www.rpmsunstate.com/tenants",
+        "statusCode": 200,
+        "title": "Tenant Resources & Portal | RPM Sunstate",
+        "metaDescription": null,
+        "canonicalUrl": null,
+        "metaRobots": null,
+        "hreflangLinks": [],
+        "linkCounts": {
+          "total": null
+        },
+        "assetCounts": {
+          "stylesheets": null,
+          "scripts": null,
+          "images": null
+        },
+        "encoding": {
+          "encoding": "UTF-8",
+          "source": "header"
+        },
+        "wait_condition": null,
+        "timings": null
+      },
+      "live": {
+        "url": "https://www.rpmsunstate.com/tenants",
+        "statusCode": 200,
+        "title": "Tenant Resources & Portal | RPM Sunstate",
+        "metaDescription": "Current tenants: log in to the RPM Sunstate portal to pay rent, request maintenance, or view policies. Find move-in, move-out, and pet resources.",
+        "canonicalUrl": "https://www.rpmsunstate.com/tenants",
+        "metaRobots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+        "hreflangLinks": [],
+        "linkCounts": {
+          "total": 90
+        },
+        "assetCounts": {
+          "stylesheets": 18,
+          "scripts": 25,
+          "images": 33
+        },
+        "headers": {
+          "contentType": "text/html; charset=UTF-8",
+          "server": "cloudflare",
+          "contentLength": null
+        },
+        "htmlBytes": 298551
+      },
+      "diffs": [
+        {
+          "field": "statusCode",
+          "atlas": 200,
+          "live": 200,
+          "equal": true
+        },
+        {
+          "field": "title",
+          "atlas": "Tenant Resources & Portal | RPM Sunstate",
+          "live": "Tenant Resources & Portal | RPM Sunstate",
+          "equal": true
+        },
+        {
+          "field": "metaDescription",
+          "atlas": null,
+          "live": "Current tenants: log in to the RPM Sunstate portal to pay rent, request maintenance, or view policies. Find move-in, move-out, and pet resources.",
+          "equal": false
+        },
+        {
+          "field": "canonicalUrl",
+          "atlas": null,
+          "live": "https://www.rpmsunstate.com/tenants",
+          "equal": false
+        },
+        {
+          "field": "metaRobots",
+          "atlas": null,
+          "live": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+          "equal": false
+        },
+        {
+          "field": "hreflangLinks",
+          "atlas": [],
+          "live": [],
+          "equal": true
+        },
+        {
+          "field": "linkCounts.total",
+          "atlas": null,
+          "live": 90,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.stylesheets",
+          "atlas": null,
+          "live": 18,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.scripts",
+          "atlas": null,
+          "live": 25,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.images",
+          "atlas": null,
+          "live": 33,
+          "equal": false
+        }
+      ]
+    },
+    {
+      "target": "https://www.rpmsunstate.com/owners",
+      "atlas": {
+        "url": "https://www.rpmsunstate.com/owners",
+        "statusCode": 200,
+        "title": "Owner Portal & Resources | RPM Sunstate",
+        "metaDescription": null,
+        "canonicalUrl": null,
+        "metaRobots": null,
+        "hreflangLinks": [],
+        "linkCounts": {
+          "total": null
+        },
+        "assetCounts": {
+          "stylesheets": null,
+          "scripts": null,
+          "images": null
+        },
+        "encoding": {
+          "encoding": "UTF-8",
+          "source": "header"
+        },
+        "wait_condition": null,
+        "timings": null
+      },
+      "live": {
+        "url": "https://www.rpmsunstate.com/owners",
+        "statusCode": 200,
+        "title": "Owner Portal & Resources | RPM Sunstate",
+        "metaDescription": "Current RPM Sunstate clients can access statements, reports, and support. New to us? Request your free property management assessment today.",
+        "canonicalUrl": "https://www.rpmsunstate.com/owners",
+        "metaRobots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+        "hreflangLinks": [],
+        "linkCounts": {
+          "total": 75
+        },
+        "assetCounts": {
+          "stylesheets": 20,
+          "scripts": 24,
+          "images": 21
+        },
+        "headers": {
+          "contentType": "text/html; charset=UTF-8",
+          "server": "cloudflare",
+          "contentLength": null
+        },
+        "htmlBytes": 284526
+      },
+      "diffs": [
+        {
+          "field": "statusCode",
+          "atlas": 200,
+          "live": 200,
+          "equal": true
+        },
+        {
+          "field": "title",
+          "atlas": "Owner Portal & Resources | RPM Sunstate",
+          "live": "Owner Portal & Resources | RPM Sunstate",
+          "equal": true
+        },
+        {
+          "field": "metaDescription",
+          "atlas": null,
+          "live": "Current RPM Sunstate clients can access statements, reports, and support. New to us? Request your free property management assessment today.",
+          "equal": false
+        },
+        {
+          "field": "canonicalUrl",
+          "atlas": null,
+          "live": "https://www.rpmsunstate.com/owners",
+          "equal": false
+        },
+        {
+          "field": "metaRobots",
+          "atlas": null,
+          "live": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+          "equal": false
+        },
+        {
+          "field": "hreflangLinks",
+          "atlas": [],
+          "live": [],
+          "equal": true
+        },
+        {
+          "field": "linkCounts.total",
+          "atlas": null,
+          "live": 75,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.stylesheets",
+          "atlas": null,
+          "live": 20,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.scripts",
+          "atlas": null,
+          "live": 24,
+          "equal": false
+        },
+        {
+          "field": "assetCounts.images",
+          "atlas": null,
+          "live": 21,
+          "equal": false
+        }
+      ]
+    }
+  ]
+}

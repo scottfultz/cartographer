@@ -4,11 +4,35 @@
  * Proprietary and confidential.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { spawn } from "child_process";
 import { join } from "path";
+import { rmSync } from "fs";
 
 const CLI_PATH = join(__dirname, "../../dist/cli/index.js");
+const OUTPUT_BASES = [
+  "tmp/json-test-output.atls",
+  "tmp/json-test-clean.atls",
+  "tmp/json-test-quiet.atls",
+];
+
+/**
+ * Ensure temp output locations are removed before/after tests run.
+ */
+function cleanOutputs() {
+  for (const base of OUTPUT_BASES) {
+    rmSync(base, { recursive: true, force: true });
+    rmSync(`${base}.staging`, { recursive: true, force: true });
+  }
+}
+
+beforeEach(() => {
+  cleanOutputs();
+});
+
+afterEach(() => {
+  cleanOutputs();
+});
 
 /**
  * Helper to run CLI command and capture output

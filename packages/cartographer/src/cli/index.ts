@@ -19,6 +19,9 @@ import { versionCommand } from "./commands/version.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Set process title for Activity Monitor / Task Manager
+process.title = "Cartographer Atlas Crawler";
+
 // Read cartographer version
 let version = "unknown";
 try {

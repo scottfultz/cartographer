@@ -9,7 +9,7 @@ import { test, expect } from "vitest";
 import { existsSync } from "fs";
 import { rm } from "fs/promises";
 import { execSync } from "child_process";
-import { readManifest, iterateParts } from "@atlas/sdk";
+import { openAtlas } from "@atlas/sdk";
 
 const OUT_FILE = "tmp/accessibility-test.atls";
 
@@ -32,8 +32,9 @@ test.skipIf(process.env.CI === 'true')("crawl with accessibility should write ac
   // Verify .atls was created
   expect(existsSync(OUT_FILE)).toBeTruthy();
   
-  // Read manifest
-  const manifest = await readManifest(OUT_FILE);
+  // Read manifest via SDK
+  const atlas = await openAtlas(OUT_FILE);
+  const manifest: any = atlas.manifest;
   
   // Verify atlasVersion is still 1.0
   expect(manifest.atlasVersion).toBe("1.0");
@@ -52,19 +53,16 @@ test.skipIf(process.env.CI === 'true')("crawl with accessibility should write ac
   
   // Verify we can read accessibility records
   let accessibilityCount = 0;
-  for await (const line of iterateParts(OUT_FILE, "accessibility")) {
-    const record = JSON.parse(line);
+  for await (const record of atlas.readers.accessibility()) {
     accessibilityCount++;
-    
     // Validate structure
-    expect(record.pageUrl).toBeTruthy();
-    expect(typeof record.missingAltCount === "number").toBeTruthy();
-    expect(Array.isArray(record.headingOrder)).toBe(true);
-    expect(record.landmarks).toBeTruthy();
-    expect(record.roles).toBeTruthy();
-    
-    // Raw mode shouldn't have contrastViolations
-    expect(record.contrastViolations).toBe(undefined);
+    expect((record as any).pageUrl).toBeTruthy();
+    expect(typeof (record as any).missingAltCount === "number").toBeTruthy();
+    expect(Array.isArray((record as any).headingOrder)).toBe(true);
+    expect((record as any).landmarks).toBeTruthy();
+    expect((record as any).roles).toBeTruthy();
+    // Raw mode shouldn't have contrastViolations (full mode may add later phases)
+    expect((record as any).contrastViolations).toBe(undefined);
   }
   
   expect(accessibilityCount > 0).toBeTruthy();

@@ -1,0 +1,2 @@
+sourceUrl,targetUrl,isExternal,anchorText,rel,nofollow,location,selectorHint,discoveredInMode,sponsored,ugc
+https://example.com/,https://iana.org/domains/example,true,Learn more,,false,other,a:nth-of-type(1),full,false,false

@@ -12,6 +12,7 @@ import type {
   EdgeRecord,
   AssetRecord,
   ErrorRecord,
+  EventRecord, // Phase 7: Event log
   AccessibilityRecord,
   DatasetName
 } from "./types.js";
@@ -34,6 +35,7 @@ export interface AtlasReader {
     edges: () => AsyncIterable<EdgeRecord>;
     assets: () => AsyncIterable<AssetRecord>;
     errors: () => AsyncIterable<ErrorRecord>;
+    events: () => AsyncIterable<EventRecord>; // Phase 7: Event log
     accessibility: () => AsyncIterable<AccessibilityRecord>;
   };
 }
@@ -60,11 +62,15 @@ export async function openAtlas(atlsPath: string): Promise<AtlasReader> {
   const manifest = await readManifest(atlsPath);
   const summary = await readSummary(atlsPath);
   
-  // Determine which datasets are present
-  const datasets = new Set<DatasetName>(["pages", "edges", "assets", "errors"]);
+  // Determine which datasets are present based on manifest.datasets
+  const datasets = new Set<DatasetName>();
   
-  if (manifest.datasets?.accessibility?.present) {
-    datasets.add("accessibility");
+  if (manifest.datasets) {
+    for (const [name, dataset] of Object.entries(manifest.datasets)) {
+      if (dataset && (dataset as any).recordCount > 0) {
+        datasets.add(name as DatasetName);
+      }
+    }
   }
   
   return {
@@ -90,6 +96,14 @@ export async function openAtlas(atlsPath: string): Promise<AtlasReader> {
       async *errors() {
         for await (const line of iterateDataset(atlsPath, "errors")) {
           yield JSON.parse(line) as ErrorRecord;
+        }
+      },
+      async *events() {
+        if (!datasets.has("events")) {
+          return; // Empty iterator if not present
+        }
+        for await (const line of iterateDataset(atlsPath, "events")) {
+          yield JSON.parse(line) as EventRecord;
         }
       },
       async *accessibility() {

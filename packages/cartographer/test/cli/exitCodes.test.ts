@@ -4,16 +4,46 @@
  * Proprietary and confidential.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { spawn } from "child_process";
 import { join } from "path";
+import { rmSync } from "fs";
 
 const CLI_PATH = join(__dirname, "../../dist/cli/index.js");
+const OUTPUT_PATHS = [
+  "tmp/exit-test-success.atls",
+  "tmp/exit-test-error-budget.atls",
+  "tmp/exit-test-validate.atls",
+  "tmp/test.atls",
+];
+
+function cleanupOutputs(args: string[]): void {
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--out") {
+      const target = args[i + 1];
+      if (target) {
+        rmSync(target, { recursive: true, force: true });
+        rmSync(`${target}.staging`, { recursive: true, force: true });
+      }
+    }
+  }
+}
+
+function removeOutputFiles(): void {
+  for (const base of OUTPUT_PATHS) {
+    rmSync(base, { recursive: true, force: true });
+    rmSync(`${base}.staging`, { recursive: true, force: true });
+  }
+}
+
+beforeEach(removeOutputFiles);
+afterEach(removeOutputFiles);
 
 /**
  * Helper to run CLI command and capture exit code
  */
 async function runCLI(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  cleanupOutputs(args);
   return new Promise((resolve) => {
     const proc = spawn("node", [CLI_PATH, ...args], {
       env: { ...process.env, FORCE_COLOR: "0" },

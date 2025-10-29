@@ -8,8 +8,23 @@ import * as cheerio from "cheerio";
 import type { Page } from "playwright";
 import { collectWCAGData, collectRuntimeWCAGData, type WCAGDataCollection } from "./wcagData.js";
 
+// Audit versioning constants (Atlas v1.0 Enhancement - Phase 3)
+const AUDIT_ENGINE_NAME = "cartographer-wcag";
+const AUDIT_ENGINE_VERSION = "1.0.0-beta.1"; // Matches cartographer version
+const WCAG_VERSION = "2.2"; // Target WCAG standard
+
 export interface AccessibilityRecord {
   pageUrl: string;
+  
+  // Audit versioning (Atlas v1.0 Enhancement - Phase 3)
+  audit_engine?: {
+    name: string;           // "cartographer-wcag" or "axe-core"
+    version: string;        // Engine version
+  };
+  wcag_version?: string;    // "2.1" | "2.2" - Target WCAG standard
+  audit_profile?: string;   // "full" | "essential" | "custom"
+  audited_at?: string;      // ISO timestamp when audit was performed
+  
   missingAltCount: number;
   missingAltSources?: string[];
   headingOrder: Array<"H1" | "H2" | "H3" | "H4" | "H5" | "H6">;
@@ -110,6 +125,17 @@ export function extractAccessibility(opts: {
   
   const record: AccessibilityRecord = {
     pageUrl: opts.baseUrl,
+    
+    // Audit versioning (Atlas v1.0 Enhancement - Phase 3)
+    audit_engine: {
+      name: AUDIT_ENGINE_NAME,
+      version: AUDIT_ENGINE_VERSION
+    },
+    wcag_version: WCAG_VERSION,
+    audit_profile: opts.renderMode === "full" ? "full" : 
+                   opts.renderMode === "prerender" ? "essential" : "basic",
+    audited_at: new Date().toISOString(),
+    
     missingAltCount,
     headingOrder,
     landmarks,

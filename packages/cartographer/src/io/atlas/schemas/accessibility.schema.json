@@ -11,6 +11,37 @@
       "format": "uri",
       "description": "The URL of the audited page"
     },
+    "audit_engine": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of audit engine (e.g., 'cartographer-wcag', 'axe-core')"
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of audit engine"
+        }
+      },
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "description": "Audit engine identification for reproducibility"
+    },
+    "wcag_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Target WCAG standard version (e.g., '2.1', '2.2')"
+    },
+    "audit_profile": {
+      "type": "string",
+      "enum": ["basic", "essential", "full", "custom"],
+      "description": "Depth of accessibility audit performed"
+    },
+    "audited_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when audit was performed"
+    },
     "missingAltCount": {
       "type": "integer",
       "minimum": 0,

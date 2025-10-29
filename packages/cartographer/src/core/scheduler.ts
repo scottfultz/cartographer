@@ -4,7 +4,7 @@
  * Proprietary and confidential.
  */
 
-import type { EngineConfig, PageRecord, ErrorRecord } from "./types.js";
+import type { EngineConfig, PageRecord, ErrorRecord, EventRecord, EventType, EventSeverity } from "./types.js";
 import type { AtlasWriter } from "../io/atlas/writer.js";
 import { normalizeUrl, isSameOrigin, sectionOf, applyParamPolicy } from "../utils/url.js";
 import { sha1Hex, sha256Hex } from "../utils/hashing.js";
@@ -15,6 +15,7 @@ import { Metrics } from "../utils/metrics.js";
 import { writeCheckpoint, writeVisitedIndex, writeFrontier, readCheckpoint, readVisitedIndex, readFrontier, type CheckpointState } from "./checkpoint.js";
 import pLimit from "p-limit";
 import { URL } from 'url';
+import { v7 as uuidv7 } from 'uuid';
 import { fetchUrl } from "./fetcher.js";
 import { renderPage } from "./renderer.js";
 import { extractPageFacts } from "./extractors/pageFacts.js";
@@ -29,7 +30,7 @@ import { detectTechStack, extractScriptUrls } from "./extractors/wappalyzer.js";
 import { extractViewportMeta, detectMixedContent, checkSubresourceIntegrity, extractEncoding, countResources, extractCompression, detectSitemaps, countBrokenLinks, extractOutboundDomains } from "./extractors/enhancedMetrics.js";
 import { extractLighthouseMetrics } from "./extractors/lighthouse.js";
 import { extractEnhancedSEOMetadata } from "./extractors/enhancedSEO.js";
-import { validateEdgeRecord, validateAssetRecord } from "../io/validator.js";
+import { validateEdgeRecord } from "../io/validator.js";
 import { robotsCache } from "./robotsCache.js";
 import * as perHostTokens from './perHostTokens.js';
 import { URLFilter } from "../utils/urlFilter.js";
@@ -38,6 +39,7 @@ interface QueueItem {
   url: string;
   depth: number;
   discoveredFrom?: string;
+  page_id: string; // UUID v7 (time-ordered, globally unique)
 }
 
 export interface SchedulerResult {
@@ -273,8 +275,12 @@ export class Scheduler {
     // Restore visited set
     this.visited = readVisitedIndex(stagingDir);
     
-    // Restore queue
-    this.queue = readFrontier(stagingDir);
+    // Restore queue and generate page_ids for legacy checkpoints
+    const rawQueue = readFrontier(stagingDir);
+    this.queue = rawQueue.map(item => ({
+      ...item,
+      page_id: item.page_id || uuidv7() // Generate new page_id if missing (legacy checkpoint)
+    }));
     
     // Rebuild enqueued set
     this.enqueued = new Set([...this.visited, ...this.queue.map(q => q.url)]);
@@ -353,9 +359,44 @@ export class Scheduler {
         this.lastCheckpointTime = Date.now();
         log("info", `[Checkpoint] Saved at ${this.pageCount} pages`);
         log('debug', `Checkpoint state updated: lastCheckpointAt=${this.lastCheckpointAt}, lastCheckpointTime=${this.lastCheckpointTime}`);
+        
+        // Log event: Checkpoint saved (Phase 7)
+        await this.writer.writeEvent({
+          event_id: uuidv7(),
+          crawl_id: this.writer.getCrawlId(),
+          occurred_at: new Date().toISOString(),
+          event_type: 'checkpoint.saved' as EventType,
+          severity: 'info' as EventSeverity,
+          message: `Checkpoint saved at ${this.pageCount} pages`,
+          details: {
+            pages_completed: this.pageCount,
+            queue_depth: this.queue.length,
+            visited_count: this.visited.size,
+            errors: this.errorCount
+          },
+          metrics: {
+            memory_rss_mb: state.rssMB,
+            queue_depth: state.queueDepth
+          }
+        });
       } catch (error: any) {
         log('error', `[Checkpoint] FAILED to write checkpoint: ${error.message}`);
         log('debug', `Checkpoint write error details: ${error.stack || error}`);
+        
+        // Log event: Checkpoint failed (Phase 7)
+        await this.writer.writeEvent({
+          event_id: uuidv7(),
+          crawl_id: this.writer.getCrawlId(),
+          occurred_at: new Date().toISOString(),
+          event_type: 'checkpoint.failed' as EventType,
+          severity: 'error' as EventSeverity,
+          message: `Failed to write checkpoint: ${error.message}`,
+          details: {
+            error_message: error.message,
+            error_stack: error.stack,
+            pages_completed: this.pageCount
+          }
+        });
       }
     } else {
       log('debug', 'writeCheckpointIfNeeded: shouldCheckpoint is false, skipping checkpoint');
@@ -392,6 +433,24 @@ export class Scheduler {
       type: "crawl.started",
       config: this.config
     } as any));
+    
+    // Log event: Crawl started (Phase 7)
+    await this.writer.writeEvent({
+      event_id: uuidv7(),
+      crawl_id: crawlId,
+      occurred_at: new Date().toISOString(),
+      event_type: 'crawl.started' as EventType,
+      severity: 'info' as EventSeverity,
+      message: `Crawl started with ${this.config.seeds.length} seed URLs`,
+      details: {
+        seed_count: this.config.seeds.length,
+        render_mode: this.config.render.mode,
+        max_pages: this.config.maxPages,
+        max_depth: this.config.maxDepth,
+        concurrency: this.config.render.concurrency,
+        resuming: !!this.config.resume?.stagingDir
+      }
+    });
 
     // Try to restore from checkpoint if resuming
     if (this.config.resume?.stagingDir) {
@@ -437,7 +496,12 @@ export class Scheduler {
               if (!this.hostQueues.has(host)) {
                 this.hostQueues.set(host, []);
               }
-              this.hostQueues.get(host)!.push({ url: normalized, depth: 0, discoveredFrom: 'seed' });
+              this.hostQueues.get(host)!.push({ 
+                url: normalized, 
+                depth: 0, 
+                discoveredFrom: 'seed',
+                page_id: uuidv7() 
+              });
             } catch (e: any) {
               log('warn', `[Scheduler] Failed to parse seed URL ${seedUrl}: ${e.message}`);
             }
@@ -596,6 +660,30 @@ export class Scheduler {
         ...(this.errorBudgetExceeded ? ["Terminated: max errors exceeded"] : [])
       ]
     } as any));
+    
+    // Log event: Crawl completed (Phase 7)
+    await this.writer.writeEvent({
+      event_id: uuidv7(),
+      crawl_id: crawlId,
+      occurred_at: new Date().toISOString(),
+      event_type: 'crawl.completed' as EventType,
+      severity: 'info' as EventSeverity,
+      message: `Crawl completed: ${this.pageCount} pages, ${this.errorCount} errors`,
+      details: {
+        completion_reason: completionReason,
+        pages: summary.stats.totalPages,
+        edges: summary.stats.totalEdges,
+        assets: summary.stats.totalAssets,
+        errors: summary.stats.totalErrors,
+        duration_ms: perfSummary.duration.totalSeconds * 1000,
+        graceful_shutdown: this.gracefulShutdown,
+        error_budget_exceeded: this.errorBudgetExceeded
+      },
+      metrics: {
+        duration_ms: perfSummary.duration.totalSeconds * 1000,
+        memory_rss_mb: perfSummary.memory.peakRssMB
+      }
+    });
 
     // Stop heartbeat
     if (this.heartbeatInterval) {
@@ -670,15 +758,19 @@ export class Scheduler {
         }
       }
       
-      // Fetch page
+      // Fetch page (with ISO timestamp tracking - Atlas v1.0 Enhancement)
       const fetchStart = performance.now();
+      const fetchStartedAt = new Date().toISOString();
       const fetchResult = await fetchUrl(this.config, item.url);
       const fetchMs = Math.round(performance.now() - fetchStart);
+      const fetchCompletedAt = new Date().toISOString();
       
-      // Render page
+      // Render page (with ISO timestamp tracking - Atlas v1.0 Enhancement)
       const renderStart = performance.now();
+      const renderStartedAt = new Date().toISOString();
       const renderResult = await renderPage(this.config, fetchResult.finalUrl, fetchResult);
       const renderMs = Math.round(performance.now() - renderStart);
+      const renderCompletedAt = new Date().toISOString();
       
       // Check for challenge page detection
       if (renderResult.challengeDetected) {
@@ -686,6 +778,29 @@ export class Scheduler {
           // We captured the challenge page content - log warning but continue processing
           // The challengePageCaptured flag will be set in PageRecord to warn consumers
           log('warn', `[Scheduler] Challenge page captured for ${item.url}. Content may not be reliable.`);
+          
+          // Log event: Challenge detected (Phase 7)
+          await this.writer.writeEvent({
+            event_id: uuidv7(),
+            crawl_id: this.writer.getCrawlId(),
+            occurred_at: new Date().toISOString(),
+            event_type: 'render.challenge_detected' as EventType,
+            severity: 'warn' as EventSeverity,
+            url: item.url,
+            hostname: new URL(item.url).hostname,
+            page_id: item.page_id,
+            message: 'Challenge page detected and captured, content may not be reliable',
+            details: {
+              challenge_page_captured: true
+            },
+            challenge: {
+              provider: undefined, // Could be extracted from page content
+              detection_confidence: 'high' as const,
+              resolution_attempted: true,
+              resolution_success: true,
+              wait_duration_ms: renderMs
+            }
+          });
         } else {
           // Challenge detected but no content captured - this is an error
           const errorMsg = "Page failed to load due to a server/CDN challenge (e.g., Cloudflare, Akamai). Challenge did not resolve within 15s. Data is not available.";
@@ -702,6 +817,30 @@ export class Scheduler {
           };
           
           await this.writer.writeError(errorRecord);
+          
+          // Log event: Challenge detection failed (Phase 7)
+          await this.writer.writeEvent({
+            event_id: uuidv7(),
+            crawl_id: this.writer.getCrawlId(),
+            occurred_at: new Date().toISOString(),
+            event_type: 'render.challenge_detected' as EventType,
+            severity: 'error' as EventSeverity,
+            url: item.url,
+            hostname: new URL(item.url).hostname,
+            page_id: item.page_id,
+            message: errorMsg,
+            details: {
+              challenge_page_captured: false,
+              timeout_ms: 15000
+            },
+            challenge: {
+              provider: undefined,
+              detection_confidence: 'high' as const,
+              resolution_attempted: true,
+              resolution_success: false,
+              wait_duration_ms: 15000
+            }
+          });
           
           // Do NOT create PageRecord with poisoned data - skip to next page
           this.errorCount++;
@@ -860,11 +999,11 @@ export class Scheduler {
       }
       
       // Extract encoding
+      const contentTypeHeader = Array.isArray(fetchResult.headers['content-type']) 
+        ? fetchResult.headers['content-type'][0] 
+        : fetchResult.headers['content-type'];
       let encoding;
       try {
-        const contentTypeHeader = Array.isArray(fetchResult.headers['content-type']) 
-          ? fetchResult.headers['content-type'][0] 
-          : fetchResult.headers['content-type'];
         encoding = extractEncoding({
           html: renderResult.dom,
           contentTypeHeader
@@ -1000,7 +1139,150 @@ export class Scheduler {
       const normalizedUrl = normalizeUrl(fetchResult.finalUrl);
       const parsedUrl = new URL(fetchResult.finalUrl);
       
+      // Calculate content hash for change detection
+      const contentHash = sha256Hex(textSample);
+      
+      // === EXTRACT RESPONSE METADATA (Atlas v1.0 Enhancement - Phase 5) ===
+      
+      // Normalize headers first (convert string[] to string)
+      const normalizedResponseHeaders: Record<string, string> = {};
+      for (const [key, value] of Object.entries(fetchResult.headers)) {
+        normalizedResponseHeaders[key] = Array.isArray(value) ? value[0] : value;
+      }
+      
+      // Extract response headers
+      const response_headers: Record<string, any> = {};
+      const headers = normalizedResponseHeaders;
+      
+      // Content headers
+      if (headers['content-type']) response_headers.content_type = String(headers['content-type']);
+      if (headers['content-length']) response_headers.content_length = parseInt(String(headers['content-length']), 10);
+      if (headers['content-encoding']) response_headers.content_encoding = String(headers['content-encoding']);
+      
+      // Caching headers
+      if (headers['cache-control']) response_headers.cache_control = String(headers['cache-control']);
+      if (headers['expires']) response_headers.expires = String(headers['expires']);
+      if (headers['etag']) response_headers.etag = String(headers['etag']);
+      if (headers['last-modified']) response_headers.last_modified = String(headers['last-modified']);
+      if (headers['age']) response_headers.age = parseInt(String(headers['age']), 10);
+      
+      // CDN & Server identification
+      if (headers['server']) response_headers.server = String(headers['server']);
+      if (headers['x-powered-by']) response_headers.x_powered_by = String(headers['x-powered-by']);
+      if (headers['via']) response_headers.via = String(headers['via']);
+      if (headers['x-cache']) response_headers.x_cache = String(headers['x-cache']);
+      if (headers['cf-cache-status']) response_headers.cf_cache_status = String(headers['cf-cache-status']);
+      if (headers['x-amz-cf-id']) response_headers.x_amz_cf_id = String(headers['x-amz-cf-id']);
+      
+      // Security headers (redundant with securityHeaders but useful here)
+      if (headers['strict-transport-security']) response_headers.strict_transport_security = String(headers['strict-transport-security']);
+      if (headers['content-security-policy']) response_headers.content_security_policy = String(headers['content-security-policy']);
+      if (headers['x-frame-options']) response_headers.x_frame_options = String(headers['x-frame-options']);
+      if (headers['x-content-type-options']) response_headers.x_content_type_options = String(headers['x-content-type-options']);
+      if (headers['referrer-policy']) response_headers.referrer_policy = String(headers['referrer-policy']);
+      if (headers['permissions-policy']) response_headers.permissions_policy = String(headers['permissions-policy']);
+      
+      // Additional useful headers
+      if (headers['vary']) response_headers.vary = String(headers['vary']);
+      if (headers['pragma']) response_headers.pragma = String(headers['pragma']);
+      if (headers['date']) response_headers.date = String(headers['date']);
+      if (headers['connection']) response_headers.connection = String(headers['connection']);
+      if (headers['transfer-encoding']) response_headers.transfer_encoding = String(headers['transfer-encoding']);
+      
+      // CDN detection
+      const cdn_indicators: any = {
+        detected: false,
+        provider: undefined,
+        confidence: "low" as "high" | "medium" | "low",
+        signals: [] as string[]
+      };
+      
+      // Cloudflare detection
+      if (headers['cf-ray'] || headers['cf-cache-status'] || headers['__cfduid'] || headers['cf-request-id']) {
+        cdn_indicators.detected = true;
+        cdn_indicators.provider = 'cloudflare';
+        cdn_indicators.confidence = 'high';
+        if (headers['cf-ray']) cdn_indicators.signals.push('cf-ray');
+        if (headers['cf-cache-status']) cdn_indicators.signals.push('cf-cache-status');
+      }
+      // AWS CloudFront detection
+      else if (headers['x-amz-cf-id'] || headers['x-amz-cf-pop']) {
+        cdn_indicators.detected = true;
+        cdn_indicators.provider = 'cloudfront';
+        cdn_indicators.confidence = 'high';
+        if (headers['x-amz-cf-id']) cdn_indicators.signals.push('x-amz-cf-id');
+        if (headers['x-amz-cf-pop']) cdn_indicators.signals.push('x-amz-cf-pop');
+      }
+      // Fastly detection
+      else if (headers['fastly-io-info'] || headers['x-fastly-request-id']) {
+        cdn_indicators.detected = true;
+        cdn_indicators.provider = 'fastly';
+        cdn_indicators.confidence = 'high';
+        if (headers['fastly-io-info']) cdn_indicators.signals.push('fastly-io-info');
+        if (headers['x-fastly-request-id']) cdn_indicators.signals.push('x-fastly-request-id');
+      }
+      // Akamai detection
+      else if (headers['x-akamai-request-id'] || headers['akamai-origin-hop']) {
+        cdn_indicators.detected = true;
+        cdn_indicators.provider = 'akamai';
+        cdn_indicators.confidence = 'high';
+        if (headers['x-akamai-request-id']) cdn_indicators.signals.push('x-akamai-request-id');
+      }
+      // Generic CDN detection via Via or X-Cache headers
+      else if (headers['via'] || headers['x-cache']) {
+        cdn_indicators.detected = true;
+        cdn_indicators.provider = 'unknown';
+        cdn_indicators.confidence = 'medium';
+        if (headers['via']) cdn_indicators.signals.push('via');
+        if (headers['x-cache']) cdn_indicators.signals.push('x-cache');
+      }
+      
+      if (headers['server']) {
+        const serverValue = String(headers['server']).toLowerCase();
+        if (serverValue.includes('cloudflare') && cdn_indicators.provider !== 'cloudflare') {
+          cdn_indicators.detected = true;
+          cdn_indicators.provider = 'cloudflare';
+          cdn_indicators.confidence = 'medium';
+          cdn_indicators.signals.push('server-header');
+        } else if (serverValue.includes('cloudfront') && cdn_indicators.provider !== 'cloudfront') {
+          cdn_indicators.detected = true;
+          cdn_indicators.provider = 'cloudfront';
+          cdn_indicators.confidence = 'medium';
+          cdn_indicators.signals.push('server-header');
+        }
+      }
+      
+      // Compression details
+      const compression_details: any = {
+        algorithm: "none" as "gzip" | "br" | "deflate" | "none",
+        compressed_size: undefined,
+        supports_brotli: undefined
+      };
+      
+      if (headers['content-encoding']) {
+        const encoding = String(headers['content-encoding']).toLowerCase();
+        if (encoding.includes('br')) {
+          compression_details.algorithm = 'br';
+        } else if (encoding.includes('gzip')) {
+          compression_details.algorithm = 'gzip';
+        } else if (encoding.includes('deflate')) {
+          compression_details.algorithm = 'deflate';
+        }
+      }
+      
+      if (headers['content-length']) {
+        compression_details.compressed_size = parseInt(String(headers['content-length']), 10);
+      }
+      
+      // Check if server supports Brotli (from Accept-Encoding in request, but we can infer from response)
+      if (compression_details.algorithm === 'br') {
+        compression_details.supports_brotli = true;
+      }
+      
       const pageRecord: PageRecord = {
+        // Stable identifier (Atlas v1.0 Enhancement)
+        page_id: item.page_id,
+        
         url: item.url,
         finalUrl: fetchResult.finalUrl,
         normalizedUrl,
@@ -1030,10 +1312,28 @@ export class Scheduler {
         robotsHeader: fetchResult.robotsHeader,
         noindexSurface,
         
-        // Content hashes
+        // Content hashes (Atlas v1.0 Enhancement)
         rawHtmlHash: fetchResult.rawHtmlHash,
         domHash: renderResult.domHash,
+        contentHash, // SHA-256 of normalized text for change detection
         textSample,
+        
+        // Response metadata (Atlas v1.0 Enhancement - Phase 5)
+        response_headers: Object.keys(response_headers).length > 0 ? response_headers : undefined,
+        cdn_indicators: cdn_indicators.detected ? cdn_indicators : undefined,
+        compression_details: compression_details.algorithm !== "none" ? compression_details : undefined,
+        
+        // Detailed timing breakdown (Atlas v1.0 Enhancement - Phase 3)
+        timing: {
+          fetch_started_at: fetchStartedAt,
+          fetch_completed_at: fetchCompletedAt,
+          render_started_at: renderStartedAt,
+          render_completed_at: renderCompletedAt
+        },
+        
+        // Render timing metadata (Atlas v1.0 Enhancement - Phase 3B)
+        wait_condition: renderResult.wait_condition,
+        timings: renderResult.timings,
         
         // Render info
         renderMode: renderResult.modeUsed,
@@ -1125,7 +1425,18 @@ export class Scheduler {
           hasCanonical: !!pageFacts.canonicalResolved
         }
       };
-      
+
+      const shouldStoreResponse = !fetchResult.contentType || /html/i.test(fetchResult.contentType);
+      if (shouldStoreResponse && fetchResult.bodyBuffer?.length) {
+        const headerCharset = (() => {
+          if (!contentTypeHeader) return undefined;
+          const match = String(contentTypeHeader).match(/charset=([^;,\s]+)/i);
+          return match ? match[1].trim() : undefined;
+        })();
+        const responseEncoding = (encoding?.encoding?.toLowerCase() || headerCharset?.toLowerCase() || "utf-8");
+        await this.writer.writeResponseBody(item.page_id, fetchResult.bodyBuffer, responseEncoding);
+      }
+
       // Handle screenshots if present
       if (renderResult.screenshots) {
         const urlKey = sha256Hex(item.url).substring(0, 16); // Use URL hash as key
@@ -1172,19 +1483,20 @@ export class Scheduler {
       await this.writer.writePage(pageRecord);
       this.pageCount++;
       
-      // Write edges
+      // Write edges (with source_page_id for stable joins)
       for (const edge of internalEdges) {
-        validateEdgeRecord(edge);
-        await this.writer.writeEdge(edge);
+        const enhancedEdge = { ...edge, source_page_id: item.page_id };
+        validateEdgeRecord(enhancedEdge);
+        await this.writer.writeEdge(enhancedEdge);
       }
       for (const edge of externalEdges) {
-        validateEdgeRecord(edge);
-        await this.writer.writeEdge(edge);
+        const enhancedEdge = { ...edge, source_page_id: item.page_id };
+        validateEdgeRecord(enhancedEdge);
+        await this.writer.writeEdge(enhancedEdge);
       }
       
-      // Write assets
+      // Write resources dataset (spec v1)
       for (const asset of assetsResult.assets) {
-        validateAssetRecord(asset);
         await this.writer.writeAsset(asset);
       }
       
@@ -1193,12 +1505,22 @@ export class Scheduler {
         await this.writer.writeAccessibility(accessibilityRecord);
       }
       
+      // Write DOM snapshot if captured (full mode only)
+      if (renderResult.domSnapshot) {
+        // Add page_id to the snapshot
+        const domSnapshotWithId = {
+          ...renderResult.domSnapshot,
+          page_id: item.page_id
+        };
+        await this.writer.writeDOMSnapshot(domSnapshotWithId);
+      }
+      
       const writeMs = Math.round(performance.now() - writeStart);
       
       // Record metrics
       this.metrics.recordPage(fetchMs, renderMs, extractMs, writeMs);
       this.metrics.recordEdges(allEdges.length);
-      this.metrics.recordAssets(assetsResult.assets.length);
+  this.metrics.recordAssets(assetsResult.assets.length);
       this.metrics.recordBytesWritten(this.writer.getBytesWritten());
       
       // Enqueue new URLs (internal links only)
@@ -1210,7 +1532,7 @@ export class Scheduler {
       
       // Log progress
       const totalMs = Math.round(performance.now() - startTime);
-      log("info", `[Crawl] depth=${item.depth} ${item.url} → ${fetchResult.statusCode} (${renderResult.navEndReason}) render=${renderResult.renderMs}ms edges=${allEdges.length} assets=${assetsResult.assets.length} total=${totalMs}ms`);
+  log("info", `[Crawl] depth=${item.depth} ${item.url} → ${fetchResult.statusCode} (${renderResult.navEndReason}) render=${renderResult.renderMs}ms edges=${allEdges.length} assets=${assetsResult.assets.length} total=${totalMs}ms`);
       
       // Log structured page processed event
       logEvent({
@@ -1322,7 +1644,12 @@ export class Scheduler {
       if (!this.hostQueues.has(host)) {
          this.hostQueues.set(host, []);
       }
-      this.hostQueues.get(host)!.push({ url: normalized, depth, discoveredFrom });
+      this.hostQueues.get(host)!.push({ 
+        url: normalized, 
+        depth, 
+        discoveredFrom,
+        page_id: uuidv7()
+      });
       log("info", `[Enqueue] Enqueued: ${normalized} (depth=${depth})`);
     } catch (e: any) {
        log('warn', `[Enqueue] Failed to add to host queue for ${normalized}: ${e.message}`);

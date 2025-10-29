@@ -5,37 +5,58 @@
  */
 
 import { test, expect } from "vitest";
+import path from "node:path";
 // Migrated to vitest expect()
 import { existsSync } from "fs";
-import { readFile, rm } from "fs/promises";
+import { readFile, rm, mkdir } from "fs/promises";
 import { execSync } from "child_process";
 
 // Run sequentially after crawl-fixture.test.ts creates example.atls
 test.sequential("export pages CSV", async () => {
-  // Ensure example.atls exists (from crawl test)
-  expect(existsSync("./tmp/example.atls")).toBeTruthy();
-  
-  // Remove old CSV if exists
-  if (existsSync("./tmp/pages.csv")) {
-    await rm("./tmp/pages.csv");
+  // Use unique filenames to avoid cross-test races
+  if (!existsSync("./tmp")) {
+    await mkdir("./tmp", { recursive: true });
   }
-  
+  const unique = `export-pages-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const atlsPath = `./tmp/${unique}.atls`;
+  const csvPath = `./tmp/${unique}.pages.csv`;
+  const CLI = path.resolve(__dirname, "../../dist/cli/index.js");
+
+  // Always create a fresh archive for this test to avoid dependency on other files
+  const crawlCmd = `node ${CLI} crawl --seeds https://example.com --out ${atlsPath} --mode prerender --maxPages 2`;
+  console.log(`Running (bootstrap crawl): ${crawlCmd}`);
+  execSync(crawlCmd, { stdio: "inherit" });
+  expect(existsSync(atlsPath)).toBeTruthy();
+
+  // Remove old CSV if exists (paranoia; should be unique)
+  if (existsSync(csvPath)) {
+    await rm(csvPath);
+  }
+
   // Run export
-  const cmd = "node dist/cli/index.js export --atls ./tmp/example.atls --report pages --out ./tmp/pages.csv";
+  const cmd = `node ${CLI} export --atls ${atlsPath} --report pages --out ${csvPath}`;
   console.log(`Running: ${cmd}`);
-  execSync(cmd, { stdio: "inherit" });
-  
+  try {
+    execSync(cmd, { stdio: "pipe" });
+  } catch (err: any) {
+    console.error("Export pages CSV command failed:", err?.message || err);
+    if (err?.stdout) console.error("STDOUT:", err.stdout.toString());
+    if (err?.stderr) console.error("STDERR:", err.stderr.toString());
+    // Surface failure for diagnosis
+    throw err;
+  }
+
   // Verify CSV exists
-  expect(existsSync("./tmp/pages.csv")).toBeTruthy();
-  
+  expect(existsSync(csvPath)).toBeTruthy();
+
   // Read CSV
-  const csvContent = await readFile("./tmp/pages.csv", "utf-8");
+  const csvContent = await readFile(csvPath, "utf-8");
   const lines = csvContent.trim().split("\n");
   
   expect(lines.length >= 2).toBeTruthy();
   
   // Verify exact header order
-  const expectedHeader = "url,finalUrl,normalizedUrl,statusCode,contentType,rawHtmlHash,domHash,renderMode,navEndReason,depth,discoveredFrom,section,title,metaDescription,h1,internalLinksCount,externalLinksCount,mediaAssetsCount,canonicalHref,canonicalResolved,noindexSurface,fetchMs,renderMs,network.totalRequests,network.totalBytes,network.totalDuration,enhancedSEO.indexability.isNoIndex,enhancedSEO.content.titleLength.pixels,enhancedSEO.international.hreflangCount,performance.scores.performance,performance.scores.accessibility";
+  const expectedHeader = "url,finalUrl,normalizedUrl,statusCode,contentType,rawHtmlHash,domHash,renderMode,navEndReason,depth,discoveredFrom,section,title,metaDescription,h1,internalLinksCount,externalLinksCount,mediaAssetsCount,canonicalHref,canonicalResolved,noindexSurface,fetchMs,renderMs,network.totalRequests,network.totalBytes,network.totalDuration,enhancedSEO.indexability.isNoIndex,enhancedSEO.content.titleLength.pixels,enhancedSEO.international.hreflangCount,performance.scores.performance,performance.scores.accessibility,response_headers.server,response_headers.cache_control,response_headers.content_encoding,cdn_indicators.detected,cdn_indicators.provider,cdn_indicators.confidence,compression_details.algorithm,compression_details.compressed_size";
   const actualHeader = lines[0];
   
   expect(actualHeader).toBe(expectedHeader);

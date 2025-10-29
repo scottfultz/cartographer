@@ -103,7 +103,7 @@ export function readVisitedIndex(stagingDir: string): Set<string> {
  */
 export function writeFrontier(
   stagingDir: string,
-  queue: Array<{ url: string; depth: number; discoveredFrom?: string }>
+  queue: Array<{ url: string; depth: number; discoveredFrom?: string; page_id: string }>
 ): void {
   const frontierPath = join(stagingDir, "frontier.json");
   const frontierJson = JSON.stringify(queue, null, 2);
@@ -113,10 +113,11 @@ export function writeFrontier(
 
 /**
  * Read queue frontier snapshot from disk
+ * Note: Legacy checkpoints won't have page_id, caller must generate new ones
  */
 export function readFrontier(
   stagingDir: string
-): Array<{ url: string; depth: number; discoveredFrom?: string }> {
+): Array<{ url: string; depth: number; discoveredFrom?: string; page_id?: string }> {
   const frontierPath = join(stagingDir, "frontier.json");
   
   if (!fs.existsSync(frontierPath)) {

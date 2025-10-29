@@ -17,6 +17,7 @@ import { collectAdvancedPerformanceMetrics, detectFlashingContent } from "./extr
 import { detectKeyboardTraps, detectSkipLinks, analyzeMediaElements } from "./extractors/runtimeAccessibility.js";
 import { createNetworkPerformanceCollector, type NetworkPerformanceMetrics } from "./extractors/networkPerformance.js";
 import { extractLighthouseMetrics } from "./extractors/lighthouse.js";
+import { captureDOMSnapshot } from "./extractors/domSnapshot.js";
 
 // Browser lifecycle state
 let browser: Browser | null = null;
@@ -34,6 +35,18 @@ export interface RenderResult {
   domHash: string;
   renderMs: number;
   performance: Record<string, number>;
+  
+  // Atlas v1.0 Enhancement - Phase 3B: Timing metadata
+  wait_condition?: "domcontentloaded" | "networkidle0" | "networkidle2" | "load";
+  timings?: {
+    nav_start: number;
+    dom_content_loaded?: number;
+    load_event_end?: number;
+    network_idle_reached?: number;
+    first_paint?: number;
+    first_contentful_paint?: number;
+  };
+  
   challengeDetected?: boolean;
   challengePageCaptured?: boolean; // True if we captured challenge page content (not real page data)
   screenshots?: {
@@ -47,6 +60,7 @@ export interface RenderResult {
   };
   runtimeWCAGData?: any; // Runtime-only WCAG data collected in Playwright mode
   networkMetrics?: NetworkPerformanceMetrics; // Network performance data (prerender/full modes)
+  domSnapshot?: any; // DOM snapshot for offline accessibility audits (full mode only)
 }
 
 /**
@@ -319,7 +333,7 @@ async function renderWithPlaywright(
   networkCollector.start();
 
   try {
-    // Request interception for caps
+    // Request interception for caps and privacy
     await page.route('**/*', (route) => {
       requestCount++;
       if (requestCount > cfg.render.maxRequestsPerPage) {
@@ -328,7 +342,17 @@ async function renderWithPlaywright(
         route.abort('failed');
         return;
       }
-      route.continue();
+      
+      // Apply privacy settings
+      const headers = { ...route.request().headers() };
+      if (cfg.privacy?.stripCookies && headers['cookie']) {
+        delete headers['cookie'];
+      }
+      if (cfg.privacy?.stripAuthHeaders && headers['authorization']) {
+        delete headers['authorization'];
+      }
+      
+      route.continue({ headers });
     });
 
     // Track bytes loaded
@@ -626,6 +650,55 @@ async function renderWithPlaywright(
     const domHash = sha256Hex(outerHTML);
     log('debug', `[Renderer] DOM evaluation successful for ${url}`);
 
+    // === CAPTURE PERFORMANCE TIMING DATA (Atlas v1.0 Enhancement - Phase 3B) ===
+    let perfTimingData: {
+      nav_start: number;
+      dom_content_loaded?: number;
+      load_event_end?: number;
+      network_idle_reached?: number;
+      first_paint?: number;
+      first_contentful_paint?: number;
+    } | undefined;
+    
+    let waitCondition: "domcontentloaded" | "networkidle0" | "networkidle2" | "load" | undefined;
+    
+    try {
+      log('debug', `[Renderer] Capturing performance timing data for ${url}`);
+      
+      // Determine wait condition based on render mode and actual navigation outcome
+      if (cfg.render.mode === "raw") {
+        waitCondition = undefined; // No JS execution
+      } else if (cfg.render.mode === "prerender") {
+        waitCondition = "load";
+      } else if (cfg.render.mode === "full") {
+        // Default to networkidle0 for full mode
+        waitCondition = "networkidle0";
+      }
+      
+      // Capture performance timing from browser
+      perfTimingData = await page.evaluate(() => {
+        // @ts-expect-error - Running in browser context, window available
+        const perf = window.performance;
+        const timing = perf.timing;
+        const paintEntries = perf.getEntriesByType('paint');
+        
+        return {
+          nav_start: perf.timeOrigin,
+          dom_content_loaded: timing.domContentLoadedEventEnd > 0 ? timing.domContentLoadedEventEnd : undefined,
+          load_event_end: timing.loadEventEnd > 0 ? timing.loadEventEnd : undefined,
+          network_idle_reached: undefined, // Not directly available, approximated by networkidle event
+          first_paint: paintEntries.find((e: any) => e.name === 'first-paint')?.startTime,
+          first_contentful_paint: paintEntries.find((e: any) => e.name === 'first-contentful-paint')?.startTime
+        };
+      });
+      
+      log('debug', `[Renderer] Performance timing captured: nav_start=${perfTimingData.nav_start}, dclEnd=${perfTimingData.dom_content_loaded}, loadEnd=${perfTimingData.load_event_end}, fcp=${perfTimingData.first_contentful_paint}`);
+    } catch (timingError: any) {
+      log('warn', `[Renderer] Failed to capture performance timing data for ${url}: ${timingError.message}`);
+      // Don't fail the crawl if timing capture fails
+    }
+    // === END TIMING CAPTURE ===
+
     // NOTE: Screenshots and favicons are now captured EARLY (right after DOM extraction)
     // to ensure they're captured even if page times out or has challenges.
     // See lines 405-498 for screenshot/favicon capture logic.
@@ -716,6 +789,23 @@ async function renderWithPlaywright(
     const networkMetrics = networkCollector.getMetrics();
     log('debug', `[Renderer] Network metrics collected: ${networkMetrics.totalRequests} requests, ${Math.round(networkMetrics.totalBytes / 1024)}KB`);
 
+    // Capture DOM snapshot for offline accessibility audits (full mode only)
+    let domSnapshotData;
+    if (cfg.render.mode === "full") {
+      try {
+        log('debug', `[Renderer] Capturing DOM snapshot for ${url}`);
+        // Capture DOM snapshot without page_id (will be added in scheduler)
+        domSnapshotData = await captureDOMSnapshot(page, {
+          pageId: "", // Will be filled in by scheduler
+          stylesApplied: true,
+          scriptsExecuted: true
+        });
+        log('debug', `[Renderer] Captured DOM snapshot: ${domSnapshotData.node_count} nodes`);
+      } catch (domError: any) {
+        log('warn', `[Renderer] Failed to capture DOM snapshot for ${url}: ${domError.message}`);
+      }
+    }
+
     await page.close();
 
     return {
@@ -725,10 +815,13 @@ async function renderWithPlaywright(
       domHash,
       performance: perfMetrics,
       challengeDetected: false,
+      wait_condition: waitCondition,
+      timings: perfTimingData,
       screenshots: Object.keys(screenshots).length > 0 ? screenshots : undefined,
       favicon,
       runtimeWCAGData,
-      networkMetrics
+      networkMetrics,
+      domSnapshot: domSnapshotData
     };
 
   } catch (error: any) {

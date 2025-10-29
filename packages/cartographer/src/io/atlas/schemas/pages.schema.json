@@ -21,6 +21,10 @@
   ],
   "additionalProperties": false,
   "properties": {
+    "page_id": { 
+      "type": "string",
+      "description": "UUID v7 (time-ordered, globally unique) - Atlas v1.0 Enhancement"
+    },
     "url": { "type": "string" },
     "finalUrl": { "type": "string" },
     "normalizedUrl": { "type": "string" },
@@ -31,6 +35,32 @@
     "fetchedAt": { "type": "string", "format": "date-time" },
     "rawHtmlHash": { "type": "string" },
     "domHash": { "type": "string" },
+    "contentHash": { 
+      "type": "string",
+      "description": "SHA-256 of normalized text content - Atlas v1.0 Enhancement"
+    },
+    "previous_page_id": { 
+      "type": "string",
+      "description": "page_id from previous crawl for re-crawl diffing - Atlas v1.0 Enhancement"
+    },
+    "content_changed": { 
+      "type": "boolean",
+      "description": "Did content change since last crawl? - Atlas v1.0 Enhancement"
+    },
+    "dom_changed": { 
+      "type": "boolean",
+      "description": "Did DOM change since last crawl? - Atlas v1.0 Enhancement"
+    },
+    "timing": {
+      "type": "object",
+      "description": "Detailed timing breakdown for fetch and render phases - Atlas v1.0 Enhancement Phase 3",
+      "properties": {
+        "fetch_started_at": { "type": "string", "format": "date-time" },
+        "fetch_completed_at": { "type": "string", "format": "date-time" },
+        "render_started_at": { "type": "string", "format": "date-time" },
+        "render_completed_at": { "type": "string", "format": "date-time" }
+      }
+    },
     "title": { "type": "string" },
     "metaDescription": { "type": ["string", "null"] },
       "section": { "type": "string" },
@@ -55,10 +85,10 @@
         "items": {
           "type": "object",
           "properties": {
-            "href": { "type": "string" },
+            "url": { "type": "string" },
             "lang": { "type": "string" }
           },
-          "required": ["href", "lang"],
+          "required": ["url", "lang"],
           "additionalProperties": false
         }
       },
@@ -92,17 +122,38 @@
     "textSample": { "type": "string" },
     "renderMode": {
       "type": "string",
-      "enum": ["raw", "prerender", "full"]
+      "enum": ["raw", "prerender", "full"],
+      "description": "Render mode used for this page (Atlas v1.0 enum)"
     },
     "renderMs": { "type": "integer" },
+    "wait_condition": {
+      "type": ["string", "null"],
+      "enum": ["domcontentloaded", "networkidle0", "networkidle2", "load", null],
+      "description": "Render wait condition used by the renderer (Atlas v1.0 Phase 3B)"
+    },
+    "timings": {
+      "type": ["object", "null"],
+      "description": "High-resolution navigation and paint timing marks (Atlas v1.0 Phase 3B)",
+      "properties": {
+        "nav_start": { "type": "number" },
+        "dom_content_loaded": { "type": ["number", "null"] },
+        "load_event_end": { "type": ["number", "null"] },
+        "network_idle_reached": { "type": ["number", "null"] },
+        "first_paint": { "type": ["number", "null"] },
+        "first_contentful_paint": { "type": ["number", "null"] }
+      },
+      "additionalProperties": false
+    },
     "navEndReason": {
-  "type": "string",
-  "enum": ["load", "domcontentloaded", "networkidle", "timeout", "error", "fetch"]
+      "type": "string",
+      "enum": ["fetch", "load", "networkidle", "timeout", "error"],
+      "description": "Why page navigation ended (Atlas v1.0 enum)"
     },
     "depth": { "type": "integer", "minimum": 0 },
     "discoveredInMode": {
       "type": "string",
-      "enum": ["raw", "prerender", "full"]
+      "enum": ["raw", "prerender", "full"],
+      "description": "Render mode when this URL was discovered (Atlas v1.0 enum)"
     },
     "error": { "type": "string" },
     "faviconUrl": { "type": ["string", "null"] },
@@ -193,9 +244,37 @@
       "type": ["object", "null"],
       "additionalProperties": true
     },
+    "encoding": {
+      "type": ["object", "null"],
+      "description": "HTML document encoding detection details",
+      "properties": {
+        "encoding": { "type": "string" },
+        "source": {
+          "type": "string",
+          "enum": ["meta", "header", "detected"]
+        }
+      },
+      "required": ["encoding", "source"],
+      "additionalProperties": false
+    },
     "subresourceIntegrity": {
       "type": ["object", "null"],
       "additionalProperties": true
+    },
+    "mixedContentIssues": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "required": ["assetUrl", "type"],
+        "properties": {
+          "assetUrl": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["script", "stylesheet", "image", "video", "audio", "iframe", "other"]
+          }
+        },
+        "additionalProperties": false
+      }
     },
     "media": {
       "type": ["object", "null"],
@@ -209,6 +288,73 @@
           "additionalProperties": false
         },
         "favicon": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "response_headers": {
+      "type": ["object", "null"],
+      "description": "HTTP response headers captured during fetch - Atlas v1.0 Enhancement Phase 5",
+      "properties": {
+        "content_type": { "type": "string" },
+        "content_length": { "type": "integer" },
+        "content_encoding": { "type": "string" },
+        "cache_control": { "type": "string" },
+        "expires": { "type": "string" },
+        "etag": { "type": "string" },
+        "last_modified": { "type": "string" },
+        "age": { "type": "integer" },
+        "server": { "type": "string" },
+        "x_powered_by": { "type": "string" },
+        "via": { "type": "string" },
+        "x_cache": { "type": "string" },
+        "cf_cache_status": { "type": "string" },
+        "x_amz_cf_id": { "type": "string" },
+        "x_cdn_provider": { "type": "string" },
+        "strict_transport_security": { "type": "string" },
+        "content_security_policy": { "type": "string" },
+        "x_frame_options": { "type": "string" },
+        "x_content_type_options": { "type": "string" },
+        "referrer_policy": { "type": "string" },
+        "permissions_policy": { "type": "string" },
+        "vary": { "type": "string" },
+        "pragma": { "type": "string" },
+        "date": { "type": "string" },
+        "connection": { "type": "string" },
+        "transfer_encoding": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "cdn_indicators": {
+      "type": ["object", "null"],
+      "description": "CDN provider detection metadata - Atlas v1.0 Enhancement Phase 5",
+      "properties": {
+        "detected": { "type": "boolean" },
+        "provider": { 
+          "type": "string",
+          "enum": ["cloudflare", "cloudfront", "fastly", "akamai", "unknown"]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"]
+        },
+        "signals": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["detected", "confidence", "signals"],
+      "additionalProperties": false
+    },
+    "compression_details": {
+      "type": ["object", "null"],
+      "description": "Compression algorithm and metrics - Atlas v1.0 Enhancement Phase 5",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": ["gzip", "br", "deflate", "none"]
+        },
+        "compressed_size": { "type": "integer" },
+        "supports_brotli": { "type": "boolean" }
       },
       "additionalProperties": false
     },

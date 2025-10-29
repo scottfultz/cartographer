@@ -25,6 +25,7 @@ import type {
   EdgeRecord,
   AssetRecord,
   ErrorRecord,
+  EventRecord, // Phase 7: Event log
   ConsoleRecord,
   ComputedTextNodeRecord,
 } from '@atlas/spec';
@@ -35,6 +36,7 @@ export type {
   EdgeRecord,
   AssetRecord,
   ErrorRecord,
+  EventRecord, // Phase 7: Event log
   ConsoleRecord,
   ComputedTextNodeRecord,
 };
@@ -68,7 +70,7 @@ export interface AccessibilityRecord {
 /**
  * Dataset names
  */
-export type DatasetName = "pages" | "edges" | "assets" | "errors" | "accessibility";
+export type DatasetName = "pages" | "edges" | "assets" | "errors" | "events" | "accessibility";
 
 /**
  * Union of all record types

@@ -48,6 +48,13 @@ export const DEFAULT_CONFIG: Partial<EngineConfig> = {
     overrideUsed: false
   },
   
+  privacy: {
+    stripCookies: true,        // Strip cookies for privacy
+    stripAuthHeaders: true,    // Strip auth headers for security
+    redactInputValues: true,   // Redact input values in DOM
+    redactForms: true          // Redact form data
+  },
+  
   accessibility: {
     enabled: true
   },
@@ -92,10 +99,16 @@ export function buildConfig(partial: Partial<EngineConfig>): EngineConfig {
   if (!Array.isArray(discovery.blockList)) discovery.blockList = DEFAULT_CONFIG.discovery!.blockList!;
   // Validate robots
   const robots = { ...DEFAULT_CONFIG.robots!, ...partial.robots };
+  // Validate privacy
+  const privacy = { ...DEFAULT_CONFIG.privacy!, ...partial.privacy };
   // Validate accessibility
   const accessibility = { ...DEFAULT_CONFIG.accessibility!, ...partial.accessibility };
   // Validate media config
   const media = partial.media;
+  
+  // Validate replay config
+  const replay = partial.replay;
+  
   // Compose final config
   const finalConfig: EngineConfig = {
     seeds: partial.seeds,
@@ -107,8 +120,10 @@ export function buildConfig(partial: Partial<EngineConfig>): EngineConfig {
     http,
     discovery,
     robots,
+    privacy,
     accessibility,
     media,
+    replay,
     resume: partial.resume,
     checkpoint: partial.checkpoint,
     cli: partial.cli,

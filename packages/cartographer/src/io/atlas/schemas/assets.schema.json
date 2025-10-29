@@ -15,11 +15,19 @@
   ],
   "additionalProperties": false,
   "properties": {
+    "page_id": { 
+      "type": "string",
+      "description": "UUID of page containing asset (Atlas v1.0 Enhancement)"
+    },
+    "asset_id": { 
+      "type": "string",
+      "description": "UUID v5(namespace, assetUrl) - deterministic (Atlas v1.0 Enhancement)"
+    },
     "pageUrl": { "type": "string" },
     "assetUrl": { "type": "string" },
     "type": {
       "type": "string",
-      "enum": ["image", "video"]
+      "enum": ["image", "video", "audio"]
     },
     "alt": { "type": "string" },
     "hasAlt": { "type": "boolean" },
@@ -31,6 +39,131 @@
     "visible": { "type": "boolean" },
     "inViewport": { "type": "boolean" },
     "loading": { "type": "string" },
-    "wasLazyLoaded": { "type": "boolean" }
+    "wasLazyLoaded": { "type": "boolean" },
+    
+    "srcset": { 
+      "type": "string",
+      "description": "Srcset attribute for responsive images - Atlas v1.0 Enhancement Phase 6"
+    },
+    "srcset_candidates": {
+      "type": "array",
+      "description": "Parsed srcset candidates - Atlas v1.0 Enhancement Phase 6",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "descriptor": { "type": "string" },
+          "width": { "type": "integer" },
+          "density": { "type": "number" }
+        },
+        "required": ["url", "descriptor"],
+        "additionalProperties": false
+      }
+    },
+    "sizes": { 
+      "type": "string",
+      "description": "Sizes attribute for responsive images - Atlas v1.0 Enhancement Phase 6"
+    },
+    "picture_context": {
+      "type": "object",
+      "description": "Picture element context - Atlas v1.0 Enhancement Phase 6",
+      "properties": {
+        "has_picture_parent": { "type": "boolean" },
+        "source_count": { "type": "integer" },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "srcset": { "type": "string" },
+              "media": { "type": "string" },
+              "type": { "type": "string" }
+            },
+            "required": ["srcset"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["has_picture_parent", "source_count"],
+      "additionalProperties": false
+    },
+    
+    "duration": { 
+      "type": "number",
+      "description": "Video/audio duration in seconds - Atlas v1.0 Enhancement Phase 6"
+    },
+    "mime_type": { 
+      "type": "string",
+      "description": "MIME type - Atlas v1.0 Enhancement Phase 6"
+    },
+    "has_controls": { 
+      "type": "boolean",
+      "description": "Video/audio controls - Atlas v1.0 Enhancement Phase 6"
+    },
+    "autoplay": { 
+      "type": "boolean",
+      "description": "Autoplay flag - Atlas v1.0 Enhancement Phase 6"
+    },
+    "loop": { 
+      "type": "boolean",
+      "description": "Loop flag - Atlas v1.0 Enhancement Phase 6"
+    },
+    "muted": { 
+      "type": "boolean",
+      "description": "Muted flag - Atlas v1.0 Enhancement Phase 6"
+    },
+    "preload": { 
+      "type": "string",
+      "description": "Preload strategy - Atlas v1.0 Enhancement Phase 6",
+      "enum": ["none", "metadata", "auto"]
+    },
+    "poster": { 
+      "type": "string",
+      "description": "Poster image URL for video - Atlas v1.0 Enhancement Phase 6"
+    },
+    "tracks": {
+      "type": "array",
+      "description": "Track elements - Atlas v1.0 Enhancement Phase 6",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string" },
+          "src": { "type": "string" },
+          "srclang": { "type": "string" },
+          "label": { "type": "string" }
+        },
+        "required": ["kind", "src"],
+        "additionalProperties": false
+      }
+    },
+    "sources": {
+      "type": "array",
+      "description": "Source elements - Atlas v1.0 Enhancement Phase 6",
+      "items": {
+        "type": "object",
+        "properties": {
+          "src": { "type": "string" },
+          "type": { "type": "string" }
+        },
+        "required": ["src"],
+        "additionalProperties": false
+      }
+    },
+    
+    "lazy_strategy": {
+      "type": "string",
+      "description": "Lazy loading strategy detected - Atlas v1.0 Enhancement Phase 6",
+      "enum": ["native", "intersection-observer", "data-src", "none"]
+    },
+    "lazy_data_attrs": {
+      "type": "object",
+      "description": "Data attributes for lazy loading - Atlas v1.0 Enhancement Phase 6",
+      "additionalProperties": { "type": "string" }
+    },
+    "lazy_classes": {
+      "type": "array",
+      "description": "CSS classes indicating lazy loading - Atlas v1.0 Enhancement Phase 6",
+      "items": { "type": "string" }
+    }
   }
 }

@@ -77,6 +77,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "simple-wappalyzer": "^1.1.83",
     "undici": "^6.19.8",
+    "uuid": "^13.0.0",
     "yargs": "^17.7.2",
     "yauzl": "^3.2.0",
     "zod": "^3.23.8"
@@ -85,6 +86,7 @@
     "@types/archiver": "^6.0.3",
     "@types/figlet": "^1.7.0",
     "@types/node": "^20.14.10",
+    "@types/uuid": "^11.0.0",
     "@types/yargs": "^17.0.33",
     "@types/yauzl": "^2.10.3",
     "rimraf": "^6.0.1",

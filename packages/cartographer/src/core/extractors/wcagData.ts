@@ -398,6 +398,103 @@ export interface WCAGDataCollection {
     ariaRoleStatus: number;
     ariaRoleAlert: number;
   };
+  
+  // === NEW ENHANCEMENTS ===
+  
+  // 2.5.2 Pointer Cancellation (WCAG 2.1)
+  // Requires runtime analysis - collected in Playwright mode
+  pointerCancellation?: {
+    elementsWithMousedown: number;
+    elementsWithTouchstart: number;
+    suspiciousElements: Array<{
+      selector: string;
+      hasMousedown: boolean;
+      hasTouchstart: boolean;
+      hasClickHandler: boolean;
+      reason: "down-event-only" | "no-up-event" | "action-on-down";
+    }>;
+  };
+  
+  // 3.2.1 On Focus (WCAG 2.1)
+  // Requires runtime analysis - collected in Playwright mode
+  onFocusContextChange?: {
+    suspiciousElements: Array<{
+      selector: string;
+      reason: "url-change" | "form-submit" | "new-window" | "major-content-change";
+    }>;
+  };
+  
+  // 2.4.5 Multiple Ways (WCAG 2.1 AA)
+  multipleWays: {
+    hasSiteMap: boolean;
+    hasSearchFunction: boolean;
+    hasBreadcrumbs: boolean;
+    siteMapLinks: string[];
+    searchForms: string[];
+  };
+  
+  // 1.3.3 Sensory Characteristics (WCAG 2.1 A)
+  sensoryCharacteristics: {
+    suspiciousInstructions: Array<{
+      text: string;
+      reason: "shape" | "size" | "location" | "orientation" | "color" | "sound";
+      context: string; // Surrounding text
+    }>;
+  };
+  
+  // 1.4.5 Images of Text (WCAG 2.1 AA)
+  imagesOfText: {
+    suspiciousImages: Array<{
+      src: string;
+      alt: string;
+      reason: "filename-suggests-text" | "alt-contains-long-text" | "common-pattern";
+      selector: string;
+    }>;
+  };
+  
+  // === SITE-LEVEL ANALYSIS (requires cross-page comparison) ===
+  
+  // 3.2.3 Consistent Navigation (WCAG 2.1 AA) - Per-page data
+  navigationElements?: {
+    mainNav: Array<{
+      text: string;
+      href: string;
+      position: number;
+    }>;
+    headerNav: Array<{
+      text: string;
+      href: string;
+      position: number;
+    }>;
+    footerNav: Array<{
+      text: string;
+      href: string;
+      position: number;
+    }>;
+    navStructure: string; // Hash of navigation structure for comparison
+  };
+  
+  // 3.2.4 Consistent Identification (WCAG 2.1 AA) - Per-page data
+  componentIdentification?: {
+    buttons: Array<{
+      text: string;
+      ariaLabel?: string;
+      type: string;
+      selector: string;
+    }>;
+    links: Array<{
+      text: string;
+      ariaLabel?: string;
+      href: string;
+      selector: string;
+    }>;
+    icons: Array<{
+      ariaLabel?: string;
+      title?: string;
+      class: string;
+      selector: string;
+    }>;
+  };
 }
 
 /**
@@ -894,6 +991,23 @@ export function collectWCAGData($: CheerioAPI, baseUrl: string): WCAGDataCollect
   const focusOrderAnalysis = analyzeFocusOrder($);
   const formAutocomplete = analyzeFormAutocomplete($);
   
+  // === NEW ENHANCEMENTS ===
+  
+  // 2.4.5 Multiple Ways - Detect site map, search, breadcrumbs
+  const multipleWays = detectMultipleWays($, baseUrl);
+  
+  // 1.3.3 Sensory Characteristics - Detect instructions relying on shape/size/location
+  const sensoryCharacteristics = detectSensoryCharacteristics($);
+  
+  // 1.4.5 Images of Text - Detect images that likely contain text
+  const imagesOfText = detectImagesOfText($);
+  
+  // 3.2.3 Consistent Navigation - Extract navigation structure (per-page)
+  const navigationElements = extractNavigationElements($, baseUrl);
+  
+  // 3.2.4 Consistent Identification - Extract components (per-page)
+  const componentIdentification = extractComponentIdentification($, baseUrl);
+  
   return {
     images: {
       total: imagesTotal,
@@ -974,7 +1088,12 @@ export function collectWCAGData($: CheerioAPI, baseUrl: string): WCAGDataCollect
       missingRequiredAriaAttributes,
       invalidAriaReferences
     },
-    statusMessages
+    statusMessages,
+    multipleWays,
+    sensoryCharacteristics,
+    imagesOfText,
+    navigationElements,
+    componentIdentification
   };
 }
 
@@ -1079,10 +1198,83 @@ export async function collectRuntimeWCAGData(page: any): Promise<Partial<WCAGDat
         };
       });
       
+      // Pointer Cancellation Check (WCAG 2.1 - 2.5.2)
+      const clickableElements = Array.from(document.querySelectorAll(
+        'a, button, [onclick], [role="button"], [role="link"]'
+      )).slice(0, 50);
+      
+      const pointerCancellationData = clickableElements.map((el, idx) => {
+        const tagName = el.tagName.toLowerCase();
+        const id = el.id;
+        const selector = id ? tagName + '#' + id : tagName + '[' + idx + ']';
+        
+        // Check event listeners (simplified - only checks inline handlers)
+        const hasMousedown = el.onmousedown !== null || el.hasAttribute('onmousedown');
+        const hasTouchstart = el.ontouchstart !== null || el.hasAttribute('ontouchstart');
+        const hasClickHandler = el.onclick !== null || el.hasAttribute('onclick');
+        
+        // Determine if this looks suspicious (down-event without up-event or click)
+        let reason = null;
+        if ((hasMousedown || hasTouchstart) && !hasClickHandler) {
+          reason = 'down-event-only';
+        }
+        
+        return {
+          selector: selector,
+          hasMousedown: hasMousedown,
+          hasTouchstart: hasTouchstart,
+          hasClickHandler: hasClickHandler,
+          reason: reason
+        };
+      }).filter(function(item) { return item.reason !== null; });
+      
+      // On Focus Context Change Check (WCAG 2.1 - 3.2.1)
+      // This is a simplified check - full implementation would require monitoring during actual interaction
+      const focusableForContextCheck = Array.from(document.querySelectorAll(
+        'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )).slice(0, 30);
+      
+      const onFocusContextChangeData = [];
+      
+      // Check for elements that might trigger context changes on focus
+      focusableForContextCheck.forEach((el, idx) => {
+        const tagName = el.tagName.toLowerCase();
+        const id = el.id;
+        const selector = id ? tagName + '#' + id : tagName + '[' + idx + ']';
+        
+        // Check for onfocus handlers that might change context
+        const hasFocusHandler = el.onfocus !== null || el.hasAttribute('onfocus');
+        
+        // Check if it's a link with potential navigation
+        const isLinkWithTarget = tagName === 'a' && (el.getAttribute('target') === '_blank');
+        
+        if (hasFocusHandler) {
+          onFocusContextChangeData.push({
+            selector: selector,
+            reason: 'has-focus-handler'
+          });
+        }
+        
+        if (isLinkWithTarget) {
+          onFocusContextChangeData.push({
+            selector: selector,
+            reason: 'new-window'
+          });
+        }
+      });
+      
       return {
         targetSize: targetSizes,
         focusAppearance: focusAppearance,
-        focusNotObscured: focusNotObscured
+        focusNotObscured: focusNotObscured,
+        pointerCancellation: {
+          elementsWithMousedown: pointerCancellationData.filter(function(i) { return i.hasMousedown; }).length,
+          elementsWithTouchstart: pointerCancellationData.filter(function(i) { return i.hasTouchstart; }).length,
+          suspiciousElements: pointerCancellationData
+        },
+        onFocusContextChange: {
+          suspiciousElements: onFocusContextChangeData
+        }
       };
     `);
     
@@ -1310,5 +1502,337 @@ export function analyzeFormAutocomplete($: CheerioAPI): {
     totalForms,
     formsWithAutocomplete,
     personalDataInputs
+  };
+}
+
+/**
+ * Detect multiple navigation mechanisms (WCAG 2.4.5 - Level AA)
+ * Looks for site maps, search functionality, breadcrumbs
+ */
+function detectMultipleWays($: CheerioAPI, baseUrl: string): WCAGDataCollection['multipleWays'] {
+  const siteMapLinks: string[] = [];
+  const searchForms: string[] = [];
+  let hasSiteMap = false;
+  let hasSearchFunction = false;
+  let hasBreadcrumbs = false;
+  
+  // Detect site map links
+  $('a[href*="sitemap"], a[href*="site-map"], a[href*="site_map"]').each((i, el) => {
+    if (i < 10) {
+      const href = $(el).attr('href');
+      if (href) {
+        hasSiteMap = true;
+        siteMapLinks.push(href);
+      }
+    }
+  });
+  
+  // Also check for text content containing "site map"
+  $('a').each((i, el) => {
+    const text = $(el).text().toLowerCase().trim();
+    if (text.includes('site map') || text.includes('sitemap')) {
+      const href = $(el).attr('href');
+      if (href && siteMapLinks.length < 10) {
+        hasSiteMap = true;
+        if (!siteMapLinks.includes(href)) {
+          siteMapLinks.push(href);
+        }
+      }
+    }
+  });
+  
+  // Detect search forms
+  $('form').each((i, el) => {
+    const $form = $(el);
+    const action = $form.attr('action') || '';
+    const method = $form.attr('method') || '';
+    const role = $form.attr('role');
+    
+    // Check if form has search-related attributes or inputs
+    const hasSearchInput = $form.find('input[type="search"]').length > 0 ||
+                          $form.find('input[name*="search" i], input[name*="query" i], input[name*="q" i]').length > 0;
+    
+    const isSearchForm = role === 'search' || 
+                        action.includes('search') ||
+                        hasSearchInput;
+    
+    if (isSearchForm && searchForms.length < 10) {
+      hasSearchFunction = true;
+      const id = $form.attr('id');
+      const selector = id ? `form#${id}` : `form[role="${role}"]`;
+      searchForms.push(selector);
+    }
+  });
+  
+  // Detect breadcrumbs
+  const breadcrumbSelectors = [
+    '[aria-label*="breadcrumb" i]',
+    '[class*="breadcrumb" i]',
+    'nav ol',
+    '[itemtype*="BreadcrumbList"]'
+  ];
+  
+  breadcrumbSelectors.forEach(selector => {
+    if ($(selector).length > 0) {
+      hasBreadcrumbs = true;
+    }
+  });
+  
+  return {
+    hasSiteMap,
+    hasSearchFunction,
+    hasBreadcrumbs,
+    siteMapLinks,
+    searchForms
+  };
+}
+
+/**
+ * Detect sensory characteristics (WCAG 1.3.3 - Level A)
+ * Identifies instructions that rely on shape, size, location, orientation
+ */
+function detectSensoryCharacteristics($: CheerioAPI): WCAGDataCollection['sensoryCharacteristics'] {
+  const suspiciousInstructions: WCAGDataCollection['sensoryCharacteristics']['suspiciousInstructions'] = [];
+  
+  // Patterns that suggest sensory-only instructions
+  const patterns = [
+    { regex: /click (the|a|on) (round|square|circular|oval|rectangular|triangular) (button|icon|link)/i, reason: 'shape' as const },
+    { regex: /press (the|a) (large|small|big|little) (button|icon|link)/i, reason: 'size' as const },
+    { regex: /(at the|in the|on the) (top|bottom|left|right|corner|side) (of (the )?(page|screen))/i, reason: 'location' as const },
+    { regex: /button (above|below|next to|beside|near|adjacent to)/i, reason: 'location' as const },
+    { regex: /(rotate|turn|tilt) (your )?(device|phone|tablet|screen)/i, reason: 'orientation' as const },
+    { regex: /click (the )?(red|green|blue|yellow|orange|purple|pink) (button|icon|link|text)/i, reason: 'color' as const },
+    { regex: /items? (in|with|marked (in|with)) (red|green|blue|yellow)/i, reason: 'color' as const },
+    { regex: /hear the (sound|tone|beep|chime)/i, reason: 'sound' as const }
+  ];
+  
+  // Check common instruction elements
+  const instructionSelectors = [
+    'p', 'span', 'div', 'li', 
+    '[class*="instruction" i]', '[class*="help" i]', '[class*="hint" i]',
+    'label', '[role="note"]', '[aria-label]'
+  ];
+  
+  instructionSelectors.forEach(selector => {
+    $(selector).each((i, el) => {
+      if (suspiciousInstructions.length >= 50) return false; // Limit
+      
+      const text = $(el).text().trim();
+      if (text.length < 10 || text.length > 300) return; // Skip very short/long text
+      
+      for (const pattern of patterns) {
+        if (pattern.regex.test(text)) {
+          // Get surrounding context
+          const parent = $(el).parent();
+          const context = parent.text().trim().substring(0, 200);
+          
+          suspiciousInstructions.push({
+            text: text.substring(0, 200),
+            reason: pattern.reason,
+            context
+          });
+          break; // Only flag once per element
+        }
+      }
+    });
+  });
+  
+  return {
+    suspiciousInstructions
+  };
+}
+
+/**
+ * Detect images of text (WCAG 1.4.5 - Level AA)
+ * Uses heuristics to identify images likely containing text
+ */
+function detectImagesOfText($: CheerioAPI): WCAGDataCollection['imagesOfText'] {
+  const suspiciousImages: WCAGDataCollection['imagesOfText']['suspiciousImages'] = [];
+  
+  $('img').each((i, el) => {
+    if (suspiciousImages.length >= 50) return false; // Limit
+    
+    const $img = $(el);
+    const src = $img.attr('src') || '';
+    const alt = $img.attr('alt') || '';
+    const className = $img.attr('class') || '';
+    
+    let reason: 'filename-suggests-text' | 'alt-contains-long-text' | 'common-pattern' | null = null;
+    
+    // Check 1: Filename suggests text content
+    const textFilenamePatterns = [
+      /logo/i, /banner/i, /heading/i, /title/i, /text/i,
+      /quote/i, /testimonial/i, /screenshot/i, /badge/i
+    ];
+    
+    if (textFilenamePatterns.some(pattern => pattern.test(src))) {
+      reason = 'filename-suggests-text';
+    }
+    
+    // Check 2: Alt text is unusually long (might be describing text in image)
+    if (!reason && alt.length > 100) {
+      reason = 'alt-contains-long-text';
+    }
+    
+    // Check 3: Common patterns (buttons, calls to action)
+    const commonPatterns = [
+      /btn/i, /button/i, /cta/i, /call-to-action/i,
+      /promo/i, /promotion/i, /offer/i, /deal/i
+    ];
+    
+    if (!reason && (commonPatterns.some(p => p.test(className)) || commonPatterns.some(p => p.test(src)))) {
+      reason = 'common-pattern';
+    }
+    
+    if (reason) {
+      const id = $img.attr('id');
+      const selector = id ? `img#${id}` : `img[src*="${src.substring(src.lastIndexOf('/') + 1, src.lastIndexOf('/') + 20)}"]`;
+      
+      suspiciousImages.push({
+        src: src.substring(0, 200),
+        alt: alt.substring(0, 200),
+        reason,
+        selector: selector.substring(0, 100)
+      });
+    }
+  });
+  
+  return {
+    suspiciousImages
+  };
+}
+
+/**
+ * Extract navigation elements for consistency checking (WCAG 3.2.3 - Level AA)
+ * Captures navigation structure per-page for cross-page comparison
+ */
+function extractNavigationElements($: CheerioAPI, baseUrl: string): NonNullable<WCAGDataCollection['navigationElements']> {
+  const mainNav: Array<{ text: string; href: string; position: number }> = [];
+  const headerNav: Array<{ text: string; href: string; position: number }> = [];
+  const footerNav: Array<{ text: string; href: string; position: number }> = [];
+  
+  // Extract main navigation (role="navigation" or <nav>)
+  $('nav, [role="navigation"]').first().find('a').each((i, el) => {
+    if (mainNav.length >= 20) return false;
+    const text = $(el).text().trim();
+    const href = $(el).attr('href') || '';
+    if (text && href) {
+      mainNav.push({ text, href, position: i });
+    }
+  });
+  
+  // Extract header navigation
+  $('header nav a, header [role="navigation"] a').each((i, el) => {
+    if (headerNav.length >= 20) return false;
+    const text = $(el).text().trim();
+    const href = $(el).attr('href') || '';
+    if (text && href) {
+      headerNav.push({ text, href, position: i });
+    }
+  });
+  
+  // Extract footer navigation
+  $('footer nav a, footer [role="navigation"] a').each((i, el) => {
+    if (footerNav.length >= 20) return false;
+    const text = $(el).text().trim();
+    const href = $(el).attr('href') || '';
+    if (text && href) {
+      footerNav.push({ text, href, position: i });
+    }
+  });
+  
+  // Create a hash of the navigation structure for quick comparison
+  const navStructure = JSON.stringify({
+    main: mainNav.map((n: any) => ({ text: n.text, href: n.href })),
+    header: headerNav.map((n: any) => ({ text: n.text, href: n.href })),
+    footer: footerNav.map((n: any) => ({ text: n.text, href: n.href }))
+  });
+  
+  return {
+    mainNav,
+    headerNav,
+    footerNav,
+    navStructure
+  };
+}
+
+/**
+ * Extract component identification for consistency checking (WCAG 3.2.4 - Level AA)
+ * Captures interactive components per-page for cross-page comparison
+ */
+function extractComponentIdentification($: CheerioAPI, baseUrl: string): NonNullable<WCAGDataCollection['componentIdentification']> {
+  const buttons: Array<{ text: string; ariaLabel?: string; type: string; selector: string }> = [];
+  const links: Array<{ text: string; ariaLabel?: string; href: string; selector: string }> = [];
+  const icons: Array<{ ariaLabel?: string; title?: string; class: string; selector: string }> = [];
+  
+  // Extract buttons
+  $('button, [role="button"], input[type="button"], input[type="submit"]').each((i, el) => {
+    if (buttons.length >= 30) return false;
+    const $el = $(el);
+    const text = $el.text().trim() || $el.attr('value') || '';
+    const ariaLabel = $el.attr('aria-label');
+    const type = $el.attr('type') || 'button';
+    const id = $el.attr('id');
+    const className = $el.attr('class') || '';
+    
+    if (text || ariaLabel) {
+      buttons.push({
+        text,
+        ariaLabel,
+        type,
+        selector: id ? `#${id}` : `button.${className.split(' ')[0]}`
+      });
+    }
+  });
+  
+  // Extract common links (skip nav links already captured)
+  $('a').each((i, el) => {
+    if (links.length >= 30) return false;
+    const $el = $(el);
+    const text = $el.text().trim();
+    const href = $el.attr('href') || '';
+    const ariaLabel = $el.attr('aria-label');
+    const className = $el.attr('class') || '';
+    
+    // Focus on CTAs and important links (with classes suggesting importance)
+    const isImportant = className.includes('btn') || 
+                       className.includes('cta') ||
+                       className.includes('action') ||
+                       $el.closest('nav').length === 0; // Not in nav
+    
+    if (isImportant && (text || ariaLabel) && href) {
+      const id = $el.attr('id');
+      links.push({
+        text,
+        ariaLabel,
+        href,
+        selector: id ? `a#${id}` : `a.${className.split(' ')[0]}`
+      });
+    }
+  });
+  
+  // Extract icons (elements with icon classes or aria-hidden images)
+  $('[class*="icon"], [class*="fa-"], i, svg[aria-hidden="true"]').each((i, el) => {
+    if (icons.length >= 30) return false;
+    const $el = $(el);
+    const ariaLabel = $el.attr('aria-label') || $el.closest('[aria-label]').attr('aria-label');
+    const title = $el.attr('title');
+    const className = $el.attr('class') || '';
+    const id = $el.attr('id');
+    
+    if (ariaLabel || title) {
+      icons.push({
+        ariaLabel,
+        title,
+        class: className,
+        selector: id ? `#${id}` : `.${className.split(' ')[0]}`
+      });
+    }
+  });
+  
+  return {
+    buttons,
+    links,
+    icons
   };
 }

@@ -11,7 +11,7 @@ import { iterateParts } from "../readers/atlsReader.js";
 
 interface ExportOptions {
   atlsPath: string;
-  report: "pages" | "edges" | "assets" | "errors";
+  report: "pages" | "edges" | "assets" | "errors" | "accessibility";
   outPath?: string;
 }
 
@@ -31,13 +31,21 @@ const FIELD_MAPS = {
     "enhancedSEO.indexability.isNoIndex", "enhancedSEO.content.titleLength.pixels",
     "enhancedSEO.international.hreflangCount",
     // Performance scores
-    "performance.scores.performance", "performance.scores.accessibility"
+    "performance.scores.performance", "performance.scores.accessibility",
+    // Response metadata (Atlas v1.0 Enhancement - Phase 5)
+    "response_headers.server", "response_headers.cache_control", "response_headers.content_encoding",
+    "cdn_indicators.detected", "cdn_indicators.provider", "cdn_indicators.confidence",
+    "compression_details.algorithm", "compression_details.compressed_size"
   ],
   edges: [
     "sourceUrl", "targetUrl", "isExternal", "anchorText", "rel",
     "nofollow", "location", "selectorHint", "discoveredInMode",
     // Link attributes
-    "sponsored", "ugc"
+    "sponsored", "ugc",
+    // Link context (Atlas v1.0 Enhancement - Phase 4)
+    "link_type", "target_attr", "title_attr", "download_attr",
+    "hreflang", "type_attr", "aria_label", "role",
+    "is_primary_nav", "is_breadcrumb", "is_skip_link", "is_pagination"
   ],
   assets: [
     "pageUrl", "src", "type", "alt", "hasAlt",
@@ -47,6 +55,53 @@ const FIELD_MAPS = {
   errors: [
     "url", "origin", "hostname", "phase", "code",
     "message", "occurredAt"
+  ],
+  accessibility: [
+    "pageUrl",
+    // Audit versioning (Atlas v1.0 Enhancement - Phase 3)
+    "audit_engine.name", "audit_engine.version", "wcag_version", "audit_profile", "audited_at",
+    // Basic metrics
+    "missingAltCount", "lang",
+    // Heading order
+    "headingOrder",
+    // Landmarks
+    "landmarks.header", "landmarks.nav", "landmarks.main", "landmarks.aside", "landmarks.footer",
+    // Form controls
+    "formControls.totalInputs", "formControls.missingLabel",
+    // WCAG Data - Images
+    "wcagData.images.total", "wcagData.images.withAlt", "wcagData.images.withoutAlt",
+    // WCAG Data - Tables
+    "wcagData.tables.total", "wcagData.tables.withHeaders", "wcagData.tables.withCaption",
+    // WCAG Data - Keyboard accessibility
+    "wcagData.keyboardAccessibility.focusableElements",
+    "wcagData.keyboardAccessibility.customTabindexPositive",
+    // WCAG Data - Bypass mechanisms
+    "wcagData.bypassMechanisms.hasAriaLandmarks", "wcagData.bypassMechanisms.headingCount",
+    // WCAG Data - Multimedia
+    "wcagData.multimedia.videos", "wcagData.multimedia.audios",
+    // WCAG Data - Responsive design
+    "wcagData.responsiveDesign.hasViewportMeta", "wcagData.responsiveDesign.hasMediaQueries",
+    // WCAG Data - Viewport restrictions
+    "wcagData.viewportRestrictions.hasUserScalableNo", "wcagData.viewportRestrictions.hasMaximumScale",
+    // WCAG Enhancements - Multiple Ways
+    "wcagData.multipleWays.hasSiteMap", "wcagData.multipleWays.hasSearchFunction", 
+    "wcagData.multipleWays.hasBreadcrumbs", "wcagData.multipleWays.searchForms",
+    // WCAG Enhancements - Sensory Characteristics
+    "wcagData.sensoryCharacteristics.sensoryReferences",
+    // WCAG Enhancements - Images of Text
+    "wcagData.imagesOfText.suspiciousImages",
+    // WCAG Enhancements - Navigation Elements
+    "wcagData.navigationElements.mainNav", "wcagData.navigationElements.headerNav", 
+    "wcagData.navigationElements.footerNav",
+    // WCAG Enhancements - Component Identification
+    "wcagData.componentIdentification.buttons", "wcagData.componentIdentification.links",
+    "wcagData.componentIdentification.icons",
+    // WCAG Enhancements - Pointer Cancellation
+    "wcagData.pointerCancellation.elementsWithMousedown", 
+    "wcagData.pointerCancellation.elementsWithTouchstart",
+    // WCAG Enhancements - Focus Context Change
+    "wcagData.onFocusContextChange.elementsWithOnfocus",
+    "wcagData.onFocusContextChange.suspiciousElements"
   ]
 };
 

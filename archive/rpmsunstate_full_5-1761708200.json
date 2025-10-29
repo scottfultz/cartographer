@@ -1,0 +1,19 @@
+{
+  "crawlId": "crawl_1761708201781_4788",
+  "outFile": "/Users/scottfultz/Projects/Cartographer/archive/rpmsunstate_full_5-1761708200.atls.staging/crawl_1761708201781_4788/manifest.json",
+  "summary": {
+    "pages": 5,
+    "edges": 394,
+    "assets": 125,
+    "errors": 0,
+    "durationMs": 19000
+  },
+  "perf": {
+    "avgPagesPerSec": 0.27,
+    "peakRssMB": 696
+  },
+  "notes": [
+    "Checkpoint interval: 500 pages",
+    "Graceful shutdown: false"
+  ]
+}

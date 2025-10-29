@@ -16,11 +16,15 @@ export type {
   RenderMode,
   NavEndReason,
   EdgeLocation,
+  LinkType,
   ParamPolicy,
   PageRecord,
   EdgeRecord,
   AssetRecord,
   ErrorRecord,
+  EventRecord, // Phase 7: Event log
+  EventType, // Phase 7: Event log
+  EventSeverity, // Phase 7: Event log
   ConsoleRecord,
   ComputedTextNodeRecord,
   EngineConfig,

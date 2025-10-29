@@ -27,7 +27,18 @@ export const crawlCommand: CommandModule = {
   builder: (y) => y
     .option("seeds", { type: "array", demandOption: true })
     .option("out", { type: "string", describe: "Output .atls path (default: auto-generated in ./export/)" })
-    .option("mode", { type: "string", choices: ["raw","prerender","full"], default: "prerender" })
+    .option("profile", { 
+      type: "string", 
+      choices: ["core", "full"], 
+      describe: "Crawl profile: 'core' (SEO only, faster) or 'full' (SEO + accessibility + replay, comprehensive)"
+    })
+    .option("mode", { type: "string", choices: ["raw","prerender","full"], default: "full", describe: "Render mode (deprecated: use --profile instead)" })
+    .option("replayTier", { 
+      type: "string", 
+      choices: ["html", "html+css", "full"], 
+      default: "html+css",
+      describe: "Replay capture tier: 'html' (bodies only), 'html+css' (+ stylesheets/fonts), 'full' (+ scripts/images)"
+    })
     .option("rps", { type: "number", default: 3 })
     .option("concurrency", { type: "number", default: 8 })
     .option("respectRobots", { type: "boolean", default: true })
@@ -36,7 +47,7 @@ export const crawlCommand: CommandModule = {
     .option("allowUrls", { type: "array", describe: "URL patterns to allow (glob or regex). Only matching URLs will be crawled." })
     .option("denyUrls", { type: "array", describe: "URL patterns to deny (glob or regex). Matching URLs will be skipped." })
   .option("maxPages", { type: "number", default: 0 })
-  .option("maxDepth", { type: "number", default: 1, describe: "Maximum crawl depth (1 = seeds + 1 hop, -1 = unlimited, 0 = seeds only). Default: 1 for safety." })
+  .option("maxDepth", { type: "number", default: -1, describe: "Maximum crawl depth (-1 = unlimited, 0 = seeds only, 1 = seeds + 1 hop). Default: -1 (unlimited)." })
   .option("maxBytesPerPage", { type: "number", default: 50000000, describe: "Maximum bytes to load per page (default: 50MB)" })
     .option("resume", { type: "string", describe: "Resume from staging directory" })
     .option("checkpointInterval", { type: "number", default: 500, describe: "Write checkpoint every N pages" })
@@ -57,12 +68,18 @@ export const crawlCommand: CommandModule = {
     .option("verbose", { type: "boolean", default: false, describe: "Enable verbose output with detailed extraction data" })
     .option("minimal", { type: "boolean", default: false, describe: "Minimal output: only errors and final summary" })
     .option("noColor", { type: "boolean", default: false, describe: "Disable colored output" })
-    .option("chime", { type: "boolean", default: false, describe: "Play a sound when crawl completes" }),
+    .option("chime", { type: "boolean", default: false, describe: "Play a sound when crawl completes" })
+    .option("stripCookies", { type: "boolean", default: true, describe: "Strip cookies from requests for privacy (default: true)" })
+    .option("stripAuthHeaders", { type: "boolean", default: true, describe: "Strip Authorization headers for security (default: true)" })
+    .option("redactInputs", { type: "boolean", default: true, describe: "Redact input field values in DOM snapshots (default: true)" })
+    .option("redactForms", { type: "boolean", default: true, describe: "Redact form data (default: true)" }),
   handler: async (argv) => {
     const schema = z.object({
       seeds: z.array(z.string().url()).min(1),
       out: z.string().optional(),
+      profile: z.enum(["core", "full"]).optional(),
       mode: z.enum(["raw","prerender","full"]),
+      replayTier: z.enum(["html", "html+css", "full"]),
       rps: z.number().positive(),
       concurrency: z.number().positive(),
       respectRobots: z.boolean(),
@@ -90,9 +107,36 @@ export const crawlCommand: CommandModule = {
       verbose: z.boolean(),
       minimal: z.boolean(),
       noColor: z.boolean(),
-      chime: z.boolean()
+      chime: z.boolean(),
+      stripCookies: z.boolean(),
+      stripAuthHeaders: z.boolean(),
+      redactInputs: z.boolean(),
+      redactForms: z.boolean()
     });
     const cfg = schema.parse(argv);
+    
+    // Apply profile presets if --profile specified
+    if (cfg.profile) {
+      if (cfg.profile === 'core') {
+        // Core profile: prerender mode, minimal datasets, faster
+        cfg.mode = 'prerender';
+        cfg.noScreenshots = true;
+        cfg.noFavicons = true;
+        cfg.replayTier = 'html'; // Minimal replay capability
+        if (!argv.quiet) {
+          console.log('[Cartographer] Using CORE profile: prerender mode, SEO-only (faster, smaller archives)');
+        }
+      } else if (cfg.profile === 'full') {
+        // Full profile: full mode, all datasets, comprehensive
+        cfg.mode = 'full';
+        cfg.noScreenshots = false;
+        cfg.noFavicons = false;
+        cfg.replayTier = 'full'; // Full replay with JS and images
+        if (!argv.quiet) {
+          console.log('[Cartographer] Using FULL profile: full mode, SEO + accessibility + full replay (comprehensive)');
+        }
+      }
+    }
 
     // Resolve output path (auto-generate if not provided)
     const outAtls = await resolveOutputPath(cfg.out, {
@@ -149,6 +193,9 @@ export const crawlCommand: CommandModule = {
           ? argv.maxBytesPerPage
           : (typeof DEFAULT_CONFIG.render?.maxBytesPerPage === 'number' ? DEFAULT_CONFIG.render.maxBytesPerPage : 50_000_000)
       },
+      replay: {
+        tier: cfg.replayTier
+      },
       http: { rps: cfg.rps, userAgent },
       discovery: { 
         followExternal: false, 
@@ -158,6 +205,12 @@ export const crawlCommand: CommandModule = {
         denyUrls: cfg.denyUrls
       },
       robots: { respect: cfg.respectRobots, overrideUsed: cfg.overrideRobots },
+      privacy: {
+        stripCookies: cfg.stripCookies,
+        stripAuthHeaders: cfg.stripAuthHeaders,
+        redactInputValues: cfg.redactInputs,
+        redactForms: cfg.redactForms
+      },
       maxPages: cfg.maxPages,
       maxDepth: cfg.maxDepth,
       checkpoint: { interval: cfg.checkpointInterval, enabled: true },
@@ -312,7 +365,28 @@ export const crawlCommand: CommandModule = {
       outStd(`[CLI] Starting crawl...`);
       await cart.start(crawlConfig); // returns immediately
       outStd(`[CLI] Cartographer started. Waiting for crawl completion...`);
+      
+      // Show spinner in quiet mode
+      let spinnerInterval: NodeJS.Timeout | null = null;
+      if (quiet && !asJson && process.stderr.isTTY) {
+        const spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        let frameIndex = 0;
+        process.stderr.write('\n');
+        spinnerInterval = setInterval(() => {
+          const frame = spinnerFrames[frameIndex];
+          process.stderr.write(`\r${frame} Crawl in progress...`);
+          frameIndex = (frameIndex + 1) % spinnerFrames.length;
+        }, 80);
+      }
+      
       await crawlFinishedPromise;
+      
+      // Clear spinner
+      if (spinnerInterval) {
+        clearInterval(spinnerInterval);
+        process.stderr.write('\r\x1b[K'); // Clear line
+      }
+      
       outStd(`[CLI] Crawl completed. Exiting.`);
     } catch (error: any) {
       outErr(`[CLI] Crawl failed to start or run: ${error?.message || error}`);

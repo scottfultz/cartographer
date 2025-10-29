@@ -21,14 +21,20 @@
  * The actual field completeness fix is verified to work in production.
  */
 
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, beforeEach } from "vitest";
 import { promises as fs } from "node:fs";
 import { openAtlas } from "@atlas/sdk";
 import { Cartographer } from "../../src/engine/cartographer.js";
 import { buildConfig } from "../../src/core/config.js";
 import { baseTestConfig } from "../helpers/testConfig.js";
+import bus from "../../src/core/events.js";
 
 const testArchive = "./tmp/field-completeness-test.atls";
+
+beforeEach(async () => {
+  await fs.rm(testArchive, { force: true }).catch(() => {});
+  await fs.rm(`${testArchive}.staging`, { recursive: true, force: true }).catch(() => {});
+});
 
 afterAll(async () => {
   // Clean up test archive
@@ -67,9 +73,22 @@ describeOrSkip("Archive Field Completeness Integration Test", { timeout: 60000 }
       http: { rps: 2, userAgent: "CartographerTest/1.0" },
     });
 
-    // Run crawl
+    // Run crawl and wait for completion
     const cart = new Cartographer();
+    const crawlFinished = new Promise<void>((resolve, reject) => {
+      const offFinished = bus.once("crawl.finished", () => {
+        offError();
+        resolve();
+      });
+      const offError = bus.once("error.occurred", (event) => {
+        offFinished();
+        reject(new Error(event.error?.message || "Crawl failed"));
+      });
+    });
+
     await cart.start(config);
+    await crawlFinished;
+    await cart.close();
 
     // Open archive and check fields
     const atlas = await openAtlas(testArchive);

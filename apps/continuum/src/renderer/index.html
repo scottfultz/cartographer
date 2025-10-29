@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Continuum - SEO Analysis</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Continuum</h1>
+        <p class="tagline">SEO Analysis for Atlas Archives</p>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Welcome Screen -->
+      <div id="welcomeScreen" class="welcome-screen">
+        <div class="welcome-content">
+          <div class="welcome-logo">
+            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="3" opacity="0.2"/>
+              <circle cx="40" cy="40" r="28" stroke="currentColor" stroke-width="3" opacity="0.4"/>
+              <circle cx="40" cy="40" r="20" stroke="currentColor" stroke-width="3" opacity="0.6"/>
+              <circle cx="40" cy="40" r="12" stroke="currentColor" stroke-width="3" opacity="0.8"/>
+              <circle cx="40" cy="40" r="6" fill="currentColor"/>
+            </svg>
+          </div>
+          <h2>Welcome to Continuum</h2>
+          <p class="welcome-subtitle">Comprehensive SEO Analysis for Atlas Archives</p>
+          <div class="welcome-features">
+            <div class="feature-item">
+              <span class="feature-icon">📊</span>
+              <span>Deep crawl analysis</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🔍</span>
+              <span>SEO issue detection</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">♿</span>
+              <span>Accessibility audits</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">📱</span>
+              <span>Social tag validation</span>
+            </div>
+          </div>
+          <button id="importBtn" class="btn btn-primary btn-large">
+            <span class="btn-icon">📁</span>
+            Import Atlas Archive
+          </button>
+          <p class="welcome-hint">Select a .atls file to begin</p>
+        </div>
+      </div>
+
+      <!-- Data View -->
+      <div id="dataView" class="data-view hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+          <div class="archive-info">
+            <h3>Archive Info</h3>
+            <div id="archiveMetadata" class="metadata">
+              <!-- Populated by renderer.js -->
+            </div>
+          </div>
+
+          <div class="stats-panel">
+            <h3>Statistics</h3>
+            <div id="statsContainer" class="stats">
+              <div class="stat-item">
+                <span class="stat-label">Pages:</span>
+                <span class="stat-value" id="statPages">-</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Links:</span>
+                <span class="stat-value" id="statEdges">-</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Assets:</span>
+                <span class="stat-value" id="statAssets">-</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Errors:</span>
+                <span class="stat-value" id="statErrors">-</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">A11y:</span>
+                <span class="stat-value" id="statA11y">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="issue-summary" id="issueSummary">
+            <h3>Issues Found</h3>
+            <div id="issueStats" class="issue-stats">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <button id="importAnotherBtn" class="btn btn-secondary">
+            Import Another
+          </button>
+        </aside>
+
+        <!-- Content Area -->
+        <div class="content-area">
+          <!-- Tab Navigation -->
+          <div class="tab-nav">
+            <button class="tab-btn active" data-tab="pages">📄 Pages</button>
+            <button class="tab-btn" data-tab="issues">⚠️ Issues</button>
+            <button class="tab-btn" data-tab="redirects">🔄 Redirects</button>
+            <button class="tab-btn" data-tab="social">📱 Social Tags</button>
+            <button class="tab-btn" data-tab="accessibility">♿ Accessibility</button>
+            <button class="tab-btn" data-tab="errors">❌ Errors</button>
+          </div>
+
+          <!-- Pages Tab -->
+          <div id="pagesTab" class="tab-content active">
+            <!-- Toolbar -->
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <input 
+                  type="search" 
+                  id="searchInput" 
+                  placeholder="Search pages..." 
+                  class="search-input"
+                />
+              </div>
+              <div class="toolbar-right">
+                <span class="page-count" id="pageCount">0 pages</span>
+              </div>
+            </div>
+
+            <!-- Pages Table -->
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th class="col-status">Status</th>
+                    <th class="col-url">URL</th>
+                    <th class="col-title">Title</th>
+                    <th class="col-h1">H1</th>
+                    <th class="col-flags">Flags</th>
+                  </tr>
+                </thead>
+                <tbody id="pagesTableBody">
+                  <!-- Populated by renderer.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+              <button id="prevPageBtn" class="btn btn-small" disabled>Previous</button>
+              <span id="pageInfo" class="page-info">Page 1</span>
+              <button id="nextPageBtn" class="btn btn-small">Next</button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state hidden">
+              <div class="spinner"></div>
+              <p>Loading pages...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state hidden">
+              <p>No pages found</p>
+            </div>
+          </div>
+
+          <!-- Issues Tab -->
+          <div id="issuesTab" class="tab-content">
+            <div class="issues-grid">
+              <div class="issue-card" id="noindexCard">
+                <h3>🚫 Noindex Pages</h3>
+                <div class="issue-count" id="noindexCount">-</div>
+                <div class="issue-list" id="noindexList"></div>
+              </div>
+              <div class="issue-card" id="missingH1Card">
+                <h3>📑 Missing H1</h3>
+                <div class="issue-count" id="missingH1Count">-</div>
+                <div class="issue-list" id="missingH1List"></div>
+              </div>
+              <div class="issue-card" id="missingCanonicalCard">
+                <h3>🔗 Missing Canonical</h3>
+                <div class="issue-count" id="missingCanonicalCount">-</div>
+                <div class="issue-list" id="missingCanonicalList"></div>
+              </div>
+              <div class="issue-card" id="titleIssuesCard">
+                <h3>📝 Title Issues</h3>
+                <div class="issue-count" id="titleIssuesCount">-</div>
+                <div class="issue-list" id="titleIssuesList"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Redirects Tab -->
+          <div id="redirectsTab" class="tab-content">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Original URL</th>
+                    <th>Final URL</th>
+                    <th>Chain Length</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="redirectsTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Social Tags Tab -->
+          <div id="socialTab" class="tab-content">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>URL</th>
+                    <th>OpenGraph</th>
+                    <th>Twitter Card</th>
+                    <th>Issues</th>
+                  </tr>
+                </thead>
+                <tbody id="socialTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Accessibility Tab -->
+          <div id="accessibilityTab" class="tab-content">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>URL</th>
+                    <th>Missing Alt</th>
+                    <th>Total Issues</th>
+                    <th>Issue Details</th>
+                  </tr>
+                </thead>
+                <tbody id="accessibilityTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Errors Tab -->
+          <div id="errorsTab" class="tab-content">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>URL</th>
+                    <th>Error Type</th>
+                    <th>Message</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="errorsTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Page Details Modal -->
+    <div id="pageModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Page Details</h2>
+          <button id="closeModalBtn" class="btn-close">×</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Populated by renderer.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    console.log('Inline script executing...');
+    console.log('Document ready state:', document.readyState);
+  </script>
+  <script src="../../dist/renderer/renderer.js" onerror="console.error('Failed to load renderer.js')"></script>
+  <script>
+    console.log('After renderer.js load attempt');
+  </script>
+</body>
+</html>

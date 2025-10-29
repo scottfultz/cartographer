@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://caifrazier.com/schemas/atlas/v1/events.schema.json",
+  "title": "Event Record Schema",
+  "description": "Operational event log for debugging, monitoring, and performance analysis (Atlas v1.0 Phase 7)",
+  "type": "object",
+  "required": ["event_id", "crawl_id", "occurred_at", "event_type", "severity", "message"],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "UUID v7 for event tracking",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "crawl_id": {
+      "type": "string",
+      "description": "Crawl identifier (8-character hex)",
+      "pattern": "^[0-9a-f]{8,32}$"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "crawl.started",
+        "crawl.paused",
+        "crawl.resumed",
+        "crawl.completed",
+        "crawl.aborted",
+        "render.success",
+        "render.failure",
+        "render.timeout",
+        "render.challenge_detected",
+        "render.challenge_resolved",
+        "rate_limit.hit",
+        "rate_limit.backoff",
+        "rate_limit.resumed",
+        "backpressure.applied",
+        "backpressure.released",
+        "resource.limit_exceeded",
+        "resource.memory_pressure_high",
+        "resource.memory_pressure_normal",
+        "resource.browser_context_recycled",
+        "network.error",
+        "network.dns_failed",
+        "network.ssl_error",
+        "network.connection_timeout",
+        "validation.warning",
+        "validation.error",
+        "extraction.failed",
+        "checkpoint.saved",
+        "checkpoint.loaded",
+        "checkpoint.failed",
+        "observability.heartbeat",
+        "observability.metrics_snapshot"
+      ],
+      "description": "Event category"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warn", "error", "critical"],
+      "description": "Event severity level for filtering and alerting"
+    },
+    "url": {
+      "type": "string",
+      "description": "Associated URL (if applicable)"
+    },
+    "hostname": {
+      "type": "string",
+      "description": "Hostname for grouping"
+    },
+    "page_id": {
+      "type": "string",
+      "description": "Page UUID v7 (if applicable)",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable description"
+    },
+    "details": {
+      "type": "object",
+      "description": "Structured event data",
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Performance metrics (when applicable)",
+      "properties": {
+        "duration_ms": {
+          "type": "number",
+          "description": "Operation duration in milliseconds",
+          "minimum": 0
+        },
+        "memory_rss_mb": {
+          "type": "number",
+          "description": "RSS memory at event time (MB)",
+          "minimum": 0
+        },
+        "queue_depth": {
+          "type": "integer",
+          "description": "Queue size at event time",
+          "minimum": 0
+        },
+        "concurrent_requests": {
+          "type": "integer",
+          "description": "Active requests",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "rate_limit": {
+      "type": "object",
+      "description": "Rate limiting context (for throttle events)",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "Affected host"
+        },
+        "status_code": {
+          "type": "integer",
+          "description": "HTTP status (429, 503)",
+          "enum": [429, 503]
+        },
+        "retry_after": {
+          "type": "number",
+          "description": "Retry-After header (seconds)",
+          "minimum": 0
+        },
+        "backoff_ms": {
+          "type": "number",
+          "description": "Applied backoff duration (milliseconds)",
+          "minimum": 0
+        },
+        "attempts": {
+          "type": "integer",
+          "description": "Retry attempt number",
+          "minimum": 1
+        }
+      },
+      "required": ["host"],
+      "additionalProperties": false
+    },
+    "challenge": {
+      "type": "object",
+      "description": "Challenge detection (for bot/captcha challenges)",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "Cloudflare, Akamai, etc."
+        },
+        "detection_confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "Confidence level in challenge detection"
+        },
+        "resolution_attempted": {
+          "type": "boolean",
+          "description": "Whether we tried to resolve"
+        },
+        "resolution_success": {
+          "type": "boolean",
+          "description": "Resolution outcome"
+        },
+        "wait_duration_ms": {
+          "type": "number",
+          "description": "How long we waited (milliseconds)",
+          "minimum": 0
+        }
+      },
+      "required": ["detection_confidence", "resolution_attempted"],
+      "additionalProperties": false
+    },
+    "resource_usage": {
+      "type": "object",
+      "description": "Resource consumption (for memory/cpu alerts)",
+      "properties": {
+        "cpu_percent": {
+          "type": "number",
+          "description": "CPU usage percentage",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "memory_heap_mb": {
+          "type": "number",
+          "description": "Heap memory (MB)",
+          "minimum": 0
+        },
+        "memory_external_mb": {
+          "type": "number",
+          "description": "External memory (MB)",
+          "minimum": 0
+        },
+        "gc_duration_ms": {
+          "type": "number",
+          "description": "Garbage collection time (milliseconds)",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

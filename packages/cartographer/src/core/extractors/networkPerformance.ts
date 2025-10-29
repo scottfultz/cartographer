@@ -4,6 +4,7 @@
  * Proprietary and confidential.
  */
 
+import { createHash } from "node:crypto";
 import type { Page, Response } from "playwright";
 
 /**
@@ -18,6 +19,7 @@ export interface NetworkResourceData {
   mimeType?: string;
   fromCache: boolean;
   duration?: number; // In ms
+  hashSha256?: string;
 }
 
 /**
@@ -142,14 +144,17 @@ export function createNetworkPerformanceCollector(page: Page) {
       
       // Get size (approximate if body not available)
       let size = 0;
+      let hashSha256: string | undefined;
       try {
         const body = await response.body();
         size = body.length;
+        hashSha256 = createHash("sha256").update(body).digest("hex");
       } catch (e) {
         // Body not available, estimate from content-length header
         const contentLength = headers["content-length"];
         if (contentLength) {
-          size = parseInt(contentLength, 10);
+          const parsed = parseInt(contentLength, 10);
+          if (!Number.isNaN(parsed)) size = parsed;
         }
       }
       
@@ -173,6 +178,7 @@ export function createNetworkPerformanceCollector(page: Page) {
         mimeType,
         fromCache,
         duration,
+        hashSha256,
       });
     } catch (error) {
       // Silently ignore errors in response handler

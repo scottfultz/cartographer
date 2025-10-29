@@ -1,0 +1,162 @@
+{
+  "repoRoot": "/Users/scottfultz/Projects/Cartographer",
+  "engineSchemas": {
+    "pages": {
+      "path": "/Users/scottfultz/Projects/Cartographer/packages/cartographer/src/io/atlas/schemas/pages.schema.json",
+      "$id": "https://spec.continuum.local/atlas/pages.schema.json#1",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "propertyCount": 68
+    }
+  },
+  "specSchemas": {
+    "pagesV1": {
+      "path": "/Users/scottfultz/Projects/Cartographer/packages/atlas-spec/dist/schemas/pages.v1.schema.json",
+      "$ref": "#/definitions/pages.v1",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "propertyCount": 17
+    }
+  },
+  "propertyDiff_pages_vs_pagesV1": {
+    "onlyA": [
+      "finalUrl",
+      "normalizedUrl",
+      "urlKey",
+      "origin",
+      "pathname",
+      "statusCode",
+      "fetchedAt",
+      "rawHtmlHash",
+      "domHash",
+      "contentHash",
+      "previous_page_id",
+      "content_changed",
+      "dom_changed",
+      "timing",
+      "title",
+      "metaDescription",
+      "section",
+      "contentType",
+      "redirectChain",
+      "canonicalHref",
+      "canonicalResolved",
+      "noindexSurface",
+      "fetchMs",
+      "internalLinksCount",
+      "externalLinksCount",
+      "mediaAssetsCount",
+      "mediaAssetsTruncated",
+      "hreflangLinks",
+      "discoveredFrom",
+      "basicFlags",
+      "h1",
+      "headings",
+      "canonical",
+      "robotsMeta",
+      "robotsHeader",
+      "textSample",
+      "renderMode",
+      "renderMs",
+      "wait_condition",
+      "timings",
+      "navEndReason",
+      "discoveredInMode",
+      "error",
+      "faviconUrl",
+      "techStack",
+      "technologies",
+      "openGraph",
+      "twitterCard",
+      "structuredData",
+      "viewportMeta",
+      "enhancedSEO",
+      "seo",
+      "performance",
+      "network",
+      "resourceCounts",
+      "compression",
+      "encoding",
+      "subresourceIntegrity",
+      "media",
+      "response_headers",
+      "cdn_indicators",
+      "compression_details",
+      "screenshotFile",
+      "viewportFile",
+      "challengePageCaptured"
+    ],
+    "onlyB": [
+      "normalized_url",
+      "final_url",
+      "http_status",
+      "response_time_ms",
+      "size_bytes",
+      "content_type",
+      "hash_body_sha256",
+      "body_blob_ref",
+      "group_key",
+      "discovery_source",
+      "discovered_from",
+      "robots_decision",
+      "noindex_hint",
+      "timestamp_captured"
+    ],
+    "commonCount": 3
+  },
+  "archive": {
+    "path": "/Users/scottfultz/Projects/Cartographer/archive/rpmsunstate_full_5-1761708200.atls",
+    "manifestSchemas": {
+      "pages": "schemas/pages.schema.json#1",
+      "edges": "schemas/edges.schema.json#1",
+      "assets": "schemas/assets.schema.json#1",
+      "errors": "schemas/errors.schema.json#1",
+      "events": "schemas/events.schema.json#1",
+      "accessibility": "schemas/accessibility.schema.json#1",
+      "dom_snapshots": "schemas/dom_snapshots.schema.json#1",
+      "console": "schemas/console.schema.json#1",
+      "styles": "schemas/styles.schema.json#1"
+    },
+    "partsIndex": [
+      {
+        "name": "pages",
+        "schemaRef": "schemas/pages.schema.json#1"
+      },
+      {
+        "name": "edges",
+        "schemaRef": "schemas/edges.schema.json#1"
+      },
+      {
+        "name": "assets",
+        "schemaRef": "schemas/assets.schema.json#1"
+      },
+      {
+        "name": "errors",
+        "schemaRef": "schemas/errors.schema.json#1"
+      },
+      {
+        "name": "events",
+        "schemaRef": "schemas/events.schema.json#1"
+      },
+      {
+        "name": "accessibility",
+        "schemaRef": "schemas/accessibility.schema.json#1"
+      },
+      {
+        "name": "dom_snapshots",
+        "schemaRef": "schemas/dom_snapshots.schema.json#1"
+      },
+      {
+        "name": "console",
+        "schemaRef": "schemas/console.schema.json#1"
+      },
+      {
+        "name": "styles",
+        "schemaRef": "schemas/styles.schema.json#1"
+      }
+    ],
+    "embeddedPagesSchema": {
+      "$id": "https://spec.continuum.local/atlas/pages.schema.json#1",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "propertyCount": 68
+    }
+  }
+}

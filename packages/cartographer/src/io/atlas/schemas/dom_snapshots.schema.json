@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spec.continuum.local/atlas/dom_snapshots.schema.json#1",
+  "title": "DOMSnapshotRecord",
+  "description": "DOM snapshot for offline accessibility audits - Owner: Cai Frazier",
+  "type": "object",
+  "required": [
+    "page_id",
+    "base_url",
+    "dom_json_zstd",
+    "styles_applied",
+    "scripts_executed",
+    "node_count",
+    "text_nodes",
+    "element_nodes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "page_id": {
+      "type": "string",
+      "description": "UUID v7 - foreign key to pages.v1 page_id"
+    },
+    "base_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Base URL for resolving relative URLs in the DOM"
+    },
+    "dom_json_zstd": {
+      "type": "string",
+      "description": "Zstandard-compressed JSON serialization of DOM (base64 encoded)"
+    },
+    "styles_applied": {
+      "type": "boolean",
+      "description": "Whether CSS styles were applied during render"
+    },
+    "scripts_executed": {
+      "type": "boolean",
+      "description": "Whether JavaScript was executed during render"
+    },
+    "node_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of DOM nodes"
+    },
+    "text_nodes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of text nodes"
+    },
+    "element_nodes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of element nodes"
+    }
+  }
+}

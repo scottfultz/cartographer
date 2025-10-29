@@ -15,6 +15,14 @@
   ],
   "additionalProperties": false,
   "properties": {
+    "source_page_id": { 
+      "type": "string",
+      "description": "UUID of source page (Atlas v1.0 Enhancement)"
+    },
+    "target_page_id": { 
+      "type": "string",
+      "description": "UUID of target page if crawled (Atlas v1.0 Enhancement)"
+    },
     "sourceUrl": { "type": "string" },
     "targetUrl": { "type": "string" },
     "anchorText": { "type": "string" },
@@ -23,15 +31,73 @@
     "isExternal": { "type": "boolean" },
     "location": {
       "type": "string",
-      "enum": ["nav", "header", "footer", "aside", "main", "other", "unknown"]
+      "enum": ["nav", "header", "footer", "aside", "main", "other", "unknown"],
+      "description": "DOM location where link was discovered (Atlas v1.0 enum)"
     },
     "selectorHint": { "type": "string" },
     "discoveredInMode": {
       "type": "string",
-      "enum": ["raw", "prerender", "full"]
+      "enum": ["raw", "prerender", "full"],
+      "description": "Render mode when this edge was discovered (Atlas v1.0 enum)"
     },
     "httpStatusAtTo": { "type": "integer" },
     "sponsored": { "type": ["boolean", "null"] },
-    "ugc": { "type": ["boolean", "null"] }
+    "ugc": { "type": ["boolean", "null"] },
+    "link_type": {
+      "type": "string",
+      "enum": [
+        "navigation", "content", "action", "footer", "breadcrumb",
+        "pagination", "skip", "social", "download", "external",
+        "related", "tag", "author", "other"
+      ],
+      "description": "Semantic link classification (Atlas v1.0 Enhancement - Phase 4)"
+    },
+    "target_attr": {
+      "type": "string",
+      "description": "Link target attribute (_blank, _self, _parent, _top)"
+    },
+    "title_attr": {
+      "type": "string",
+      "description": "Link title attribute (tooltip text)"
+    },
+    "download_attr": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "boolean" }
+      ],
+      "description": "Download attribute (filename or true)"
+    },
+    "hreflang": {
+      "type": "string",
+      "description": "Language code for linked resource"
+    },
+    "type_attr": {
+      "type": "string",
+      "description": "MIME type hint for linked resource"
+    },
+    "aria_label": {
+      "type": "string",
+      "description": "Accessible label (overrides anchor text)"
+    },
+    "role": {
+      "type": "string",
+      "description": "ARIA role attribute"
+    },
+    "is_primary_nav": {
+      "type": "boolean",
+      "description": "Link is in primary navigation"
+    },
+    "is_breadcrumb": {
+      "type": "boolean",
+      "description": "Link is part of breadcrumb trail"
+    },
+    "is_skip_link": {
+      "type": "boolean",
+      "description": "Link is a skip-to-content link"
+    },
+    "is_pagination": {
+      "type": "boolean",
+      "description": "Link is part of pagination controls"
+    }
   }
 }

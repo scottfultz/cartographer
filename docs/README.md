@@ -7,6 +7,8 @@
 
 ---
 
+> Full index: See [TOC.md](TOC.md) for a categorized table of contents across all docs.
+
 ## Getting Started
 
 New to Cartographer? Start here:
@@ -49,6 +51,41 @@ Contributing to Cartographer? Read these:
 ### Known Issues
 
 - **[KNOWN_ISSUES.md](KNOWN_ISSUES.md)** - Current limitations and workarounds
+
+---
+
+## Atlas v1 Specification and Plans
+
+Authoritative spec and implementation planning for the Atlas archive format:
+
+- [ATLAS_V1_SPECIFICATION.md](ATLAS_V1_SPECIFICATION.md) – Complete Atlas v1.0 specification
+- [ATLAS_V1_IMPLEMENTATION_PLAN.md](ATLAS_V1_IMPLEMENTATION_PLAN.md) – 7-phase implementation roadmap
+- [ATLAS_V1_IMPLEMENTATION_STATUS.md](ATLAS_V1_IMPLEMENTATION_STATUS.md) – Current status by capability
+- [ATLAS_CONTRACT_LAYER_STRATEGY.md](ATLAS_CONTRACT_LAYER_STRATEGY.md) – Publishing and semver strategy for spec contracts
+
+### Enhancements and Contract Notes
+
+- [ATLAS_V1_MANIFEST_ENHANCEMENT.md](ATLAS_V1_MANIFEST_ENHANCEMENT.md) – Manifest fields, integrity, and audit hash
+- [ATLAS_V1_RESPONSE_METADATA_ENHANCEMENT.md](ATLAS_V1_RESPONSE_METADATA_ENHANCEMENT.md) – HTTP, headers, and timing
+- [ATLAS_V1_MEDIA_COLLECTION_ENHANCEMENT.md](ATLAS_V1_MEDIA_COLLECTION_ENHANCEMENT.md) – Screenshots, favicons, assets
+- [ATLAS_V1_TIMING_ENHANCEMENTS.md](ATLAS_V1_TIMING_ENHANCEMENTS.md) – Page timing metadata and wait conditions
+- [ATLAS_V1_ENUM_CODIFICATION.md](ATLAS_V1_ENUM_CODIFICATION.md) – Enumerations and codecs
+- [ATLAS_V1_LINK_CONTEXT_ENHANCEMENT.md](ATLAS_V1_LINK_CONTEXT_ENHANCEMENT.md) – Link edges and anchors
+- [ATLAS_V1_ACCESSIBILITY_VERSIONING.md](ATLAS_V1_ACCESSIBILITY_VERSIONING.md) – WCAG dataset versioning
+
+### Validation, Testing, and Reports
+
+- [E2E_TEST_REPORT.md](E2E_TEST_REPORT.md) – End-to-end validation results
+- [PHASE_6_E2E_VALIDATION_REPORT.md](PHASE_6_E2E_VALIDATION_REPORT.md) – Phase 6 E2E validation
+- [PHASE_6_TEST_EXECUTION_SUMMARY.md](PHASE_6_TEST_EXECUTION_SUMMARY.md) – Test execution summary
+- [STRESS_TEST_RESULTS.md](STRESS_TEST_RESULTS.md) – Stress test outcomes
+- [FEATURE_STATUS_MATRIX.md](FEATURE_STATUS_MATRIX.md) – Feature coverage by dataset
+- [PROJECT_CLEANUP_SUMMARY.md](PROJECT_CLEANUP_SUMMARY.md) – Documentation and structure cleanup
+
+### Performance and SEO
+
+- [PERFORMANCE_SEO_IMPLEMENTATION.md](PERFORMANCE_SEO_IMPLEMENTATION.md) – Performance and SEO extraction plan
+
 
 ---
 

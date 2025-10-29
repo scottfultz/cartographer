@@ -1,0 +1,144 @@
+{
+  "target": "https://www.rpmsunstate.com/",
+  "atlas": {
+    "url": "https://rpmsunstate.com/",
+    "statusCode": 200,
+    "title": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+    "metaDescription": null,
+    "canonicalUrl": null,
+    "metaRobots": null,
+    "hreflangLinks": [],
+    "linkCounts": {
+      "total": null
+    },
+    "assetCounts": {
+      "stylesheets": null,
+      "scripts": null,
+      "images": null
+    },
+    "encoding": {
+      "encoding": "UTF-8",
+      "source": "header"
+    },
+    "wait_condition": null,
+    "timings": null
+  },
+  "live": {
+    "url": "https://www.rpmsunstate.com/",
+    "statusCode": 200,
+    "title": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+    "metaDescription": "Expert property management in Jacksonville, Orlando, and Palm Beach. RPM Sunstate offers full-service solutions to protect rentals and grow ROI.",
+    "canonicalUrl": "https://www.rpmsunstate.com/",
+    "metaRobots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+    "hreflangLinks": [],
+    "linkCounts": {
+      "total": 78
+    },
+    "assetCounts": {
+      "stylesheets": 18,
+      "scripts": 23,
+      "images": 21
+    },
+    "headers": {
+      "contentType": "text/html; charset=UTF-8",
+      "server": "cloudflare",
+      "contentLength": null
+    },
+    "htmlBytes": 312673
+  },
+  "diffs": [
+    {
+      "field": "statusCode",
+      "atlas": 200,
+      "live": 200,
+      "equal": true
+    },
+    {
+      "field": "title",
+      "atlas": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+      "live": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+      "equal": true
+    },
+    {
+      "field": "metaDescription",
+      "atlas": null,
+      "live": "Expert property management in Jacksonville, Orlando, and Palm Beach. RPM Sunstate offers full-service solutions to protect rentals and grow ROI.",
+      "equal": false
+    },
+    {
+      "field": "canonicalUrl",
+      "atlas": null,
+      "live": "https://www.rpmsunstate.com/",
+      "equal": false
+    },
+    {
+      "field": "metaRobots",
+      "atlas": null,
+      "live": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+      "equal": false
+    },
+    {
+      "field": "hreflangLinks",
+      "atlas": [],
+      "live": [],
+      "equal": true
+    },
+    {
+      "field": "linkCounts.total",
+      "atlas": null,
+      "live": 78,
+      "equal": false
+    },
+    {
+      "field": "assetCounts.stylesheets",
+      "atlas": null,
+      "live": 18,
+      "equal": false
+    },
+    {
+      "field": "assetCounts.scripts",
+      "atlas": null,
+      "live": 23,
+      "equal": false
+    },
+    {
+      "field": "assetCounts.images",
+      "atlas": null,
+      "live": 21,
+      "equal": false
+    }
+  ],
+  "debug": {
+    "atlasRaw": {
+      "meta": null,
+      "seo": {
+        "sitemap": {
+          "hasSitemap": false,
+          "sitemapUrls": []
+        },
+        "brokenLinksCount": 0,
+        "outboundDomains": [
+          "",
+          "apps.apple.com",
+          "jobs.realpropertymgt.com",
+          "maps.google.com",
+          "play.google.com",
+          "www.facebook.com",
+          "www.instagram.com",
+          "www.linkedin.com",
+          "www.neighborly.com",
+          "www.neighborlybrands.com",
+          "www.realpropertymgt.com"
+        ]
+      },
+      "openGraph": {
+        "ogTitle": "Florida Property Management | Jacksonville, Orlando & Palm Beach",
+        "ogDescription": "Expert property management in Jacksonville, Orlando, and Palm Beach. RPM Sunstate offers full-service solutions to protect rentals and grow ROI.",
+        "ogType": "website",
+        "ogUrl": "https://www.rpmsunstate.com/",
+        "ogSiteName": "Real Property Management Sunstate"
+      },
+      "twitterCard": {}
+    }
+  }
+}
