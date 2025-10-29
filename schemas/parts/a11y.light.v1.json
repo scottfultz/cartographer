@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Accessibility Light Part v1",
+  "type": "object",
+  "required": ["page_id", "url", "missingAlt", "emptyAnchors", "invalidAriaRefs"],
+  "properties": {
+    "page_id": { "type": "string" },
+    "url": { "type": "string" },
+    "missingAlt": { "type": "integer", "minimum": 0 },
+    "emptyAnchors": { "type": "integer", "minimum": 0 },
+    "invalidAriaRefs": { "type": "integer", "minimum": 0 }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Pages Part v1",
+  "type": "object",
+  "required": [
+    "page_id",
+    "url",
+    "http_status",
+    "content_type",
+    "render_mode"
+  ],
+  "properties": {
+    "page_id": { "type": "string" },
+    "url": { "type": "string" },
+    "final_url": { "type": ["string", "null"] },
+    "http_status": { "type": "integer" },
+    "content_type": { "type": "string" },
+    "lang": { "type": ["string", "null"] },
+    "title": { "type": ["string", "null"] },
+    "robots": {
+      "type": "object",
+      "properties": {
+        "noindex": { "type": "boolean" },
+        "nofollow": { "type": "boolean" }
+      }
+    },
+    "canonical": { "type": ["string", "null"] },
+    "render_mode": { "type": "string", "enum": ["raw", "prerender", "full"] }
+  }
+}

@@ -17,6 +17,10 @@ export type {
   EdgeLocation,
   AtlasManifest,
   AtlasSummary,
+  AtlasPack,
+  AtlasPackName,
+  AtlasPackState,
+  ResponseRecordV1,
 } from '@atlas/spec';
 
 // Import types for use in union
@@ -28,6 +32,9 @@ import type {
   EventRecord, // Phase 7: Event log
   ConsoleRecord,
   ComputedTextNodeRecord,
+  AtlasPack,
+  AtlasPackName,
+  AtlasPackState,
 } from '@atlas/spec';
 
 // Re-export for convenience
@@ -70,9 +77,34 @@ export interface AccessibilityRecord {
 /**
  * Dataset names
  */
-export type DatasetName = "pages" | "edges" | "assets" | "errors" | "events" | "accessibility";
+export type DatasetName =
+  | "pages"
+  | "edges"
+  | "assets"
+  | "responses"
+  | "errors"
+  | "events"
+  | "accessibility"
+  | "dom_snapshots"
+  | "console"
+  | "styles"
+  | "perf"
+  | "performance"
+  | (string & {});
 
 /**
  * Union of all record types
  */
 export type AnyRecord = PageRecord | EdgeRecord | AssetRecord | ErrorRecord | AccessibilityRecord;
+
+export interface PackView {
+  all: AtlasPack[];
+  embedded: AtlasPack[];
+  sidecar: AtlasPack[];
+  missing: AtlasPack[];
+  get(name: AtlasPackName): AtlasPack | undefined;
+  has(name: AtlasPackName): boolean;
+  hasEmbedded(name: AtlasPackName): boolean;
+  sidecarUri(name: AtlasPackName): string | undefined;
+  state(name: AtlasPackName): AtlasPackState | undefined;
+}

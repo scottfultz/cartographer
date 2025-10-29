@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Assets Part v1",
+  "type": "object",
+  "required": ["page_id", "url", "asset_url", "content_type", "status"],
+  "properties": {
+    "page_id": { "type": "string" },
+    "url": { "type": "string" },
+    "asset_url": { "type": "string" },
+    "content_type": { "type": "string" },
+    "status": { "type": "integer" },
+    "bytes": { "type": ["integer", "null" ] }
+  }
+}

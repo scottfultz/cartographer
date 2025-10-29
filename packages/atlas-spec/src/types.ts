@@ -1125,6 +1125,18 @@ export type CrawlEvent =
   | { type: "crawl.shutdown"; crawlId: string; reason: "cancel"|"error"; seq: number; timestamp: string }
   | { type: "crawl.finished"; crawlId: string; manifestPath: string; incomplete: boolean; summary?: { pages: number; edges: number; assets: number; errors: number; durationMs: number }; perf?: { avgPagesPerSec: number; peakRssMB: number }; notes?: string[]; seq: number; timestamp: string };
 
+export type AtlasPackName = "Core" | "A11y-Light" | "A11y-Full" | "Perf" | "Visual";
+export type AtlasPackState = "embedded" | "sidecar" | "missing";
+
+export interface AtlasPack {
+  name: AtlasPackName;
+  version: string;
+  state: AtlasPackState;
+  uri?: string;
+  sha256?: string | null;
+  notes?: string[];
+}
+
 /**
  * Manifest for .atls file
  */
@@ -1140,6 +1152,24 @@ export interface AtlasManifest {
   };
   
   consumers: string[]; // ["Continuum SEO", "Horizon Accessibility"]
+
+  identity?: {
+    primary_origin?: string;
+    primaryOrigin?: string;
+    domain?: string;
+    publicSuffix?: string;
+    seed_urls?: string[];
+    seedUrls?: string[];
+  };
+
+  crawlContext?: {
+    mode?: RenderMode;
+    robots?: boolean;
+    urlNormalization?: string;
+    urlNormalizationRules?: string[];
+  };
+
+  packs?: AtlasPack[];
   
   // Crawl timing (Atlas v1.0 Enhancement - Phase 3)
   crawl_started_at?: string;    // ISO timestamp when crawl began
@@ -1219,7 +1249,11 @@ export interface AtlasManifest {
     pages: string[]; // ["pages/part-001.jsonl.zst", ...]
     edges: string[];
     assets: string[];
+    responses?: string[];
     errors: string[];
+    events?: string[];
+    accessibility?: string[];
+    dom_snapshots?: string[];
     console?: string[]; // Full mode only
     styles?: string[]; // Full mode only
   };
@@ -1228,7 +1262,11 @@ export interface AtlasManifest {
     pages: string; // "schemas/pages.schema.json#1"
     edges: string;
     assets: string;
+    responses?: string;
     errors: string;
+    events?: string;
+    accessibility?: string;
+    dom_snapshots?: string;
     console?: string; // Full mode only
     styles?: string; // Full mode only
   };
@@ -1245,6 +1283,8 @@ export interface AtlasManifest {
       schemaHash?: string;
       present?: boolean;
       parts?: number;
+      sidecarUri?: string;
+      sidecarSha256?: string | null;
       // Per-part integrity checksums (Atlas v1.0 Enhancement - Phase 2)
       integrity?: {
         algorithm: string;  // "sha256"
@@ -1320,6 +1360,8 @@ export interface AtlasManifest {
   notes: string[];
   
   integrity: {
+    algorithm?: string; // "sha256"
+    archiveSha256?: string; // Deterministic archive hash over sorted file hashes
     files: Record<string, string>; // filename -> sha256
     audit_hash?: string;           // SHA-256 of sorted concatenated part hashes (Merkle root)
   };
@@ -1585,9 +1627,11 @@ export interface AtlasManifestV1Enhanced {
     algorithm: string;            // "sha256"
     manifest_hash?: string;       // Hash of this manifest (excluding this field)
     archive_hash?: string;        // Hash of entire archive
+    archiveSha256?: string;       // New deterministic archive summary hash
     files: {
       [fileName: string]: string; // All files in archive -> sha256
     };
+    audit_hash?: string;          // Legacy Merkle hash
   };
   
   // === NOTES ===

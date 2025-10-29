@@ -6,10 +6,12 @@
 
 import { readFile, stat } from "fs/promises";
 import { sha256 } from "../../utils/hashing.js";
-import type { AtlasManifest, AtlasSummary } from "../../core/types.js";
+import type { AtlasManifest, AtlasSummary, RenderMode } from "../../core/types.js";
 import type { ProducerMetadata, EnvironmentSnapshot } from "../../utils/environmentCapture.js";
 import { readdir } from "fs/promises";
 import { join } from "path";
+import { planPacks } from "./packPlanner.js";
+import type { PlannedPack, DatasetPresence } from "./packPlanner.js";
 
 /**
  * Build Atlas manifest with owner attribution and integrity hashes
@@ -62,6 +64,8 @@ export async function buildManifest(opts: {
   environment?: EnvironmentSnapshot;
   crawlStartedAt?: string;
   crawlCompletedAt?: string;
+  packPlan?: PlannedPack[];
+  defaultPackVersion?: string;
 }): Promise<AtlasManifest> {
   const files: Record<string, string> = {};
   
@@ -449,6 +453,60 @@ export async function buildManifest(opts: {
     };
   }
 
+  const datasetPresence: DatasetPresence[] = Object.entries(datasets).map(([name, dataset]) => ({
+    name,
+    recordCount: dataset?.recordCount ?? 0
+  }));
+
+  const packPlan = opts.packPlan ?? planPacks({
+    renderMode: opts.renderMode as RenderMode,
+    datasets: datasetPresence,
+    hasScreenshots,
+    defaultVersion: opts.defaultPackVersion
+  });
+
+  const primaryOrigin = (() => {
+    if (summary?.identity?.primaryOrigin) return summary.identity.primaryOrigin;
+    if (opts.seeds && opts.seeds.length > 0) {
+      try {
+        return new URL(opts.seeds[0]).origin;
+      } catch {
+        return "";
+      }
+    }
+    return "";
+  })();
+
+  const derivedDomain = (() => {
+    if (!primaryOrigin) return "";
+    try {
+      return new URL(primaryOrigin).hostname;
+    } catch {
+      return "";
+    }
+  })();
+
+  const identityDomain = summary?.identity?.domain || derivedDomain;
+  const identityPublicSuffix = summary?.identity?.publicSuffix || (() => {
+    if (!identityDomain) return "";
+    const parts = identityDomain.split(".");
+    return parts.length > 1 ? parts[parts.length - 1] : identityDomain;
+  })();
+
+  const crawlContext = {
+    mode: opts.renderMode as RenderMode,
+    robots: opts.robotsRespect,
+    urlNormalization: "policy-1.0",
+    urlNormalizationRules: [
+      "lowercase-host",
+      "remove-default-port",
+      "strip-fragment",
+      "dedupe-slashes",
+      "remove-trailing-slash",
+      "sort-query-params"
+    ]
+  };
+
   const result: any = {
     atlasVersion: "1.0",
     formatVersion: "1.0.0", // Explicit format version for compatibility checks
@@ -459,11 +517,17 @@ export async function buildManifest(opts: {
       name: "Cai Frazier"
     },
     consumers: ["Continuum SEO", "Horizon Accessibility"],
+  packs: packPlan,
     // Declare project identity at manifest level
     identity: {
-      primary_origin: (summary?.identity?.primaryOrigin) || (opts.seeds && opts.seeds[0] ? new URL(opts.seeds[0]).origin : undefined),
+      primaryOrigin,
+      primary_origin: primaryOrigin,
+      domain: identityDomain,
+      publicSuffix: identityPublicSuffix,
+      seedUrls: opts.seeds || [],
       seed_urls: opts.seeds || []
     } as any,
+    crawlContext,
     crawl_started_at: opts.crawlStartedAt,
     crawl_completed_at: opts.crawlCompletedAt,
     producer: opts.producer,
@@ -607,18 +671,19 @@ export async function buildManifest(opts: {
       ...(opts.provenance?.checkpointInterval ? [`Checkpoint interval: ${opts.provenance.checkpointInterval} pages`] : []),
       ...(opts.provenance?.gracefulShutdown !== undefined ? [`Graceful shutdown: ${opts.provenance.gracefulShutdown}`] : [])
     ],
-    integrity: {
-      files,
-      // Audit hash (Merkle root) - Atlas v1.0 Enhancement Phase 3B
-      audit_hash: (() => {
-        // Sort file hashes by filename for deterministic ordering
-        const sortedHashes = Object.entries(files)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([_, hash]) => hash)
-          .join('');
-        return sha256(Buffer.from(sortedHashes));
-      })()
-    },
+    integrity: (() => {
+      const sortedHashes = Object.entries(files)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([_, hash]) => hash)
+        .join('');
+      const archiveSha256 = sha256(Buffer.from(sortedHashes));
+      return {
+        algorithm: "sha256",
+        archiveSha256,
+        audit_hash: archiveSha256,
+        files
+      };
+    })(),
     createdAt: new Date().toISOString(),
     generator: "cartographer-engine/1.0.0"
   };

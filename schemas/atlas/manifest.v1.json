@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Manifest v1",
+  "type": "object",
+  "required": [
+    "atlasVersion",
+    "schemaVersion",
+    "identity",
+    "crawlContext",
+    "packs",
+    "parts",
+    "integrity"
+  ],
+  "properties": {
+    "atlasVersion": { "type": "string", "const": "1.0" },
+    "schemaVersion": { "type": "string" },
+    "identity": {
+      "type": "object",
+      "required": ["primaryOrigin", "domain", "publicSuffix"],
+      "properties": {
+        "primaryOrigin": { "type": "string" },
+        "domain": { "type": "string" },
+        "publicSuffix": { "type": "string" }
+      }
+    },
+    "crawlContext": {
+      "type": "object",
+      "required": ["mode", "robots", "urlNormalization", "urlNormalizationRules"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["raw", "prerender", "full"] },
+        "robots": { "type": "boolean" },
+        "urlNormalization": { "type": "string", "const": "policy-1.0" },
+        "urlNormalizationRules": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "packs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "version", "state"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["Core", "A11y-Light", "A11y-Full", "Perf", "Visual"]
+          },
+          "version": { "type": "string" },
+          "state": { "type": "string", "enum": ["embedded", "sidecar", "missing"] },
+          "uri": { "type": "string" },
+          "sha256": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "path",
+          "contentType",
+          "contentEncoding",
+          "recordCount",
+          "bytesCompressed",
+          "bytesUncompressed",
+          "sha256"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "version": { "type": "integer" },
+          "path": { "type": "string" },
+          "contentType": { "type": "string" },
+          "contentEncoding": { "type": "string" },
+          "recordCount": { "type": "integer", "minimum": 0 },
+          "bytesCompressed": { "type": "integer", "minimum": 0 },
+          "bytesUncompressed": { "type": "integer", "minimum": 0 },
+          "sha256": { "type": "string" },
+          "dependsOn": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "consumerRequirements": {
+      "type": "object",
+      "properties": {
+        "Horizon": { "type": "array", "items": { "type": "string" } },
+        "Vector": { "type": "array", "items": { "type": "string" } },
+        "Continuum": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "wcag": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "string", "default": "2.2" },
+        "levels": { "type": "array", "items": { "type": "string" } },
+        "offlineReaudit": { "type": "boolean" },
+        "captures": {
+          "type": "object",
+          "properties": {
+            "dom": { "type": "boolean" },
+            "stylesheets": { "type": "boolean" },
+            "computedStyles": { "type": ["string", "boolean"] },
+            "a11yTree": { "type": "boolean" },
+            "ariaRefs": { "type": "boolean" },
+            "forms": { "type": "boolean" },
+            "images": { "type": "boolean" },
+            "screenshots": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "perf": {
+      "type": "object",
+      "properties": {
+        "labMetrics": { "type": "boolean" },
+        "networkTimings": { "type": "boolean" },
+        "resources": { "type": "boolean" }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "required": ["archiveSha256"],
+      "properties": {
+        "archiveSha256": { "type": "string" }
+      }
+    }
+  }
+}

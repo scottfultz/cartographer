@@ -21,6 +21,21 @@ console.log([...atlas.datasets]); // ['pages', 'edges', 'assets', 'errors', 'acc
 if (atlas.datasets.has('accessibility')) {
   // Accessibility data is present
 }
+
+if (atlas.hasDataset('responses')) {
+  // Raw HTML responses have been embedded
+}
+```
+
+### Inspect Packs
+```typescript
+console.log(atlas.packs.all.map((pack) => `${pack.name}:${pack.state}`));
+
+if (atlas.packs.hasEmbedded('Visual')) {
+  console.log('Screenshots are embedded in the archive');
+} else if (atlas.packs.state('Visual') === 'sidecar') {
+  console.log(`Screenshots stored in sidecar: ${atlas.packs.sidecarUri('Visual')}`);
+}
 ```
 
 ### Iterate Pages
@@ -34,6 +49,15 @@ for await (const page of atlas.readers.pages()) {
 ```typescript
 for await (const record of atlas.readers.accessibility()) {
   console.log(record.pageUrl, record.missingAltCount);
+}
+
+for await (const response of atlas.readers.responses()) {
+  console.log(response.pageId, response.sha256);
+}
+
+// Fallback for any dataset name
+for await (const record of atlas.readers.dataset('dom_snapshots')) {
+  console.log(record.page_id, record.node_count);
 }
 ```
 

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Links Part v1",
+  "type": "object",
+  "required": ["page_id", "url", "target_page_id", "target_url"],
+  "properties": {
+    "page_id": { "type": "string" },
+    "url": { "type": "string" },
+    "target_page_id": { "type": "string" },
+    "target_url": { "type": "string" },
+    "rel": { "type": ["string", "null"] },
+    "nofollow": { "type": "boolean" }
+  }
+}

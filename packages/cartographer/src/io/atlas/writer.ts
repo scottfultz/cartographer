@@ -30,6 +30,8 @@ import { buildCapabilities } from "./capabilitiesBuilder.js";
 import { ProvenanceTracker } from "./provenanceTracker.js";
 import type { AtlasCapabilitiesV1 } from '@atlas/spec';
 import { captureProducerMetadata, captureEnvironmentSnapshot, type ProducerMetadata, type EnvironmentSnapshot } from "../../utils/environmentCapture.js";
+import { planPacks } from "./packPlanner.js";
+import type { PlannedPack } from "./packPlanner.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1218,8 +1220,15 @@ export class AtlasWriter {
         producer: this.producerMetadata,
         environment: this.environmentSnapshot,
         crawlStartedAt: this.crawlStartedAt,
-        crawlCompletedAt: this.crawlCompletedAt
+        crawlCompletedAt: this.crawlCompletedAt,
+        defaultPackVersion: "1.0.0"
       });
+
+      const plannedPacks = (manifest as any).packs as PlannedPack[] | undefined;
+      if (plannedPacks && plannedPacks.length > 0) {
+        const summary = plannedPacks.map(pack => `${pack.name}:${pack.state}`).join(", ");
+        log("debug", `[AtlasWriter] Pack plan → ${summary}`);
+      }
       manifest.incomplete = true;
       await writeFile(manifestPath + ".tmp", JSON.stringify(manifest, null, 2));
       // Atomically rename manifest to manifest.json (incomplete=true)

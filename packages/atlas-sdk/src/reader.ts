@@ -1,15 +1,3 @@
-/**
- * Iterate over all JSONL records in a subdir (pages, edges, etc)
- */
-export async function* iterateParts(
-  atlsPath: string,
-  subdir: "pages" | "edges" | "assets" | "errors" | "accessibility"
-): AsyncIterable<string> {
-  const partFiles = await getPartFiles(atlsPath, subdir);
-  for (const partFile of partFiles) {
-    yield* streamPartFile(atlsPath, partFile);
-  }
-}
 /*
  * Copyright © 2025 Cai Frazier.
  * All rights reserved. Unauthorized copying, modification, or distribution is prohibited.
@@ -19,6 +7,20 @@ export async function* iterateParts(
 import { open, Entry, ZipFile } from "yauzl";
 import { Readable } from "stream";
 import { decompress } from "@mongodb-js/zstd";
+import type { DatasetName } from "./types.js";
+
+/**
+ * Iterate over all JSONL records in a subdir (pages, edges, etc)
+ */
+export async function* iterateParts(
+  atlsPath: string,
+  subdir: DatasetName
+): AsyncIterable<string> {
+  const partFiles = await getPartFiles(atlsPath, subdir);
+  for (const partFile of partFiles) {
+    yield* streamPartFile(atlsPath, partFile);
+  }
+}
 
 /**
  * Read manifest.json from .atls archive
@@ -162,7 +164,7 @@ async function getPartFiles(atlsPath: string, subdir: string): Promise<string[]>
  */
 export async function* iterateDataset(
   atlsPath: string,
-  dataset: string
+  dataset: DatasetName
 ): AsyncIterable<string> {
   const partFiles = await getPartFiles(atlsPath, dataset);
   

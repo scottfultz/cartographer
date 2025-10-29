@@ -50,6 +50,26 @@ export const validateCommand: CommandModule = {
         }
         console.log();
       }
+
+      if (result.packs) {
+        console.log(`📦 Pack Validation:`);
+        if (result.packs.valid) {
+          console.log(`   ✓ Pack declarations match dataset coverage`);
+        } else {
+          console.log(`   ✗ Pack validation issues detected:`);
+          result.packs.errors?.forEach(err => console.log(`     - ${err}`));
+        }
+
+        if (result.packs.summary.length > 0) {
+          console.log();
+          for (const pack of result.packs.summary) {
+            const noteSuffix = pack.notes && pack.notes.length > 0 ? ` (notes: ${pack.notes.join("; ")})` : "";
+            const issueSuffix = pack.issues && pack.issues.length > 0 ? ` [issues: ${pack.issues.join(", ")}]` : "";
+            console.log(`     - ${pack.name.padEnd(10)} → ${pack.state}${noteSuffix}${issueSuffix}`);
+          }
+        }
+        console.log();
+      }
       
       // Print capabilities validation
       if (result.capabilities) {

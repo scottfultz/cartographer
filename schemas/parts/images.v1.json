@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Images Part v1",
+  "type": "object",
+  "required": ["page_id", "url", "src", "alt", "missingAlt"],
+  "properties": {
+    "page_id": { "type": "string" },
+    "url": { "type": "string" },
+    "src": { "type": "string" },
+    "alt": { "type": ["string", "null"] },
+    "missingAlt": { "type": "boolean" }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas ARIA References Part v1",
+  "type": "object",
+  "required": ["page_id", "url", "aria_id", "resolved"],
+  "properties": {
+    "page_id": { "type": "string" },
+    "url": { "type": "string" },
+    "aria_id": { "type": "string" },
+    "resolved": { "type": "boolean" }
+  }
+}
