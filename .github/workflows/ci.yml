@@ -23,6 +23,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Prepare workspace directories
+      run: mkdir -p tmp
     
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
@@ -121,6 +124,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Prepare workspace directories
+      run: mkdir -p tmp
     
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
@@ -139,8 +145,19 @@ jobs:
     - name: Build
       run: pnpm build
     
-    - name: Validate example archives
+    - name: Generate control archive (crawler-test.com)
       run: |
-        echo "Validating Atlas v1.0 archive format..."
-        node packages/cartographer/dist/cli/index.js validate archive/biaofolympia_raw.atls
-      continue-on-error: true
+        echo "Running control crawl against crawler-test.com..."
+        node packages/cartographer/dist/cli/index.js crawl \
+          --seeds https://crawler-test.com/ \
+          --out tmp/crawler-test-control.atls \
+          --mode prerender \
+          --maxPages 25 \
+          --maxDepth 3 \
+          --quiet
+      timeout-minutes: 10
+
+    - name: Validate control archive
+      run: |
+        echo "Validating control Atlas archive..."
+        node packages/cartographer/dist/cli/index.js validate --atls tmp/crawler-test-control.atls

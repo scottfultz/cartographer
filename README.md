@@ -2,67 +2,33 @@
 
 [![CI](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml/badge.svg)](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-527%20passing-brightgreen)](https://github.com/scottfultz/cartographer/actions)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-719%20passing-brightgreen)](https://github.com/scottfultz/cartographer/actions)
+[![License](https://img.shields.io/badge/license-UNLICENSED-red)](LICENSE)
 
-A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** archive files. Cartographer Engine writes structured, compressed archives consumed by the Continuum application.
+Cartographer Engine is a production-grade headless web crawler that emits **Atlas v1.0 (`.atls`)** archives for downstream analytics, accessibility auditing, and sitemap generation.
 
 **Owner:** Cai Frazier  
-**Status:** Beta (Systematic Validation In Progress)  
+**Status:** Beta (actively validated)  
 **Version:** 1.0.0-beta.1
 
 ### Current Stability
 
-- **Unit Tests:** ✅ All passing (565/570 tests, 98.9% pass rate)
-- **Integration Tests:** ⚠️ 5 environment-specific failures in CI ([details](REMAINING_TEST_FAILURES.md))
-- **Core Functionality:** ✅ Validated and stable
-- **Production Use:** ⚠️ Beta - Systematic validation 27% complete ([status](FEATURE_STATUS_MATRIX.md))
+- **Vitest Suite:** ✅ 719 tests passing across unit, integration, and smoke coverage
+- **CI Matrix:** ✅ GitHub Actions builds on Node.js 20 and 22 (see [workflow](.github/workflows/ci.yml))
+- **Atlas QA:** ✅ Automated control crawl against https://crawler-test.com/ on every CI run
+- **Known Gaps:** ⚠️ Refer to [REMAINING_TEST_FAILURES.md](REMAINING_TEST_FAILURES.md) for environment-specific skips and follow-up items
 
-### Validation Status (27% Complete)
+### Validation Status Snapshot
 
-**Phase 1: CLI Commands** ✅ 100% Complete (6/6 commands validated)
-- ✅ `crawl` - All 3 render modes tested on real sites
-- ✅ `export` - All 11 report types working (pages, edges, assets, errors, accessibility, redirects, noindex, canonicals, sitemap, social, images)
-  - ⚠️ **Note:** Enhanced analysis reports (redirects, noindex, canonicals, sitemap, social, images) are **temporary** and will be moved to Continuum before RC
-- ✅ `validate` - Archive integrity validation working
-- ✅ `version`, `stress`, `tail` - Basic functionality verified
+Program-level validation is tracked in [FEATURE_STATUS_MATRIX.md](FEATURE_STATUS_MATRIX.md) and milestone reports under `docs/`. Highlights:
 
-**Phase 2: Core Features** 🔄 60% Complete
-- ✅ Render modes validated (raw, prerender, full)
-- ✅ Concurrency & RPS limiting tested
-- ✅ Challenge detection confirmed (Cloudflare bypass working)
-- ✅ Robots.txt compliance logging working
-- ⏸️ Session persistence, checkpoints, URL filtering, privacy mode (not yet tested)
+- **CLI Coverage:** All published commands (`crawl`, `export`, `validate`, `version`, `stress`, `tail`) exercised in automated tests
+- **Render Modes:** Raw, prerender, and full modes validated on real-world target sites, including WCAG audits in full mode
+- **Atlas Integrity:** Pack planning and validation enforced via `validate --atls` using the reusable pack plan validator introduced in 2025-10
+- **Compliance & Reporting:** Robots.txt decisions, challenge detection, and CSV exports captured in tests and CI artifacts
 
-**Phase 3: WCAG Enhancements** 🔄 57% Complete
-- ✅ All 7 WCAG enhancements validated on real site data:
-  - ✅ Multiple Ways (2.4.5) - Site maps, search, breadcrumbs detection
-  - ✅ Sensory Characteristics (1.3.3) - Shape/color/size/location references
-  - ✅ Images of Text (1.4.5) - Text-in-image detection
-  - ✅ Navigation Elements (3.2.3) - Link extraction for consistency analysis
-  - ✅ Component Identification (4.1.2) - Button/link/icon ARIA labels
-  - ✅ Pointer Cancellation (2.5.2) - Runtime mousedown/touchstart checks
-  - ✅ On Focus Context Change - Runtime onfocus handler checks
-- ⏸️ Unit tests for WCAG functions (0% coverage)
-- ⏸️ Cross-page WCAG analyzer (not yet implemented)
-
-**Phases 4-5: Not Started** ❌
-- Edge case testing (network errors, content issues, resource limits)
-- Performance benchmarking (large sites, concurrency scaling)
-
-**Known Issues:**
-- 🐛 **FIXED:** Accessibility CSV export was missing from CLI (now working)
-- ⚠️ Schema validation warnings (cosmetic, doesn't affect functionality)
-- ⚠️ 5 integration test failures (environment-specific, not blocking)
-
-**Documentation:**
-- ✅ [Command-Line Usage Guide](docs/COMMAND_LINE_GUIDE.md)
-- ✅ [WCAG Accessibility Testing Guide](docs/WCAG_USAGE_GUIDE.md)
-- ✅ [Feature Status Matrix](FEATURE_STATUS_MATRIX.md)
-- ⏸️ API documentation (JSDoc comments needed)
-
-**Recommendation:** Core crawling and export functionality is production-ready. WCAG data collection validated on real sites. Needs additional testing coverage (unit tests, edge cases) and documentation before full production release.
+See the roadmap in [docs/ATLAS_V1_IMPLEMENTATION_PLAN.md](docs/ATLAS_V1_IMPLEMENTATION_PLAN.md) for remaining phases and acceptance criteria.
 
 ---
 
@@ -91,7 +57,7 @@ A production-grade headless web crawler that produces **Atlas v1.0 (.atls)** arc
 
 ---
 
-## � 10-Minute Quickstart
+## 10-Minute Quickstart
 
 Want to see Cartographer in action? Run the built-in demo that crawls a test site and validates the output:
 
@@ -121,7 +87,7 @@ pnpm demo:quickstart
 
 ---
 
-## �📦 Monorepo Structure
+## Monorepo Structure
 
 Cartographer is organized as a pnpm + Turbo monorepo with shared workspace packages:
 
@@ -130,7 +96,7 @@ cartographer/
 ├── packages/
 │   ├── cartographer/         # Main crawler engine
 │   │   ├── src/              # TypeScript source code
-│   │   ├── test/             # Vitest test suites (570 tests)
+│   │   ├── test/             # Vitest test suites (700+ tests)
 │   │   └── dist/             # Compiled JavaScript
 │   ├── atlas-spec/           # @atlas/spec - Type definitions
 │   │   └── src/types.ts      # Shared Atlas v1.0 types
@@ -191,7 +157,7 @@ pnpm dev -- crawl --seeds https://example.com
 
 ---
 
-## � Responsible Crawling
+## Responsible Crawling
 
 Cartographer Engine is designed with ethical crawling practices at its core:
 
@@ -222,17 +188,16 @@ For detailed policies and compliance documentation, see [SECURITY.md](SECURITY.m
 
 ---
 
-## �🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 
 ### Test Coverage
 
-- **570 Test Cases** across 41 test suites (using Vitest)
-- **98.9% Pass Rate** - 564/570 tests passing
-- **Node.js 20 & 22** - Full CI matrix on both LTS versions
-- **Automated CI** - GitHub Actions with artifact preservation
-- **Test Artifacts** - All test runs preserved for 7 days with downloadable results
+- **719 Test Cases** across 56 test files (Vitest 2.1.9)
+- **Pass Rate:** 100% on Node.js 20 & 22 in the current CI matrix
+- **Automated CI:** GitHub Actions with artifact preservation for 7 days
+- **Atlas Validation:** Control crawl and `validate --atls` run on every workflow execution
 
-**Test Status:** 5 remaining failures are integration/smoke tests (error budget timing, rate limit validation, NDJSON event count, accessibility full-mode requirements, atlas-sdk archive finalization). See [REMAINING_TEST_FAILURES.md](REMAINING_TEST_FAILURES.md) for details.
+**Test Status:** Environment-specific skips and follow-ups are documented in [REMAINING_TEST_FAILURES.md](REMAINING_TEST_FAILURES.md).
 
 **View Live Results:** [GitHub Actions CI Runs](https://github.com/scottfultz/cartographer/actions/workflows/ci.yml)
 
@@ -240,17 +205,17 @@ For detailed policies and compliance documentation, see [SECURITY.md](SECURITY.m
 
 | Category | Tests | Coverage |
 |----------|-------|----------|
-| **Extractors** | 68+ | Links, assets, SEO, accessibility, WCAG, runtime a11y |
+| **Extractors** | 70+ | Links, assets, SEO, accessibility, WCAG, runtime a11y |
 | **Integration** | 25+ | End-to-end crawl workflows |
-| **Atlas Format** | 30+ | Archive creation, validation, compression |
+| **Atlas Format** | 30+ | Archive creation, validation, compression, pack planning |
 | **CLI Commands** | 20+ | Crawl, export, validate, stress testing |
 | **Edge Cases** | 40+ | Checkpoints, rate limiting, error budgets |
-| **Performance** | 15+ | Network metrics, Lighthouse, benchmarks |
+| **Performance** | 15+ | Network metrics, benchmarks, crawl throughput |
 | **Data Quality** | 30+ | Schema validation, integrity checks |
 | **Wappalyzer** | 9 | Technology detection |
 | **Enhanced SEO** | 15 | Metadata, indexability, hreflang |
 | **Enhanced Links** | 5 | Sponsored/UGC attributes |
-| **Logging** | 29 | NDJSON structured logging, state management |
+| **Logging** | 30+ | NDJSON structured logging, state management |
 
 ### Running Tests
 
@@ -284,7 +249,7 @@ Our CI pipeline runs on every push and pull request:
 1. **Build & Test Matrix** - Node.js 20 and 22
 2. **Workspace Setup** - pnpm install with frozen lockfile
 3. **Turbo Build** - All packages built with caching
-4. **Unit Tests** - 570 tests with Vitest
+4. **Unit Tests** - 719 tests with Vitest
 5. **Integration Tests** - Real crawl validation
 6. **Performance Benchmark** - Automated benchmarking with artifacts
 7. **Archive Validation** - Schema and integrity checks
@@ -581,7 +546,7 @@ node packages/cartographer/dist/cli/index.js crawl \
 
 ---
 
-## �️ Safety & Ethics
+## Safety & Ethics
 
 Cartographer Engine is designed with **responsible crawling** as a core principle. All safety features are enabled by default to ensure respectful interaction with web servers.
 
@@ -840,7 +805,7 @@ node dist/cli/index.js crawl \
 
 ---
 
-## �🔧 CI/CD Recipes
+## CI/CD Recipes
 
 ### Quiet Mode + JSON Output
 
