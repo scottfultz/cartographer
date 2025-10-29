@@ -20,6 +20,8 @@
     "typecheck": "tsc -b",
     "clean": "turbo run clean && rimraf node_modules/.cache",
     "demo:quickstart": "cd packages/cartographer && node scripts/demo-quickstart.js",
+    "labyrinth:server": "node tools/labyrinth-server.mjs",
+    "test:stress-local": "node scripts/run-labyrinth-stress.mjs",
     "release": "changeset version && pnpm install --no-frozen-lockfile && turbo run build && changeset publish",
     "prepare": "husky install || true"
   },

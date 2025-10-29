@@ -61,6 +61,13 @@ npm run test:all           # Everything (unit + integration + fixtures)
 | `npm run test:all` | ~90s | Complete test suite + fixtures |
 | `npm run test:count` | ~5s | Count tests and generate report |
 
+### Stress Testing (Labyrinth)
+
+- The procedural stress harness is documented in `docs/testing/LABYRINTH_STRESS_TESTS.md`.
+- Run the bundled smoke scenario after building with `pnpm test:stress-local`.
+- Start the server standalone for ad-hoc crawls with `pnpm labyrinth:server`.
+- Capture results from longer drills in `docs/STRESS_TEST_RESULTS.md` for history.
+
 ### Individual Test Files
 
 ```bash

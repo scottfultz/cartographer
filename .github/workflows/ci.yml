@@ -142,6 +142,9 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
     
+    - name: Install Playwright browsers
+      run: pnpm --filter @cf/cartographer exec playwright install --with-deps chromium
+
     - name: Build
       run: pnpm build
     
